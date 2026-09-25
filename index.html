@@ -50,7 +50,7 @@ textarea{resize:vertical}
 .chip.on{background:var(--head);color:#fff;border-color:var(--head)}
 .chip.late.on{background:var(--bad);border-color:var(--bad)}
 .tag{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;font-weight:700;white-space:nowrap}
-.t-受注{background:#eee7dc;color:var(--ink2)}.t-準備中{background:var(--ready);color:#6b4d00}.t-用意完了{background:#e6d9a8;color:#5a4200}.t-発送手配済{background:var(--ship);color:#1f4a7a}.t-納品済{background:var(--ok-soft);color:var(--ok-ink)}.t-キャンセル{background:#e8e3dc;color:#999;text-decoration:line-through}
+.t-受注{background:#eee7dc;color:var(--ink2)}.t-準備中{background:var(--ready);color:#6b4d00}.t-用意完了{background:#e6d9a8;color:#5a4200}.t-発送手配済{background:var(--ship);color:#1f4a7a}.t-納品済{background:var(--ok-soft);color:var(--ok-ink)}.t-納品確認待ち{background:var(--warn-soft);color:#8a5a00;border:1px solid #e6c97a}.t-キャンセル{background:#e8e3dc;color:#999;text-decoration:line-through}
 .t-late{background:var(--bad-soft);color:var(--bad)}
 .t-cat{background:var(--ok-soft);color:var(--ok-ink)}.t-cat.加工品{background:var(--ready);color:#6b4d00}.t-cat.種苗{background:var(--ship);color:#1f4a7a}
 .card{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
@@ -482,6 +482,11 @@ $('reloadBtn').onclick=()=>reload();
 
 /* ===== 集計ヘルパ ===== */
 const active=o=>!['納品済','キャンセル'].includes(o.status);
+// 発送手配済で納品予定日を過ぎた（当日含む）ものは「納品確認待ち」として表示。納品済にすると自然に消える
+const remDays=d=>{const n=diffD(d,TODAY);return n>0?`あと${n}日`:n===0?'今日':`${-n}日超過`};
+const dispStatus=o=>o.status==='発送手配済'&&d0(TODAY)>=d0(o.deliver)?'納品確認待ち':o.status;
+const TRACK={'ヤマト運輸':n=>`https://toi.kuronekoyamato.co.jp/cgi-bin/tneko?number00=1&number01=${n}`,'佐川急便':n=>`https://k2k.sagawa-exp.co.jp/p/web/okurijosearch.do?okurijoNo=${n}`,'西濃運輸':n=>`https://track.seino.co.jp/kamotsu/GempyoNoShokai.do?GNPNO1=${n}`,'福山通運':n=>`https://corp.fukutsu.co.jp/situation/tracking_no_hunt/${n}`,'日本郵便':n=>`https://trackings.post.japanpost.jp/services/srv/search/direct?reqCodeNo1=${n}`};
+const trackUrl=o=>{const c=o.act.carrier||o.carrier;const n=String(o.act.waybill||'').replace(/[^0-9A-Za-z]/g,'');return TRACK[c]&&n?TRACK[c](n):''};
 const shippedAt=o=>o.act.shipAt||null;
 const readyKgOn=d=>ORDERS.filter(o=>active(o)&&o.readyFix&&ymd(o.readyFix)===ymd(d)&&!o.act.readyAt).reduce((s,o)=>s+o.kg,0);
 const imoKg=o=>o.lines.filter(l=>l.item==='さつまいも'&&l.unit==='kg').reduce((s,l)=>s+l.qty,0);
@@ -512,11 +517,11 @@ function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');clear
 /* ===== 一覧 ===== */
 let lstStatus='all';
 function renderList(){
-  const cnt=s=>ORDERS.filter(o=>active(o)&&(s==='all'||o.status===s)).length;
-  $('lstChips').innerHTML=[['all','進行中すべて'],['受注','受注（日程未定）'],['準備中','準備中'],['用意完了','用意完了'],['発送手配済','発送手配済']].map(([k,l])=>`<button class="chip ${lstStatus===k?'on':''}" data-k="${k}">${l} ${cnt(k)}</button>`).join('');
+  const cnt=s=>ORDERS.filter(o=>active(o)&&(s==='all'||dispStatus(o)===s)).length;
+  $('lstChips').innerHTML=[['all','進行中すべて'],['受注','受注（日程未定）'],['準備中','準備中'],['用意完了','用意完了'],['発送手配済','発送手配済'],['納品確認待ち','納品確認待ち']].map(([k,l])=>`<button class="chip ${lstStatus===k?'on':''}" data-k="${k}">${l} ${cnt(k)}</button>`).join('');
   $('lstChips').onclick=e=>{const b=e.target.closest('.chip');if(b){lstStatus=b.dataset.k;renderList()}};
   const q=$('lstQ').value.trim();const sort=$('lstSort').value;
-  let list=ORDERS.filter(o=>active(o)&&(lstStatus==='all'||o.status===lstStatus)&&(!q||(custOf(o.cust).name+o.no+o.lines.map(l=>l.item).join()).includes(q)));
+  let list=ORDERS.filter(o=>active(o)&&(lstStatus==='all'||dispStatus(o)===lstStatus)&&(!q||(custOf(o.cust).name+o.no+o.lines.map(l=>l.item).join()).includes(q)));
   const key=o=>sort==='deliver'?o.deliver:sort==='ready'?(o.readyFix||o.readySug):sort==='ship'?(o.shipFix||o.shipSug):-parseInt(o.no.slice(1));
   list.sort((a,b)=>key(a)-key(b));
   $('olist').innerHTML=list.map(o=>{
@@ -524,9 +529,9 @@ function renderList(){
     const rd=a.readyAt?`<div class="dt r done ${diffD(a.readyAt,o.readyFix)>0?'late':''}"><span>① 用意 済</span><b>${md(a.readyAt)}</b>${diffD(a.readyAt,o.readyFix)>0?`遅れ${diffD(a.readyAt,o.readyFix)}日`:'期限どおり'}</div>`
       :o.readyFix?`<div class="dt r ${diffD(o.readyFix,TODAY)<0?'late':''}"><span>① 用意期限</span><b>${md(o.readyFix)}</b>${diffD(o.readyFix,TODAY)<0?'期限超過':diffD(o.readyFix,TODAY)===0?'今日':`あと${diffD(o.readyFix,TODAY)}日`}</div>`:`<div class="dt r todo"><span>① 用意</span><b>未定</b>提案 ${md(o.readySug)}</div>`;
     const sh=a.shipAt?`<div class="dt s done"><span>② 発送 済</span><b>${md(a.shipAt)}</b>${a.carrier}</div>`:o.shipFix?`<div class="dt s"><span>② 発送手配</span><b>${md(o.shipFix)}</b>予定</div>`:`<div class="dt s todo"><span>② 発送</span><b>未定</b>提案 ${md(o.shipSug)}</div>`;
-    const dv=`<div class="dt d"><span>③ 納品</span><b>${md(o.deliver)}</b>${diffD(o.deliver,TODAY)===0?'今日':`あと${diffD(o.deliver,TODAY)}日`}</div>`;
+    const dv=`<div class="dt d"><span>③ 納品</span><b>${md(o.deliver)}</b>${diffD(o.deliver,TODAY)===0?'今日':`${remDays(o.deliver)}`}</div>`;
     return `<div class="oc" data-no="${o.no}"><div><div class="nm">${esc(c.name)} <span class="tag t-cat ${o.cat}">${o.cat}</span></div><div class="sub">${lineSummary(o)}</div></div>
-    <div style="text-align:right"><span class="tag t-${o.status}">${o.status}</span><div class="dim">${o.no}　営業 ${esc(o.sales)}</div></div>
+    <div style="text-align:right"><span class="tag t-${dispStatus(o)}">${dispStatus(o)}</span><div class="dim">${o.no}　営業 ${esc(o.sales)}</div></div>
     <div class="dts"><div class="dt o"><span>受注</span><b>${md(o.date)}</b>${o.kg?fmt(o.kg)+'kg':fmt(o.lines[0].qty)+o.lines[0].unit}${o.boxes?'・'+o.boxes+'箱':''}</div>${rd}${sh}${dv}</div></div>`}).join('')||'<p class="dim">該当なし</p>';
   $('olist').onclick=e=>{const c=e.target.closest('.oc');if(c)openOrder(c.dataset.no)};
 }
@@ -551,11 +556,12 @@ function openOrder(no){
   const next={'受注':null,'準備中':'用意完了','用意完了':'発送手配済','発送手配済':'納品済'}[o.status];
   const acts=[];
   if(o.status==='受注')acts.push(`<button class="btn acc blk" data-a="sched">日程を決める（②発送手配日・①用意期限）</button>`);
-  if(next)acts.push(`<button class="btn pri blk" data-a="next">「${next}」にする</button>`);
+  if(o.status==='発送手配済'){const u=trackUrl(o);acts.push(u?`<a class="btn blk" style="display:block;text-align:center;text-decoration:none;margin-bottom:8px" href="${u}" target="_blank" rel="noopener">🚚 配送状況を確認（${esc(o.act.carrier||o.carrier)}　伝票 ${esc(o.act.waybill)}）</a>`:`<div class="alert" style="margin-bottom:8px">追跡には運送会社と伝票No.が必要です${o.act.waybill?'（この運送会社の追跡は未対応）':'。「内容を編集」ではなく「発送手配済」の記録に伝票No.を入れてください'}</div>`)}
+  if(next)acts.push(`<button class="btn pri blk" data-a="next">「${next}」にする${next==='納品済'&&dispStatus(o)==='納品確認待ち'?'（確認できたら）':''}</button>`);
   const sub=[];if(active(o)){sub.push(`<button class="btn" data-a="edit">内容を編集</button>`);if(o.readyFix)sub.push(`<button class="btn" data-a="sched">日程を変える</button>`);sub.push(`<button class="btn warn" data-a="cancel">キャンセル</button>`)}
   sub.push(`<button class="btn" data-a="close">閉じる</button>`);
   modal(`<h2>${esc(c.name)} <span class="tag t-cat ${o.cat}">${o.cat}</span></h2>
-  <div class="meta"><span>${o.no}</span><span>受注日 ${md(o.date)}</span><span>営業 ${esc(o.sales)}</span><span class="tag t-${o.status}">${o.status}</span><span>${o.method}${o.carrier?'・'+o.carrier:'・運送会社は流通が選ぶ'}</span><span>③納品 ${mdw(o.deliver)}${active(o)?`　あと${diffD(o.deliver,TODAY)}日`:''}</span></div>
+  <div class="meta"><span>${o.no}</span><span>受注日 ${md(o.date)}</span><span>営業 ${esc(o.sales)}</span><span class="tag t-${dispStatus(o)}">${dispStatus(o)}</span><span>${o.method}${o.carrier?'・'+o.carrier:'・運送会社は流通が選ぶ'}</span><span>③納品 ${mdw(o.deliver)}${active(o)?`　${remDays(o.deliver)}`:''}</span></div>
   ${acts.join('')}<div class="acts" style="margin-bottom:12px">${sub.join('')}</div>
   <div class="kv"><span class="k">明細</span><span>${o.lines.map(l=>`${l.item} ${l.size}　<b>${fmt(l.qty)} ${l.unit}</b>　${l.pack}${l.boxes?`　${l.boxes}箱`:''}`).join('<br>')}${o.kg?`<br><b>計 ${fmt(o.kg)} kg${o.boxes?'・'+o.boxes+'箱':''}</b>`:''}</span></div>
   <div class="kv"><span class="k">送り先</span><span>〒${c.zip} ${esc(c.addr)}　${esc(c.attn)}　${c.tel}<br><span class="dim">受入 ${c.hours||'—'}　不可 ${c.closed||'—'}　${esc(c.note)}</span></span></div>
@@ -659,7 +665,7 @@ function renderWeek(){
   const st=(at,plan,lab)=>at?`<span class="act ${plan&&diffD(at,plan)>0?'late':''}">${md(at)} 済</span>`:plan?`${lab}${md(plan)}`:'<span class="dim">未定</span>';
   const NX={'準備中':'用意完了','用意完了':'発送手配済','発送手配済':'納品済'};
   const row=o=>{const c=custOf(o.cust);const next=NX[o.status];
-    return `<tr class="click ${o.act.shipAt?'done':''}" data-no="${o.no}"><td><b>${md(sd(o))}</b><span class="pv">${'日月火水木金土'[sd(o).getDay()]}</span></td><td><b>${esc(c.name)}</b><span class="pv">${o.no}</span></td><td>${lineSummary(o)}</td><td class="r">${o.kg?fmt(o.kg)+' kg':''}${o.boxes?`<span class="pv">${o.boxes}箱</span>`:''}</td><td>${o.readyFix?st(o.act.readyAt,o.readyFix,'期限'):'<span class="dim">在庫出し</span>'}</td><td>${st(o.act.shipAt,o.shipFix,'予定')}<span class="pv">${o.act.carrier||o.carrier||''}</span></td><td>${st(o.act.deliverAt,o.deliver,'')}</td><td><span class="tag t-${o.status}">${o.status}</span></td><td class="ga">${o.status==='受注'?`<button class="btn sm acc" data-s="${o.no}">日程</button>`:next&&!o.act.shipAt?`<button class="btn sm pri" data-n="${o.no}">${next}へ</button>`:''}</td></tr>`};
+    return `<tr class="click ${o.act.shipAt?'done':''}" data-no="${o.no}"><td><b>${md(sd(o))}</b><span class="pv">${'日月火水木金土'[sd(o).getDay()]}</span></td><td><b>${esc(c.name)}</b><span class="pv">${o.no}</span></td><td>${lineSummary(o)}</td><td class="r">${o.kg?fmt(o.kg)+' kg':''}${o.boxes?`<span class="pv">${o.boxes}箱</span>`:''}</td><td>${o.readyFix?st(o.act.readyAt,o.readyFix,'期限'):'<span class="dim">在庫出し</span>'}</td><td>${st(o.act.shipAt,o.shipFix,'予定')}<span class="pv">${o.act.carrier||o.carrier||''}</span></td><td>${st(o.act.deliverAt,o.deliver,'')}</td><td><span class="tag t-${dispStatus(o)}">${dispStatus(o)}</span></td><td class="ga">${o.status==='受注'?`<button class="btn sm acc" data-s="${o.no}">日程</button>`:next&&!o.act.shipAt?`<button class="btn sm pri" data-n="${o.no}">${next}へ</button>`:dispStatus(o)==='納品確認待ち'?`<button class="btn sm pri" data-n="${o.no}">納品済へ</button>`:''}</td></tr>`};
   $('wkShip').innerHTML=`<h3>今週の出荷 ${rows.length}件（納品日がこの週）<span>残り ${todo.length}件　済み ${done.length}件　さつまいも ${t(W.kg)}（予定込み ${t(W.kg+W.plan)}）</span></h3>
     <div class="tw"><table class="shp"><tr><th>納品</th><th>顧客</th><th>明細</th><th class="r">量</th><th>① 用意</th><th>② 発送</th><th>③ 納品</th><th>状態</th><th></th></tr>${todo.map(row).join('')||'<tr><td colspan="9" class="dim">未発送はありません</td></tr>'}
     ${done.length?`<tr><td colspan="9" style="padding:4px 10px"><button class="btn sm" style="font-weight:400;color:var(--mute)" data-toggle="done">${wkShowDone.has('list')?'済みを隠す':`済み ${done.length}件を表示`}</button></td></tr>`:''}${wkShowDone.has('list')?done.map(row).join(''):''}</table></div>`;
