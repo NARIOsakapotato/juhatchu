@@ -464,7 +464,7 @@ function build(d){
     let c=custOf(String(r['顧客コード']));if(!c){c={code:String(r['顧客コード']||''),name:'（未登録 '+(r['顧客コード']||'')+'）',kind:'',cats:[],zip:'',addr:'',addr1:'',addr2:'',attn:'',tel:'',method:'宅配便',carrier:'',lead:1,hours:'',closed:'',active:true,reg:'スポット',since:'',note:''};CUST.push(c)}
     const lines=(linesBy[r.NO]||[]).sort((a,b)=>(Number(a['行'])||0)-(Number(b['行'])||0)).map(l=>({item:String(l['品目']||''),size:String(l['規格']||''),pack:String(l['荷姿']||''),qty:Number(l['数量'])||0,unit:l['単位']||'kg',per:l['入数']===''||l['入数']===undefined?'':Number(l['入数']),boxes:Number(l['箱数'])||''}));
     const deliver=pdt(r['納品日'])||new Date();const lead=Number(c.lead)||1;const it=ITEMS.find(i=>i.name===(lines[0]||{}).item);
-    return {no:String(r.NO),date:pdt(r['受注日時'])||new Date(),cust:c.code,cat:r['カテゴリ']||(it&&it.cat)||'青果',lines,kg:lines.filter(l=>l.unit==='kg').reduce((s,l)=>s+l.qty,0),boxes:lines.reduce((s,l)=>s+(l.boxes||0),0),deliver,lead,
+    return {no:String(r.NO),date:pdt(r['受注日時'])||new Date(),cust:c.code,cat:r['カテゴリ']||(it&&it.cat)||'青果',lines,kg:lines.reduce((s,l)=>s+lineKg(l),0),boxes:lines.reduce((s,l)=>s+(l.boxes||0),0),deliver,lead,
       shipFix:pdt(r['発送手配日']),readyFix:pdt(r['用意期限']),shipSug:addD(deliver,-lead),readySug:addD(deliver,-lead-1),status:r['状態']||'受注',sales:r['営業担当']||'',note:r['申し送り']||'',method:r['配送方法']||'宅配便',carrier:r['運送会社']||'',addrAlt:r['送り先別']||'',schedBy:r['日程決定者']||'',
       act:{readyAt:pdt(r['用意完了日時']),readyBy:r['用意担当']||'',readyReason:r['用意理由']||'',readyNote:r['用意メモ']||'',readyBoxes:r['実箱数']!==''&&r['実箱数']!==undefined?Number(r['実箱数']):undefined,shipAt:pdt(r['発送手配日時']),shipBy:r['手配担当']||'',carrier:r['運送会社']||'',waybill:r['伝票No']||'',pieces:Number(r['個口数'])||undefined,shipNote:r['手配メモ']||'',deliverAt:pdt(r['納品確認日時']),deliverBy:r['納品担当']||'',deliverNote:r['納品メモ']||''},
       events:(evBy[r.NO]||[]).map(e=>({t:e['種別']||'',at:pdt(e['日時'])||new Date(),by:e['担当']||'',m:e['内容']||'',late:Number(e['遅れ日数'])||0,plan:pdt(e['予定日'])})).sort((a,b)=>a.at-b.at)};
@@ -491,9 +491,11 @@ const TRACK={'ヤマト運輸':n=>`https://toi.kuronekoyamato.co.jp/cgi-bin/tnek
 const trackUrl=o=>{const c=o.act.carrier||o.carrier;const n=String(o.act.waybill||'').replace(/[^0-9A-Za-z]/g,'');return TRACK[c]&&n?TRACK[c](n):''};
 const shippedAt=o=>o.act.shipAt||null;
 const readyKgOn=d=>ORDERS.filter(o=>active(o)&&o.readyFix&&ymd(o.readyFix)===ymd(d)&&!o.act.readyAt).reduce((s,o)=>s+o.kg,0);
-const imoKg=o=>o.lines.filter(l=>l.item==='さつまいも'&&l.unit==='kg').reduce((s,l)=>s+l.qty,0);
+const BAG_KG=0.55;// 袋詰1袋≒550g を kg換算に含める
+const lineKg=l=>l.item!=='さつまいも'?0:l.unit==='kg'?l.qty:l.unit==='袋'?l.qty*BAG_KG:0;
+const imoKg=o=>o.lines.reduce((s,l)=>s+lineKg(l),0);
 const otherKg=o=>o.lines.filter(l=>l.item==='玉ねぎ').reduce((s,l)=>s+l.qty,0);
-const kakoQty=o=>o.lines.filter(l=>ITEMS.find(i=>i.name===l.item).cat==='加工品').reduce((s,l)=>s+l.qty,0);
+const kakoQty=o=>o.lines.filter(l=>(ITEMS.find(i=>i.name===l.item)||{}).cat==='加工品').reduce((s,l)=>s+l.qty,0);
 const naeQty=o=>o.lines.filter(l=>l.item==='苗').reduce((s,l)=>s+l.qty,0);
 const bagQty=o=>o.lines.filter(l=>l.unit==='袋'&&l.item==='さつまいも').reduce((s,l)=>s+l.qty,0);
 const isLate=o=>o.events.some(e=>e.late>0);
@@ -504,7 +506,7 @@ function weekStats(mon){
   const shipped=ORDERS.filter(o=>o.status!=='キャンセル'&&o.act.shipAt&&inW(o.deliver));
   const planned=ORDERS.filter(o=>active(o)&&!o.act.shipAt&&inW(o.deliver));
   const kg=shipped.reduce((s,o)=>s+imoKg(o),0);const plan=planned.reduce((s,o)=>s+imoKg(o),0);
-  const sizes={};shipped.forEach(o=>o.lines.forEach(l=>{if(l.item==='さつまいも'&&l.unit==='kg')sizes[l.size]=(sizes[l.size]||0)+l.qty}));
+  const sizes={};shipped.forEach(o=>o.lines.forEach(l=>{const k=lineKg(l),n=l.size||'規格なし';if(k)sizes[n]=(sizes[n]||0)+k}));
   return {mon,sun,shipped,planned,kg,plan,sizes,onion:shipped.reduce((s,o)=>s+otherKg(o),0),kako:shipped.reduce((s,o)=>s+kakoQty(o),0),nae:shipped.reduce((s,o)=>s+naeQty(o),0),bags:shipped.reduce((s,o)=>s+bagQty(o),0),boxes:shipped.reduce((s,o)=>s+(o.act.pieces||o.boxes),0),late:shipped.filter(isLate).length,count:shipped.length};
 }
 
@@ -921,7 +923,7 @@ function quickStrip(){
   const mkg=(m0,m1)=>ORDERS.filter(o=>o.status!=='キャンセル'&&o.act.shipAt&&d0(o.deliver)>=m0&&d0(o.deliver)<=m1).reduce((s,o)=>s+imoKg(o),0);
   const Y=TODAY.getFullYear(),M=TODAY.getMonth();const tm=mkg(new Date(Y,M,1),new Date(Y,M+1,0)),lm=mkg(new Date(Y,M-1,1),new Date(Y,M,0));
   const k=(l,v,sub,cls='')=>`<div class="kpi ${cls}"><small>${l}</small><b>${(v/1000).toFixed(2)}</b><span class="u"> t</span><span class="dim"><br>${sub}</span></div>`;
-  $('hQuick').innerHTML=k('今週 出荷',tw.kg,`${md(tw.mon)}〜　目標比 ${Math.round(tw.kg/SETTINGS.targetKg*100)}%`,'hi')+k('先週 出荷',lw.kg,`${md(lw.mon)}〜${md(lw.sun)}`)+k('今月 出荷',tm,`${M+1}月（進行中）`)+k('先月 出荷',lm,`${((M+11)%12)+1}月`)+(()=>{const g={};ORDERS.filter(o=>o.status!=='キャンセル'&&o.act.shipAt&&o.deliver.getMonth()===M&&o.deliver.getFullYear()===Y).forEach(o=>o.lines.forEach(l=>{if(l.item==='さつまいも'&&l.unit==='kg')g[l.size]=(g[l.size]||0)+l.qty}));const top=Object.entries(g).sort((a,b)=>b[1]-a[1])[0];return `<div class="kpi"><small>今月いちばん出た規格</small><b style="font-size:18px">${top?top[0]:'—'}</b><span class="dim"><br>${top?fmt(top[1])+'kg（'+Math.round(top[1]/Object.values(g).reduce((a,b)=>a+b,0)*100)+'%）':''}　規格別は週集計／月集計へ</span></div>`})();
+  $('hQuick').innerHTML=k('今週 出荷',tw.kg,`${md(tw.mon)}〜　目標比 ${Math.round(tw.kg/SETTINGS.targetKg*100)}%`,'hi')+k('先週 出荷',lw.kg,`${md(lw.mon)}〜${md(lw.sun)}`)+k('今月 出荷',tm,`${M+1}月（進行中）`)+k('先月 出荷',lm,`${((M+11)%12)+1}月`)+(()=>{const g={};ORDERS.filter(o=>o.status!=='キャンセル'&&o.act.shipAt&&o.deliver.getMonth()===M&&o.deliver.getFullYear()===Y).forEach(o=>o.lines.forEach(l=>{const k=lineKg(l),n=l.size||'規格なし';if(k)g[n]=(g[n]||0)+k}));const top=Object.entries(g).sort((a,b)=>b[1]-a[1])[0];return `<div class="kpi"><small>今月いちばん出た規格</small><b style="font-size:18px">${top?top[0]:'—'}</b><span class="dim"><br>${top?fmt(top[1])+'kg（'+Math.round(top[1]/Object.values(g).reduce((a,b)=>a+b,0)*100)+'%）':''}　規格別は週集計／月集計へ</span></div>`})();
 }
 function renderHist(){
   quickStrip();
@@ -951,7 +953,7 @@ function histOrders(){
   $('hBody').onclick=e=>{if(e.target.id==='hToCust'){cSel=qc.code;switchTab('cust');return}const r=e.target.closest('[data-no]');if(r)openOrder(r.dataset.no)};
 }
 const GRADES_=()=>(ITEMS.find(i=>i.name==='さつまいも')||{sizes:[]}).sizes;
-function gradeCard(rows,title){const g={};let tot=0;rows.forEach(o=>o.lines.forEach(l=>{if(l.item==='さつまいも'&&l.unit==='kg'){g[l.size]=(g[l.size]||0)+l.qty;tot+=l.qty}}));
+function gradeCard(rows,title){const g={};let tot=0;rows.forEach(o=>o.lines.forEach(l=>{const k=lineKg(l),n=l.size||'規格なし';if(k){g[n]=(g[n]||0)+k;tot+=k}}));
   const list=[...new Set([...GRADES_(),...Object.keys(g)])].map(k=>[k,g[k]||0]).sort((a,b)=>b[1]-a[1]);const mx=list[0]?.[1]||1;
   return `<div class="card sec"><h3>規格別 出荷量（さつまいも）　${title}<span>多い順。棒＝kg、右＝割合</span></h3>
   ${list.map(([k,v],i)=>`<div class="row" style="gap:10px;margin:5px 0"><span style="width:130px;font-weight:${i===0?800:600};color:${i===0?'var(--accent)':'inherit'}">${i===0?'① ':''}${k}</span><div style="flex:1;height:18px;background:#eee7dc;border-radius:999px;overflow:hidden"><i style="display:block;height:100%;width:${v/mx*100}%;background:${i===0?'var(--accent)':'var(--ok)'};border-radius:999px"></i></div><span class="r" style="width:90px;text-align:right;font-variant-numeric:tabular-nums"><b>${fmt(v)}</b> kg</span><span class="dim" style="width:44px;text-align:right">${tot?Math.round(v/tot*100):0}%</span></div>`).join('')}
