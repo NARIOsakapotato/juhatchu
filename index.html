@@ -250,6 +250,7 @@ tr.sum td{background:var(--bg);font-weight:700;border-top:2px solid var(--line2)
 .login h2{font-size:18px;margin-bottom:4px}
 .login .lbl{margin-top:12px}
 .login .err{color:var(--bad);font-size:13px;min-height:18px;margin-top:8px}
+.pw{position:relative}.pw input{padding-right:44px}.pw input.mask{-webkit-text-security:disc;text-security:disc}.pw button{position:absolute;right:4px;top:50%;transform:translateY(-50%);border:none;background:none;font-size:18px;padding:6px;cursor:pointer;opacity:.6}.pw button.on{opacity:1}
 .busy{position:fixed;top:0;left:0;right:0;height:3px;background:var(--accent);z-index:99;transform:scaleX(0);transform-origin:left;transition:transform .4s}
 .busy.on{transform:scaleX(.7)}
 .hd .me{font-size:13px;color:#e8e0d4}
@@ -259,7 +260,7 @@ tr.sum td{background:var(--bg);font-weight:700;border-top:2px solid var(--line2)
 <div class="busy" id="busy"></div>
 <div class="login" id="login" hidden><div class="box"><h2>🍠 受発注管理</h2><p class="dim">名前を選んで合言葉を入れてください（この端末に記憶されます）</p>
   <label class="lbl">名前</label><select id="lgUser"></select>
-  <label class="lbl">合言葉</label><input type="password" id="lgKey" autocomplete="current-password">
+  <label class="lbl">合言葉</label><div class="pw"><input type="text" id="lgKey" class="mask" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" inputmode="text" placeholder="日本語でも入力できます"><button type="button" id="lgEye" title="表示／非表示">👁</button></div>
   <div class="err" id="lgErr"></div>
   <button class="btn acc blk" id="lgOk" style="margin-top:8px">はじめる</button></div></div>
 
@@ -477,6 +478,7 @@ function showLogin(msg){$('login').hidden=false;$('lgErr').textContent=msg||'';d
 $('lgOk').onclick=async()=>{ME=$('lgUser').value;KEY=$('lgKey').value;$('lgErr').textContent='確認中…';
   try{const d=await api('init',{});localStorage.setItem('juhatchu_user',ME);localStorage.setItem('juhatchu_key',KEY);$('login').hidden=true;build(d);switchTab('list')}catch(e){$('lgErr').textContent=e.message}};
 $('lgKey').onkeydown=e=>{if(e.key==='Enter')$('lgOk').click()};
+$('lgEye').onclick=()=>{const i=$('lgKey');i.classList.toggle('mask');$('lgEye').classList.toggle('on',!i.classList.contains('mask'));i.focus()};
 $('logoutBtn').onclick=()=>{localStorage.removeItem('juhatchu_key');KEY='';showLogin('ログアウトしました')};
 $('reloadBtn').onclick=()=>reload();
 
