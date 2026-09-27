@@ -713,7 +713,7 @@ function renderForm(){
   $('fLines').onclick=e=>{const b=e.target.closest('[data-del]');if(b){F.lines.splice(b.dataset.del,1);renderForm()}};
   $('fAddLine').onclick=()=>{F.lines.push(newLine());renderForm()};
   const kg=F.lines.filter(l=>ITEMS.find(x=>x.name===l.item).packs.find(p=>p.n===l.pack)?.u==='kg').reduce((s,l)=>s+(Number(l.qty)||0),0);
-  $('fSum').innerHTML=`合計 <b>${fmt(kg)} kg</b>　${F.lines.length}明細<br><span class="dim">規格：極小／小／中／大／傷／奇形（細かいg指定は申し送りへ）。袋詰（1袋550g）は規格の代わりに1袋の本数（3〜6本入り）を選ぶ。箱数と数量はどちらを入れても片方が自動で入る（10kg箱＝10kg、袋詰箱＝24袋）</span>`;
+  $('fSum').innerHTML=`合計 <b>${fmt(kg)} kg</b>　${F.lines.length}明細<br><span class="dim">規格：極小／小／中／大／傷／奇形（細かいg指定は申し送りへ）。袋詰（1袋550g）は規格の代わりに1袋の本数（3〜6本入り）を選ぶ。箱数と数量はどちらを入れても片方が自動で入る（10kg箱＝10kg、袋詰箱＝18袋か24袋）</span>`;
   const q=$('fCustQ').value.trim();
   const cands=CUST.filter(c=>c.reg==='継続'&&(c.cats.includes(F.cat))&&(!q||c.name.includes(q)));
   $('fSugg').innerHTML=cands.map(c=>`<button class="${F.cust===c.code?'on':''}" data-c="${c.code}"><b>${esc(c.name)}</b> <span class="dim">${c.kind}　配送${c.lead}日　${c.hours}</span></button>`).join('');
