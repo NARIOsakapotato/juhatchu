@@ -423,7 +423,7 @@ let SETTINGS={targetKg:5000,workdays:'月〜土',from:'',to:''};
 let REASONS=[],CARRIERS=[],CANCEL_REASONS=[],DELIVER_HOW=[],STAFF_NAMES=[],SETTING_ROWS=[],OPT={};
 let ITEMS=[],CUST=[],ORDERS=[];
 const custOf=c=>CUST.find(x=>x.code===c);
-const PACK_ALIAS={'コンテナ（バラ）':'折り畳みコンテナ','袋詰 10kg箱（18袋入）':'袋詰 10kg箱','袋詰 10kg箱（24袋入）':'袋詰 10kg箱','袋詰 5kg箱（9袋入）':'袋詰 10kg箱'};
+const PACK_ALIAS={'コンテナ（バラ）':'野菜コンテナ（バラ）','袋詰 10kg箱（18袋入）':'袋詰 10kg箱','袋詰 10kg箱（24袋入）':'袋詰 10kg箱','袋詰 5kg箱（9袋入）':'袋詰 10kg箱'};
 function line(item,size,pack,qty,perOverride){const it=ITEMS.find(i=>i.name===item);pack=PACK_ALIAS[pack]||pack;const p=(it&&it.packs.find(x=>x.n===pack))||(it&&it.packs[0])||{n:pack,u:'kg',per:''};const per=p.per?(Number(perOverride)||p.per):'';return {item,size,pack:p.n,qty,unit:p.u,per,boxes:per?Math.ceil(qty/per):''}}
 
 /* ===== API ===== */
