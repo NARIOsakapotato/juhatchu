@@ -423,7 +423,8 @@ let SETTINGS={targetKg:5000,workdays:'月〜土',from:'',to:''};
 let REASONS=[],CARRIERS=[],CANCEL_REASONS=[],DELIVER_HOW=[],STAFF_NAMES=[],SETTING_ROWS=[],OPT={};
 let ITEMS=[],CUST=[],ORDERS=[];
 const custOf=c=>CUST.find(x=>x.code===c);
-function line(item,size,pack,qty){const it=ITEMS.find(i=>i.name===item);const p=(it&&it.packs.find(x=>x.n===pack))||(it&&it.packs[0])||{n:pack,u:'kg',per:''};return {item,size,pack:p.n,qty,unit:p.u,per:p.per,boxes:p.per?Math.ceil(qty/p.per):''}}
+const PACK_ALIAS={'コンテナ（バラ）':'折り畳みコンテナ','袋詰 10kg箱（18袋入）':'袋詰 10kg箱','袋詰 10kg箱（24袋入）':'袋詰 10kg箱','袋詰 5kg箱（9袋入）':'袋詰 10kg箱'};
+function line(item,size,pack,qty,perOverride){const it=ITEMS.find(i=>i.name===item);pack=PACK_ALIAS[pack]||pack;const p=(it&&it.packs.find(x=>x.n===pack))||(it&&it.packs[0])||{n:pack,u:'kg',per:''};const per=p.per?(Number(perOverride)||p.per):'';return {item,size,pack:p.n,qty,unit:p.u,per,boxes:per?Math.ceil(qty/per):''}}
 
 /* ===== API ===== */
 let ME='',KEY='';
@@ -692,8 +693,8 @@ function renderWeek(){
 
 /* ===== 登録 ===== */
 let F={cat:'青果',item:'さつまいも',lines:[],cust:null,editNo:null,mode:'pick',reg:'継続'};
-function newLine(){const it=ITEMS.find(i=>i.name===F.item);return {item:it.name,size:it.sizes[0],pack:it.packs[0].n,qty:''}}
-function loadForm(o){F={cat:o.cat,item:(o.lines[0]||{}).item||'さつまいも',lines:o.lines.map(l=>({item:l.item,size:l.size,pack:l.pack,qty:l.qty})),cust:o.cust,editNo:o.no,mode:'pick',reg:'継続',carrierTouched:true};$('fDeliver').value=ymd(o.deliver);$('fNote').value=o.note;$('fSales').value=o.sales;$('fCustQ').value=custOf(o.cust).name;$('fMethod').value=o.method||'宅配便';setTimeout(()=>{$('fCarrier').value=o.carrier||''},0);$('fAltOn').checked=!!o.addrAlt;$('fAlt').value=o.addrAlt||'';$('fAlt').hidden=!o.addrAlt}
+function newLine(){const it=ITEMS.find(i=>i.name===F.item);return {item:it.name,size:it.sizes[0],pack:it.packs[0].n,qty:'',per:''}}
+function loadForm(o){F={cat:o.cat,item:(o.lines[0]||{}).item||'さつまいも',lines:o.lines.map(l=>({item:l.item,size:l.size,pack:PACK_ALIAS[l.pack]||l.pack,qty:l.qty,per:l.per||''})),cust:o.cust,editNo:o.no,mode:'pick',reg:'継続',carrierTouched:true};$('fDeliver').value=ymd(o.deliver);$('fNote').value=o.note;$('fSales').value=o.sales;$('fCustQ').value=custOf(o.cust).name;$('fMethod').value=o.method||'宅配便';setTimeout(()=>{$('fCarrier').value=o.carrier||''},0);$('fAltOn').checked=!!o.addrAlt;$('fAlt').value=o.addrAlt||'';$('fAlt').hidden=!o.addrAlt}
 function renderForm(){
   if(!$('fDeliver').value)$('fDeliver').value=ymd(addD(TODAY,3));if(!$('fSales').value)$('fSales').value=ME;
   if(!ITEMS.length){toast('品目マスタが空です');return}if(!ITEMS.find(i=>i.name===F.item)){F.item=(ITEMS.find(i=>i.cat===F.cat)||ITEMS[0]).name;F.cat=ITEMS.find(i=>i.name===F.item).cat}
@@ -704,16 +705,17 @@ function renderForm(){
   $('fItems').onclick=e=>{const b=e.target.closest('[data-i]');if(b){F.item=b.dataset.i;F.lines.push(newLine());renderForm()}};
   $('fLines').innerHTML=F.lines.map((l,i)=>{const it=ITEMS.find(x=>x.name===l.item);const p=it.packs.find(x=>x.n===l.pack)||it.packs[0];
     const sizes=p.bag?it.bagSizes:it.sizes;if(!sizes.includes(l.size))l.size=sizes[0];
-    const boxes=p.per&&l.qty?Math.ceil(l.qty/p.per):'';
-    return `<div class="line"><div class="lf"><small>品目</small><b>${l.item}</b></div><div class="lf"><small>${p.bag?'1袋の本数':'規格'}</small><select data-i="${i}" data-f="size">${sizes.map(s=>`<option ${s===l.size?'selected':''}>${s}</option>`).join('')}</select></div><div class="lf"><small>荷姿</small><select data-i="${i}" data-f="pack">${it.packs.map(x=>`<option ${x.n===l.pack?'selected':''}>${x.n}</option>`).join('')}</select></div><div class="brk"></div>${p.per?`<div class="lf"><small>箱数</small><span class="s"><input type="number" data-i="${i}" data-f="boxes" value="${boxes}" placeholder="箱" style="width:70px"> 箱</span></div><div class="lf eq">＝</div>`:''}<div class="lf"><small>数量（${p.u}）${p.per?`<span class="dim">1箱${p.per}${p.u}</span>`:''}</small><span class="s"><input type="number" data-i="${i}" data-f="qty" value="${l.qty}" placeholder="${p.u}で入力" style="width:90px"> ${p.u}</span></div><div class="lf"><small>&nbsp;</small><button class="btn sm" data-del="${i}" title="この明細を消す">×</button></div></div>`}).join('');
+    const per=p.per?(Number(l.per)||p.per):'';const boxes=per&&l.qty?Math.ceil(l.qty/per):'';
+    return `<div class="line"><div class="lf"><small>品目</small><b>${l.item}</b></div><div class="lf"><small>${p.bag?'1袋の本数':'規格'}</small><select data-i="${i}" data-f="size">${sizes.map(s=>`<option ${s===l.size?'selected':''}>${s}</option>`).join('')}</select></div><div class="lf"><small>荷姿</small><select data-i="${i}" data-f="pack">${it.packs.map(x=>`<option ${x.n===l.pack?'selected':''}>${x.n}</option>`).join('')}</select></div><div class="brk"></div>${p.per?`<div class="lf"><small>箱数</small><span class="s"><input type="number" data-i="${i}" data-f="boxes" value="${boxes}" placeholder="箱" style="width:70px"> 箱</span></div>${p.bag?`<div class="lf eq">×</div><div class="lf"><small>1箱の袋数</small><span class="s"><input type="number" data-i="${i}" data-f="per" value="${per}" style="width:60px"> 袋</span></div>`:''}<div class="lf eq">＝</div>`:''}<div class="lf"><small>数量（${p.u}）${p.per&&!p.bag?`<span class="dim">1箱${p.per}${p.u}</span>`:''}</small><span class="s"><input type="number" data-i="${i}" data-f="qty" value="${l.qty}" placeholder="${p.u}で入力" style="width:90px"> ${p.u}</span></div><div class="lf"><small>&nbsp;</small><button class="btn sm" data-del="${i}" title="この明細を消す">×</button></div></div>`}).join('');
   $('fLines').onchange=e=>{const el=e.target;const f=el.dataset.f;if(!f)return;const l=F.lines[el.dataset.i];
-    if(f==='boxes'){const it=ITEMS.find(x=>x.name===l.item);const p=it.packs.find(x=>x.n===l.pack)||it.packs[0];l.qty=el.value===''?'':Number(el.value)*(p.per||1)}
+    if(f==='boxes'){const it=ITEMS.find(x=>x.name===l.item);const p=it.packs.find(x=>x.n===l.pack)||it.packs[0];l.qty=el.value===''?'':Number(el.value)*((p.bag&&Number(l.per))||p.per||1)}
+    else if(f==='per'){const it=ITEMS.find(x=>x.name===l.item);const p=it.packs.find(x=>x.n===l.pack)||it.packs[0];const oldPer=Number(l.per)||p.per||18;const boxes=l.qty?Math.ceil(l.qty/oldPer):0;l.per=Number(el.value)||'';const newPer=l.per||p.per||18;if(boxes)l.qty=boxes*newPer}
     else l[f]=f==='qty'?(el.value===''?'':Number(el.value)):el.value;
     setTimeout(renderForm,0)};
   $('fLines').onclick=e=>{const b=e.target.closest('[data-del]');if(b){F.lines.splice(b.dataset.del,1);renderForm()}};
   $('fAddLine').onclick=()=>{F.lines.push(newLine());renderForm()};
   const kg=F.lines.filter(l=>ITEMS.find(x=>x.name===l.item).packs.find(p=>p.n===l.pack)?.u==='kg').reduce((s,l)=>s+(Number(l.qty)||0),0);
-  $('fSum').innerHTML=`合計 <b>${fmt(kg)} kg</b>　${F.lines.length}明細<br><span class="dim">規格：極小／小／中／大／傷／奇形（細かいg指定は申し送りへ）。袋詰（1袋550g）は規格の代わりに1袋の本数（3〜6本入り）を選ぶ。箱数と数量はどちらを入れても片方が自動で入る（10kg箱＝10kg、袋詰箱＝18袋か24袋）</span>`;
+  $('fSum').innerHTML=`合計 <b>${fmt(kg)} kg</b>　${F.lines.length}明細<br><span class="dim">規格：極小／小／中／大／傷／奇形（細かいg指定は申し送りへ）。袋詰（1袋550g）は規格の代わりに1袋の本数（3〜6本入り）を選ぶ。箱数と数量はどちらを入れても片方が自動で入る（10kg箱＝10kg、袋詰箱は1箱18袋が基本・袋数は変えられる）</span>`;
   const q=$('fCustQ').value.trim();
   const cands=CUST.filter(c=>c.reg==='継続'&&(c.cats.includes(F.cat))&&(!q||c.name.includes(q)));
   $('fSugg').innerHTML=cands.map(c=>`<button class="${F.cust===c.code?'on':''}" data-c="${c.code}"><b>${esc(c.name)}</b> <span class="dim">${c.kind}　配送${c.lead}日　${c.hours}</span></button>`).join('');
@@ -736,7 +738,7 @@ $('fSave').onclick=async()=>{
   else if(!F.cust){toast('顧客を選んでください');return}
   if(!$('fDeliver').value){toast('納品日を入れてください');return}
   if(F.lines.some(l=>!l.qty)){toast('数量を入れてください');return}
-  const lines=F.lines.map(l=>line(l.item,l.size,l.pack,Number(l.qty)));
+  const lines=F.lines.map(l=>line(l.item,l.size,l.pack,Number(l.qty),l.per));
   const lrows=lines.map(l=>({'品目':l.item,'規格':l.size,'荷姿':l.pack,'数量':l.qty,'単位':l.unit,'入数':l.per,'箱数':l.boxes}));
   const alt=$('fAltOn').checked?$('fAlt').value:'';
   const sales=$('fSales').value||ME;
