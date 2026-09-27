@@ -225,7 +225,7 @@ tr.sum td{background:var(--bg);font-weight:700;border-top:2px solid var(--line2)
 .cats button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
 .items button{padding:6px 12px;border-radius:999px;border:1px solid var(--line2);background:var(--paper);margin:0 6px 6px 0;font-weight:700;font-size:13px}
 .items button.on{background:var(--head);color:#fff;border-color:var(--head)}
-.line{display:grid;grid-template-columns:1.2fr .8fr 1.2fr .8fr auto;gap:6px;align-items:center;margin:6px 0;font-size:13px}
+.line{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:flex-end;margin:8px 0;padding:8px 10px;background:var(--bg,#faf8f6);border:1px solid #eee;border-radius:10px;font-size:13px}.line .lf{display:flex;flex-direction:column;gap:3px}.line .lf small{font-size:11px;color:#888}.line .lf.eq{font-size:18px;color:#999;padding-bottom:6px}.line .s{white-space:nowrap}.line select{max-width:200px}.line .brk{flex-basis:100%;height:0}.line .lf small .dim{margin-left:4px}
 .line select,.line input{padding:6px 8px;font-size:14px}
 .sugg{display:flex;flex-direction:column;gap:4px;margin:6px 0}
 .sugg button{text-align:left;padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:var(--paper2);font-size:13px}
@@ -240,7 +240,7 @@ tr.sum td{background:var(--bg);font-weight:700;border-top:2px solid var(--line2)
 .ci b{font-size:14px}
 .cbar{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--ink2)}
 .cbar i{display:inline-block;height:8px;border-radius:999px;background:var(--ok)}
-@media (max-width:900px){.two,.cust{grid-template-columns:1fr}.days,.wk{grid-template-columns:repeat(4,1fr)}.olist{grid-template-columns:1fr}.line{grid-template-columns:1fr 1fr;} .hd h1{font-size:15px}}
+@media (max-width:900px){.two,.cust{grid-template-columns:1fr}.days,.wk{grid-template-columns:repeat(4,1fr)}.olist{grid-template-columns:1fr}.line{gap:6px} .hd h1{font-size:15px}}
 @media (max-width:520px){.days,.wk{grid-template-columns:repeat(2,1fr)}.frm{grid-template-columns:1fr}.tab{font-size:13px}}
 @media (prefers-reduced-motion:reduce){.toast{transition:none}}
 
@@ -368,7 +368,7 @@ tr.sum td{background:var(--bg);font-weight:700;border-top:2px solid var(--line2)
         <label>出勤</label><div id="bShift" class="sumbox" style="margin:0"></div>
         <label>人数・時間</label><div><div class="s"><input type="number" id="bPeople" style="width:70px"> 人　<input type="number" id="bHours" step="0.5" style="width:90px"> h</div><span class="dim" id="bEdited" style="display:block;margin-top:3px">シフトから自動。違えば直す</span></div>
         <label>350g 袋</label><div class="s"><input type="number" id="b350" placeholder="例 710" style="width:110px"> 袋</div>
-        <label>600g 袋</label><div class="s"><input type="number" id="b600" placeholder="例 2106" style="width:110px"> 袋</div>
+        <label>550g 袋</label><div class="s"><input type="number" id="b600" placeholder="例 2106" style="width:110px"> 袋</div>
         <label>メモ</label><input id="bMemo" placeholder="例：規格外多め、4本入り中心">
         <label></label><div><button class="btn sm" id="bReset">シフトの値に戻す</button></div>
       </div>
@@ -704,12 +704,16 @@ function renderForm(){
   $('fItems').onclick=e=>{const b=e.target.closest('[data-i]');if(b){F.item=b.dataset.i;F.lines.push(newLine());renderForm()}};
   $('fLines').innerHTML=F.lines.map((l,i)=>{const it=ITEMS.find(x=>x.name===l.item);const p=it.packs.find(x=>x.n===l.pack)||it.packs[0];
     const sizes=p.bag?it.bagSizes:it.sizes;if(!sizes.includes(l.size))l.size=sizes[0];
-    return `<div class="line"><span><b>${l.item}</b></span><select data-i="${i}" data-f="size" title="${p.bag?'1袋の本数':'規格'}">${sizes.map(s=>`<option ${s===l.size?'selected':''}>${s}</option>`).join('')}</select><select data-i="${i}" data-f="pack">${it.packs.map(x=>`<option ${x.n===l.pack?'selected':''}>${x.n}</option>`).join('')}</select><input type="number" data-i="${i}" data-f="qty" value="${l.qty}" placeholder="数量"><span class="dim">${p.u}${p.per&&l.qty?`・${Math.ceil(l.qty/p.per)}箱`:''} <button class="btn sm" data-del="${i}">×</button></span></div>`}).join('');
-  $('fLines').onchange=e=>{const el=e.target;if(el.dataset.f){F.lines[el.dataset.i][el.dataset.f]=el.dataset.f==='qty'?Number(el.value):el.value;setTimeout(renderForm,0)}};
+    const boxes=p.per&&l.qty?Math.ceil(l.qty/p.per):'';
+    return `<div class="line"><div class="lf"><small>品目</small><b>${l.item}</b></div><div class="lf"><small>${p.bag?'1袋の本数':'規格'}</small><select data-i="${i}" data-f="size">${sizes.map(s=>`<option ${s===l.size?'selected':''}>${s}</option>`).join('')}</select></div><div class="lf"><small>荷姿</small><select data-i="${i}" data-f="pack">${it.packs.map(x=>`<option ${x.n===l.pack?'selected':''}>${x.n}</option>`).join('')}</select></div><div class="brk"></div>${p.per?`<div class="lf"><small>箱数</small><span class="s"><input type="number" data-i="${i}" data-f="boxes" value="${boxes}" placeholder="箱" style="width:70px"> 箱</span></div><div class="lf eq">＝</div>`:''}<div class="lf"><small>数量（${p.u}）${p.per?`<span class="dim">1箱${p.per}${p.u}</span>`:''}</small><span class="s"><input type="number" data-i="${i}" data-f="qty" value="${l.qty}" placeholder="${p.u}で入力" style="width:90px"> ${p.u}</span></div><div class="lf"><small>&nbsp;</small><button class="btn sm" data-del="${i}" title="この明細を消す">×</button></div></div>`}).join('');
+  $('fLines').onchange=e=>{const el=e.target;const f=el.dataset.f;if(!f)return;const l=F.lines[el.dataset.i];
+    if(f==='boxes'){const it=ITEMS.find(x=>x.name===l.item);const p=it.packs.find(x=>x.n===l.pack)||it.packs[0];l.qty=el.value===''?'':Number(el.value)*(p.per||1)}
+    else l[f]=f==='qty'?(el.value===''?'':Number(el.value)):el.value;
+    setTimeout(renderForm,0)};
   $('fLines').onclick=e=>{const b=e.target.closest('[data-del]');if(b){F.lines.splice(b.dataset.del,1);renderForm()}};
   $('fAddLine').onclick=()=>{F.lines.push(newLine());renderForm()};
   const kg=F.lines.filter(l=>ITEMS.find(x=>x.name===l.item).packs.find(p=>p.n===l.pack)?.u==='kg').reduce((s,l)=>s+(Number(l.qty)||0),0);
-  $('fSum').innerHTML=`合計 <b>${fmt(kg)} kg</b>　${F.lines.length}明細<br><span class="dim">規格：極小／小／中／大／傷／奇形（細かいg指定は申し送りへ）。袋詰（1袋550〜600g）は規格の代わりに1袋の本数（3〜6本入り）を選ぶ。箱数は 10kg箱＝18袋／5kg箱＝9袋 で自動計算</span>`;
+  $('fSum').innerHTML=`合計 <b>${fmt(kg)} kg</b>　${F.lines.length}明細<br><span class="dim">規格：極小／小／中／大／傷／奇形（細かいg指定は申し送りへ）。袋詰（1袋550g）は規格の代わりに1袋の本数（3〜6本入り）を選ぶ。箱数と数量はどちらを入れても片方が自動で入る（10kg箱＝10kg、袋詰箱＝24袋）</span>`;
   const q=$('fCustQ').value.trim();
   const cands=CUST.filter(c=>c.reg==='継続'&&(c.cats.includes(F.cat))&&(!q||c.name.includes(q)));
   $('fSugg').innerHTML=cands.map(c=>`<button class="${F.cust===c.code?'on':''}" data-c="${c.code}"><b>${esc(c.name)}</b> <span class="dim">${c.kind}　配送${c.lead}日　${c.hours}</span></button>`).join('');
@@ -874,7 +878,8 @@ function renderShift(){
 /* ===== 袋詰 原価 ===== */
 let MATERIAL_PER_BAG=0;
 let BAGLOG=[];
-const bagKg=r=>(r.b350*350+r.b600*600)/1000;
+const BAG_BIG_G=r=>ymd(r.d)<'2026-09-27'?600:550;// 9/27から袋詰は550g
+const bagKg=r=>(r.b350*350+r.b600*BAG_BIG_G(r))/1000;
 const eff=r=>r.edited?{h:r.h,n:r.n}:{h:dayCap(r.d).h,n:dayCap(r.d).n}; // シフト連動：手で直していない記録は常にその日のシフトから
 const bagCost=r=>{const e=eff(r);const w=wageOn(r.d);const labor=r.edited?r.h*w:dayLabor(r.d).yen;return {w:e.h?Math.round(labor/e.h):w,labor,perBag:r.bags?(labor/r.bags+MATERIAL_PER_BAG):0,perH:e.h?r.bags/e.h:0,h:e.h,n:e.n}};
 let bagAuto={n:0,h:0,cost:0};
@@ -887,7 +892,7 @@ function bagShiftFill(){const d=new Date($('bDate').value||TODAY);const c=dayCap
 function bagPreview(){const h=Number($('bHours').value),n=Number($('bPeople').value),b350=Number($('b350').value)||0,b600=Number($('b600').value)||0,bags=b350+b600,d=new Date($('bDate').value||TODAY);
   const edited=h!==bagAuto.h||n!==bagAuto.n;if(!BAGLOG.find(r=>ymd(r.d)===ymd(d)))$('bEdited').textContent=edited?'シフトと違う値（この値で記録）':'シフトから自動。違えば直す';
   const labor=edited?h*wageOn(d):bagAuto.cost;
-  if(h&&bags){$('bPreview').innerHTML=`人件費 <b>${fmt(Math.round(labor))}円</b>${edited?`<span class="dim">（${h}h × 最低賃金）</span>`:'<span class="dim">（シフトの時給どおり）</span>'}　÷ ${fmt(bags)}袋 ＝ <b style="font-size:18px">${(labor/bags).toFixed(1)} 円/袋</b><br>${fmt(bags)}袋 ≒ ${((b350*350+b600*600)/1000).toFixed(0)}kg　${(bags/h).toFixed(0)} 袋/人時 <span class="dim">（基準 ${BAGS_PER_H}）</span>`}else $('bPreview').textContent='袋数を入れると 円/袋 が出ます'}
+  if(h&&bags){$('bPreview').innerHTML=`人件費 <b>${fmt(Math.round(labor))}円</b>${edited?`<span class="dim">（${h}h × 最低賃金）</span>`:'<span class="dim">（シフトの時給どおり）</span>'}　÷ ${fmt(bags)}袋 ＝ <b style="font-size:18px">${(labor/bags).toFixed(1)} 円/袋</b><br>${fmt(bags)}袋 ≒ ${((b350*350+b600*550)/1000).toFixed(0)}kg　${(bags/h).toFixed(0)} 袋/人時 <span class="dim">（基準 ${BAGS_PER_H}）</span>`}else $('bPreview').textContent='袋数を入れると 円/袋 が出ます'}
 ['bHours','bPeople','b350','b600'].forEach(i=>$(i).oninput=bagPreview);
 $('bDate').onchange=bagShiftFill;$('bReset').onclick=()=>{$('bPeople').value=bagAuto.n;$('bHours').value=bagAuto.h;bagPreview();toast('シフトの値に戻しました。記録すると以後シフト連動になります')};
 $('bSave').onclick=()=>{if(!$('bDate').value)$('bDate').value=ymd(TODAY);if(!Number($('bHours').value)){toast('この日はシフトに出勤がありません。人数と時間を手で入れてください');return}const h=Number($('bHours').value),n=Number($('bPeople').value),b350=Number($('b350').value)||0,b600=Number($('b600').value)||0;if(!h||!(b350+b600)){toast('袋数を入れてください');return}
@@ -906,7 +911,7 @@ function renderBag(){
   $('bKpi').innerHTML=k('今週',tw.perBag.toFixed(1),`${fmt(tw.bags)}袋・${tw.h}h　${tw.perH.toFixed(0)}袋/人時`,'hi')+k('先週',lw.perBag.toFixed(1),`${fmt(lw.bags)}袋・${lw.h}h`)+k('今月',tm.perBag.toFixed(1),`${fmt(tm.bags)}袋　人件費 ${fmt(Math.round(tm.labor))}円`)+`<div class="kpi ok"><small>いちばん良かった日</small><b>${best.toFixed(1)}</b><span class="u"> 円/袋</span><span class="dim"><br>${rows.length?md(rows.find(r=>bagCost(r).perBag===best).d):''}</span></div>${nxt?`<div class="kpi"><small>${nxt.from.slice(5).replace('-','/')}から（時給${fmt(nxt.yen)}円）</small><b>${(tm.perBag*nxt.yen/curW).toFixed(1)}</b><span class="u"> 円/袋</span><span class="dim"><br>今月ペースなら（＋${(tm.perBag*nxt.yen/curW-tm.perBag).toFixed(1)}円）</span></div>`:''}`;
   const cr=rows.slice(0,14).reverse();const mx=Math.max(...cr.map(r=>bagCost(r).perBag),1)*1.15;
   $('bChart').innerHTML=`<div class="bars" style="grid-template-columns:repeat(${cr.length},1fr);height:130px"><div class="gl" style="top:${100-tm.perBag/mx*100}%"><span>平均 ${tm.perBag.toFixed(1)}</span></div>${cr.map(r=>{const c=bagCost(r);return `<div class="bar ${ymd(r.d)===ymd(addD(TODAY,-1))?'cur':''}" title="${r.memo}"><span class="v">${c.perBag.toFixed(1)}</span><i class="${c.perBag>tm.perBag*1.15?'miss':''}" style="height:${c.perBag/mx*100}%"></i><span class="l">${md(r.d)}</span></div>`}).join('')}</div><p class="note">平均より15%以上高い日はオレンジ。その日のメモ（規格外が多い、人が慣れていない等）と合わせて見ると原因が分かる。</p>`;
-  $('bTable').innerHTML=`<table><tr><th>日付</th><th class="r">人数</th><th class="r">実働</th><th class="r">350g</th><th class="r">600g</th><th class="r">計 袋</th><th class="r">kg換算</th><th class="r">袋/人時</th><th class="r">人件費</th><th class="r">円/袋</th><th>メモ</th></tr>
+  $('bTable').innerHTML=`<table><tr><th>日付</th><th class="r">人数</th><th class="r">実働</th><th class="r">350g</th><th class="r">550g</th><th class="r">計 袋</th><th class="r">kg換算</th><th class="r">袋/人時</th><th class="r">人件費</th><th class="r">円/袋</th><th>メモ</th></tr>
   ${rows.map(r=>{const c=bagCost(r);return `<tr class="click" data-d="${ymd(r.d)}"><td><b>${mdw(r.d)}</b>${r.edited?'<span class="pv">手入力</span>':'<span class="pv" style="color:var(--ok-ink)">シフト連動</span>'}</td><td class="r">${c.n||'—'}</td><td class="r">${c.h} h</td><td class="r">${fmt(r.b350)}</td><td class="r">${fmt(r.b600)}</td><td class="r"><b>${fmt(r.bags)}</b></td><td class="r dim">${bagKg(r).toFixed(0)}</td><td class="r ${c.perH<BAGS_PER_H*0.85?'act late':''}">${c.perH.toFixed(0)}</td><td class="r">${fmt(Math.round(c.labor))} 円</td><td class="r"><b>${c.perBag.toFixed(1)}</b></td><td class="dim">${esc(r.memo)}</td></tr>`}).join('')}
   <tr class="sum"><td>${TODAY.getMonth()+1}月 合計</td><td></td><td class="r">${tm.h} h</td><td class="r">${fmt(rows.filter(r=>r.d.getMonth()===TODAY.getMonth()).reduce((s,r)=>s+r.b350,0))}</td><td class="r">${fmt(rows.filter(r=>r.d.getMonth()===TODAY.getMonth()).reduce((s,r)=>s+r.b600,0))}</td><td class="r">${fmt(tm.bags)}</td><td class="r dim">${rows.filter(r=>r.d.getMonth()===TODAY.getMonth()).reduce((s,r)=>s+bagKg(r),0).toFixed(0)}</td><td class="r">${tm.perH.toFixed(0)}</td><td class="r">${fmt(Math.round(tm.labor))} 円</td><td class="r">${tm.perBag.toFixed(1)}</td><td class="dim">${MATERIAL_PER_BAG?'資材費 '+MATERIAL_PER_BAG+'円/袋 込み':'人件費のみ（資材費 未設定）'}</td></tr></table>`;
   $('bTable').onclick=e=>{const tr=e.target.closest('[data-d]');if(!tr)return;$('bDate').value=tr.dataset.d;bagShiftFill();toast(`${tr.dataset.d.slice(5).replace('-','/')} を左のフォームに読み込みました。直して「記録する」で上書き`);window.scrollTo({top:0,behavior:'smooth'})};
