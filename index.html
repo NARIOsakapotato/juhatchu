@@ -50,7 +50,7 @@ textarea{resize:vertical}
 .chip.on{background:var(--head);color:#fff;border-color:var(--head)}
 .chip.late.on{background:var(--bad);border-color:var(--bad)}
 .tag{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;font-weight:700;white-space:nowrap}
-.t-受注{background:#eee7dc;color:var(--ink2)}.t-準備中{background:var(--ready);color:#6b4d00}.t-用意完了{background:#e6d9a8;color:#5a4200}.t-発送手配済{background:var(--ship);color:#1f4a7a}.t-納品済{background:var(--ok-soft);color:var(--ok-ink)}.t-納品確認待ち{background:var(--warn-soft);color:#8a5a00;border:1px solid #e6c97a}.t-キャンセル{background:#e8e3dc;color:#999;text-decoration:line-through}
+.t-定期{background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent-line)}.t-受注{background:#eee7dc;color:var(--ink2)}.t-準備中{background:var(--ready);color:#6b4d00}.t-用意完了{background:#e6d9a8;color:#5a4200}.t-発送手配済{background:var(--ship);color:#1f4a7a}.t-納品済{background:var(--ok-soft);color:var(--ok-ink)}.t-納品確認待ち{background:var(--warn-soft);color:#8a5a00;border:1px solid #e6c97a}.t-キャンセル{background:#e8e3dc;color:#999;text-decoration:line-through}
 .t-late{background:var(--bad-soft);color:var(--bad)}
 .t-cat{background:var(--ok-soft);color:var(--ok-ink)}.t-cat.加工品{background:var(--ready);color:#6b4d00}.t-cat.種苗{background:var(--ship);color:#1f4a7a}
 .card{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
@@ -352,7 +352,7 @@ tr.sum td{background:var(--bg);font-weight:700;border-top:2px solid var(--line2)
 <main class="wrap" id="v-list">
   <div class="sumbar" id="lstSum"></div>
   <div class="row mb"><span class="dim">まとめ方</span><div class="seg" id="lstGrp"><button class="on" data-g="deliver">③納品日で</button><button data-g="ready">①用意日で（流通向け）</button></div>
-    <input id="lstQ" type="search" placeholder="顧客名・No.・品目で絞り込み" style="width:260px"></div>
+    <input id="lstQ" type="search" placeholder="顧客名・No.・品目・「定期」で絞り込み" style="width:260px"></div>
   <div id="olist"></div>
   <p class="note">一覧は進行中のみ。納品済・キャンセルは「履歴」へ移ります。①用意＝荷造りを終える日　②発送手配＝集荷依頼・配達する日　③納品＝客先着。左端が赤＝遅れ、黄＝日程を急いで決める。</p>
 </main>
@@ -370,7 +370,7 @@ tr.sum td{background:var(--bg);font-weight:700;border-top:2px solid var(--line2)
 </main>
 
 <main class="wrap" id="v-new" hidden>
-  <div class="seg rseg" id="fView"><button class="on" data-v="one">1件ずつ登録</button><button data-v="rep">定期をまとめて作成<span class="tag t-納品済" id="repBadge" hidden></span></button></div>
+  <div class="seg rseg" id="fView" hidden><button class="on" data-v="one">1件ずつ登録</button><button data-v="rep">定期をまとめて作成<span class="tag t-納品済" id="repBadge" hidden></span></button></div>
   <div id="fOne">
   <div class="steps"><span><b>1</b>誰から</span>›<span><b>2</b>どこへ</span>›<span><b>3</b>何を</span>›<span><b>4</b>どのくらい</span>›<span><b>5</b>いつまでに</span>›<span><b>6</b>登録</span><span class="dim">発送手配日・用意期限は流通部が決めます</span></div>
   <div class="two">
@@ -408,8 +408,11 @@ tr.sum td{background:var(--bg);font-weight:700;border-top:2px solid var(--line2)
       <p class="note">時間指定は申し送りへ。発送手配日・用意期限は流通がこの日から組みます。</p></section>
     <section class="card"><h3>6 申し送り・登録</h3>
       <textarea id="fNote" rows="2" placeholder="例：午前着希望、段ボール無地"></textarea>
+      <label class="lbl">この注文は <span style="color:var(--bad)">必須</span></label>
+      <div class="seg" id="fKind"><button data-k="スポット">単発（スポット）</button><button data-k="定期">定期（継続して入る）</button></div>
+      <p class="dim" id="fKindNote" style="margin-top:4px">毎週・毎月のように続けて入る注文なら「定期」。後で定期の注文だけを集めて整理できます</p>
       <div class="sumbox" id="fSummary"></div>
-      <div class="repbox" id="fRepBox"><label class="lbl" style="font-weight:800;color:var(--ink);margin:0"><input type="checkbox" id="fRepOn" style="width:auto"> この内容を定期出荷にする</label>
+      <div class="repbox" id="fRepBox" hidden><label class="lbl" style="font-weight:800;color:var(--ink);margin:0"><input type="checkbox" id="fRepOn" style="width:auto"> この内容を定期出荷にする</label>
         <div id="fRepOpt" hidden><div class="row" style="margin-top:8px"><span>曜日</span><span id="fRepDowW"></span></div>
           <div class="two" style="gap:8px"><div><label class="lbl">いつから</label><input type="date" id="fRepFrom"></div><div><label class="lbl">いつまで <span class="dim">（空＝続ける）</span></label><input type="date" id="fRepTo"></div></div>
           <p class="dim" style="margin-top:6px">登録すると、この受注1件と定期への登録が同時に行われます。以後は「定期をまとめて作成」の候補に毎週出てきます。</p></div></div>
@@ -569,7 +572,7 @@ function build(d){RAW=d;d.recurring=d.recurring||[];
     const lines=(linesBy[r.NO]||[]).sort((a,b)=>(Number(a['行'])||0)-(Number(b['行'])||0)).map(l=>({item:String(l['品目']||''),size:String(l['規格']||''),pack:String(l['荷姿']||''),qty:Number(l['数量'])||0,unit:l['単位']||'kg',per:l['入数']===''||l['入数']===undefined?'':Number(l['入数']),boxes:Number(l['箱数'])||''}));
     const deliver=pdt(r['納品日'])||new Date();const lead=Number(c.lead)||1;const it=ITEMS.find(i=>i.name===(lines[0]||{}).item);
     return {no:String(r.NO),date:pdt(r['受注日時'])||new Date(),cust:c.code,cat:r['カテゴリ']||(it&&it.cat)||'青果',lines,kg:lines.reduce((s,l)=>s+lineKg(l),0),boxes:lines.reduce((s,l)=>s+(l.boxes||0),0),deliver,lead,
-      shipFix:pdt(r['発送手配日']),readyFix:pdt(r['用意期限']),shipSug:addD(deliver,-lead),readySug:addD(deliver,-lead-1),status:r['状態']||'受注',sales:r['営業担当']||'',note:r['申し送り']||'',method:r['配送方法']||'宅配便',carrier:r['運送会社']||'',addrAlt:r['送り先別']||'',schedBy:r['日程決定者']||'',
+      shipFix:pdt(r['発送手配日']),readyFix:pdt(r['用意期限']),shipSug:addD(deliver,-lead),readySug:addD(deliver,-lead-1),kind:r['注文区分']||'',status:r['状態']||'受注',sales:r['営業担当']||'',note:r['申し送り']||'',method:r['配送方法']||'宅配便',carrier:r['運送会社']||'',addrAlt:r['送り先別']||'',schedBy:r['日程決定者']||'',
       act:{readyAt:pdt(r['用意完了日時']),readyBy:r['用意担当']||'',readyReason:r['用意理由']||'',readyNote:r['用意メモ']||'',readyBoxes:r['実箱数']!==''&&r['実箱数']!==undefined?Number(r['実箱数']):undefined,shipAt:pdt(r['発送手配日時']),shipBy:r['手配担当']||'',carrier:r['運送会社']||'',waybill:r['伝票No']||'',pieces:Number(r['個口数'])||undefined,shipNote:r['手配メモ']||'',deliverAt:pdt(r['納品確認日時']),deliverBy:r['納品担当']||'',deliverNote:r['納品メモ']||''},
       events:(evBy[r.NO]||[]).map(e=>({t:e['種別']||'',at:pdt(e['日時'])||new Date(),by:e['担当']||'',m:e['内容']||'',late:Number(e['遅れ日数'])||0,plan:pdt(e['予定日'])})).sort((a,b)=>a.at-b.at)};
   });
@@ -660,7 +663,7 @@ function lstAct(o){const s=stepOf(o);
   return `<button class="btn sm" data-go="納品済" data-no="${o.no}">納品済にする</button>`}
 function lstRow(o){const c=custOf(o.cust);const ds=dispStatus(o);
   return `<div class="lr ${lateOf(o)?'late':soonOf(o)?'soon':''}" data-no="${o.no}"><div class="lst"></div>
-   <div class="lnm"><div class="nm">${esc(c.name)} ${o.cat!=='青果'?`<span class="tag t-cat ${o.cat}">${o.cat}</span>`:''}</div><div class="dim">${o.no}　${esc(itemsTxt(o))}　${o.method}${o.sales?'　営業 '+esc(o.sales):''}${o.note?'　📝'+esc(o.note.slice(0,20)):''}</div></div>
+   <div class="lnm"><div class="nm">${esc(c.name)} ${o.kind==='定期'?'<span class="tag t-定期">定期</span> ':''}${o.cat!=='青果'?`<span class="tag t-cat ${o.cat}">${o.cat}</span>`:''}</div><div class="dim">${o.no}　${esc(itemsTxt(o))}　${o.method}${o.sales?'　営業 '+esc(o.sales):''}${o.note?'　📝'+esc(o.note.slice(0,20)):''}</div></div>
    <div class="lq">${qtyMain(o)}<small>${qtySub(o)}</small></div>
    <div class="stp">${stepSeg(o,'ready')}${stepSeg(o,'ship')}${stepSeg(o,'deliver')}</div>
    <div class="lact"><span class="tag t-${ds}">${ds==='受注'?'日程未定':ds}</span>${lstAct(o)}</div></div>`}
@@ -668,7 +671,7 @@ function renderList(){
   const act=ORDERS.filter(active);
   $('lstSum').innerHTML=LST_F.map(([k,l,cls,fn])=>`<button class="sb ${cls} ${lstF===k?'on':''}" data-f="${k}"><small>${l}</small><b>${act.filter(fn).length}</b></button>`).join('');
   const fn=LST_F.find(f=>f[0]===lstF)[3];const q=$('lstQ').value.trim();
-  const list=act.filter(fn).filter(o=>!q||(custOf(o.cust).name+o.no+itemsTxt(o)).includes(q));
+  const list=act.filter(fn).filter(o=>!q||(custOf(o.cust).name+o.no+itemsTxt(o)+o.kind).includes(q));
   const keyOf=o=>lstG==='deliver'?o.deliver:(o.act.readyAt?null:(o.readyFix||o.readySug));
   const by={};list.forEach(o=>{const d=keyOf(o);let k=!d?'readydone':diffD(d,TODAY)<0?'past':diffD(d,TODAY)>6?'later':ymd(d);(by[k]=by[k]||[]).push(o)});
   const rank=k=>k==='past'?'0':k==='readydone'?'9':k==='later'?'8':'1'+k;
@@ -711,7 +714,7 @@ function openOrder(no){
   const sub=[];if(active(o)){sub.push(`<button class="btn" data-a="edit">内容を編集</button>`);if(o.readyFix)sub.push(`<button class="btn" data-a="sched">日程を変える</button>`);sub.push(`<button class="btn warn" data-a="cancel">キャンセル</button>`)}
   sub.push(`<button class="btn" data-a="close">閉じる</button>`);
   modal(`<h2>${esc(c.name)} <span class="tag t-cat ${o.cat}">${o.cat}</span></h2>
-  <div class="meta"><span>${o.no}</span><span>受注日 ${md(o.date)}</span><span>営業 ${esc(o.sales)}</span><span class="tag t-${dispStatus(o)}">${dispStatus(o)}</span><span>${o.method}${o.carrier?'・'+o.carrier:'・運送会社は流通が選ぶ'}</span><span>③納品 ${mdw(o.deliver)}${active(o)?`　${remDays(o.deliver)}`:''}</span></div>
+  <div class="meta"><span>${o.no}</span><span class="tag ${o.kind==='定期'?'t-定期':''}">${o.kind||'区分未設定'}</span><span>受注日 ${md(o.date)}</span><span>営業 ${esc(o.sales)}</span><span class="tag t-${dispStatus(o)}">${dispStatus(o)}</span><span>${o.method}${o.carrier?'・'+o.carrier:'・運送会社は流通が選ぶ'}</span><span>③納品 ${mdw(o.deliver)}${active(o)?`　${remDays(o.deliver)}`:''}</span></div>
   ${acts.join('')}<div class="acts" style="margin-bottom:12px">${sub.join('')}</div>
   <div class="kv"><span class="k">明細</span><span>${o.lines.map(l=>`${l.item} ${l.size}　<b>${fmt(l.qty)} ${l.unit}</b>　${l.pack}${l.boxes?`　${l.boxes}箱`:''}`).join('<br>')}${o.kg?`<br><b>計 ${fmt(o.kg)} kg${o.boxes?'・'+o.boxes+'箱':''}</b>`:''}</span></div>
   <div class="kv"><span class="k">送り先</span><span>〒${c.zip} ${esc(c.addr)}　${esc(c.attn)}　${c.tel}<br><span class="dim">受入 ${c.hours||'—'}　不可 ${c.closed||'—'}　${esc(c.note)}</span></span></div>
@@ -838,9 +841,9 @@ function renderWeek(){
 /* ===== 登録 ===== */
 let F={cat:'青果',item:'さつまいも',lines:[],cust:null,editNo:null,mode:'pick',reg:'継続'};
 function newLine(){const it=ITEMS.find(i=>i.name===F.item);return {item:it.name,size:it.sizes[0],pack:it.packs[0].n,qty:'',per:''}}
-function loadForm(o){F={cat:o.cat,item:(o.lines[0]||{}).item||'さつまいも',lines:o.lines.map(l=>({item:l.item,size:l.size,pack:PACK_ALIAS[l.pack]||l.pack,qty:l.qty,per:l.per||''})),cust:o.cust,editNo:o.no,mode:'pick',reg:'継続',carrierTouched:true};$('fDeliver').value=ymd(o.deliver);$('fNote').value=o.note;$('fSales').value=o.sales;$('fCustQ').value=custOf(o.cust).name;$('fMethod').value=o.method||'宅配便';setTimeout(()=>{$('fCarrier').value=o.carrier||''},0);$('fAltOn').checked=!!o.addrAlt;$('fAlt').value=o.addrAlt||'';$('fAlt').hidden=!o.addrAlt}
+function loadForm(o){F={kind:o.kind||'',cat:o.cat,item:(o.lines[0]||{}).item||'さつまいも',lines:o.lines.map(l=>({item:l.item,size:l.size,pack:PACK_ALIAS[l.pack]||l.pack,qty:l.qty,per:l.per||''})),cust:o.cust,editNo:o.no,mode:'pick',reg:'継続',carrierTouched:true};$('fDeliver').value=ymd(o.deliver);$('fNote').value=o.note;$('fSales').value=o.sales;$('fCustQ').value=custOf(o.cust).name;$('fMethod').value=o.method||'宅配便';setTimeout(()=>{$('fCarrier').value=o.carrier||''},0);$('fAltOn').checked=!!o.addrAlt;$('fAlt').value=o.addrAlt||'';$('fAlt').hidden=!o.addrAlt}
 function renderForm(){
-  if(!$('fRepDow'))$('fRepDowW').innerHTML=dowPick('fRepDow',[]);$('fRepBox').hidden=!!F.editNo;repBadge();if(FV==='rep')renderRep();
+  if(!$('fRepDow'))$('fRepDowW').innerHTML=dowPick('fRepDow',[]);$('fRepBox').hidden=true;$('fKind').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.k===F.kind));repBadge();if(FV==='rep')renderRep();
   if(!$('fDeliver').value)$('fDeliver').value=ymd(addD(TODAY,3));if(!$('fSales').value)$('fSales').value=ME;
   if(!ITEMS.length){toast('品目マスタが空です');return}if(!ITEMS.find(i=>i.name===F.item)){F.item=(ITEMS.find(i=>i.cat===F.cat)||ITEMS[0]).name;F.cat=ITEMS.find(i=>i.name===F.item).cat}
   if(!F.lines.length)F.lines=[newLine()];
@@ -888,15 +891,16 @@ $('fSave').onclick=async()=>{
   const lrows=lines.map(l=>({'品目':l.item,'規格':l.size,'荷姿':l.pack,'数量':l.qty,'単位':l.unit,'入数':l.per,'箱数':l.boxes}));
   const alt=$('fAltOn').checked?$('fAlt').value:'';
   const sales=$('fSales').value||ME;
+  if(!F.editNo&&!F.kind){toast('「単発」か「定期」かを選んでください');return}
   let recurring=null;
-  if(!F.editNo&&$('fRepOn').checked){const dw=dowGet('fRepDow');if(!dw.length){toast('定期の曜日を選んでください');return}recurring={'曜日':dowStr(dw),'開始':$('fRepFrom').value||$('fDeliver').value,'終了':$('fRepTo').value}}
+  if(false){const dw=dowGet('fRepDow');if(!dw.length){toast('定期の曜日を選んでください');return}recurring={'曜日':dowStr(dw),'開始':$('fRepFrom').value||$('fDeliver').value,'終了':$('fRepTo').value}}
   $('fSave').disabled=true;
   try{
     if(F.editNo){const o=ORDERS.find(x=>x.no===F.editNo);const before=o.kg;const tmp={lines};const m=`明細変更：${lines.map(l=>`${l.item} ${l.size} ${fmt(l.qty)}${l.unit}`).join('／')}${before!==lines.filter(l=>l.unit==='kg').reduce((s,l)=>s+l.qty,0)?`　計 ${fmt(before)} → ${fmt(lines.filter(l=>l.unit==='kg').reduce((s,l)=>s+l.qty,0))}kg`:''}`;
-      const r=await save('saveOrder',{no:o.no,order:{'納品日':$('fDeliver').value,'申し送り':$('fNote').value,'配送方法':$('fMethod').value,'運送会社':$('fCarrier').value,'営業担当':sales,'送り先別':alt,'カテゴリ':F.cat},lines:lrows,event:{'種別':'内容変更','担当':sales+'（営業）','内容':m}},`${o.no} を更新しました（変更はタイムラインに残ります）`);mergeSaved(r)}
-    else{const r=await save('saveOrder',{order:{'顧客コード':F.cust||'','カテゴリ':F.cat,'納品日':$('fDeliver').value,'配送方法':$('fMethod').value,'運送会社':$('fCarrier').value,'営業担当':sales,'申し送り':$('fNote').value,'送り先別':alt,'状態':'受注'},lines:lrows,newCustomer,recurring,event:{'種別':'受注','担当':sales+'（営業）','内容':`新規登録　③納品 ${$('fDeliver').value.slice(5).replace('-','/')}${$('fNote').value?`　申し送り「${$('fNote').value}」`:''}`}},null);
+      const r=await save('saveOrder',{no:o.no,order:{'納品日':$('fDeliver').value,'申し送り':$('fNote').value,'配送方法':$('fMethod').value,'運送会社':$('fCarrier').value,'営業担当':sales,'送り先別':alt,'カテゴリ':F.cat,'注文区分':F.kind||''},lines:lrows,event:{'種別':'内容変更','担当':sales+'（営業）','内容':m}},`${o.no} を更新しました（変更はタイムラインに残ります）`);mergeSaved(r)}
+    else{const r=await save('saveOrder',{order:{'顧客コード':F.cust||'','カテゴリ':F.cat,'納品日':$('fDeliver').value,'配送方法':$('fMethod').value,'運送会社':$('fCarrier').value,'営業担当':sales,'申し送り':$('fNote').value,'送り先別':alt,'状態':'受注','注文区分':F.kind},lines:lrows,newCustomer,recurring,event:{'種別':'受注','担当':sales+'（営業）','内容':`新規登録　③納品 ${$('fDeliver').value.slice(5).replace('-','/')}${$('fNote').value?`　申し送り「${$('fNote').value}」`:''}`}},null);
       mergeSaved(r);toast(`${r.no} を登録しました${r.recurring&&r.recurring.length?'（定期にも追加）':''} → 流通の「週間」に日程未定として出ます`)}
-    F={cat:'青果',item:'さつまいも',lines:[],cust:null,editNo:null,mode:'pick',reg:'継続'};$('fCustQ').value='';['nName','nTel','nZip','nAttn','nAddr','nHours','nClosed','fAlt'].forEach(i=>$(i).value='');$('fAltOn').checked=false;$('fAlt').hidden=true;$('fNote').value='';$('fRepOn').checked=false;$('fRepOpt').hidden=true;$('fRepTo').value='';$('fRepFrom').value='';
+    F={kind:'',cat:'青果',item:'さつまいも',lines:[],cust:null,editNo:null,mode:'pick',reg:'継続'};$('fCustQ').value='';['nName','nTel','nZip','nAttn','nAddr','nHours','nClosed','fAlt'].forEach(i=>$(i).value='');$('fAltOn').checked=false;$('fAlt').hidden=true;$('fNote').value='';$('fRepOn').checked=false;$('fRepOpt').hidden=true;$('fRepTo').value='';$('fRepFrom').value='';
     switchTab('list');
   }catch(e){}finally{$('fSave').disabled=false}
 };
@@ -910,6 +914,7 @@ function mergeOne(r){if(!RAW||!r||!r.no)return;
   if(oi<0)RAW.orders.push(Object.assign({NO:r.no},r.order));else Object.assign(RAW.orders[oi],r.order);
   RAW.lines=RAW.lines.filter(l=>String(l.NO)!==String(r.no)).concat(r.lines||[]);
   if(r.event)RAW.events.push(r.event)}
+$('fKind').onclick=e=>{const b=e.target.closest('[data-k]');if(!b)return;F.kind=b.dataset.k;$('fKind').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b))};
 /* ===== 定期出荷 ===== */
 const DOWJ='日月火水木金土';const DOW_ORDER=[1,2,3,4,5,6,0];
 let FV='one',RP=[],rpEdit=null;
