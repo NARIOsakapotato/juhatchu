@@ -284,6 +284,19 @@ tr.sum td{background:var(--bg);font-weight:700;border-top:2px solid var(--line2)
 .wkp .big{font-size:22px;font-weight:900;line-height:1.15;font-variant-numeric:tabular-nums}.wkp .big span{font-size:12.5px;font-weight:700;color:var(--mute)}
 .km{position:relative;height:9px;border-radius:5px;background:#ece6dc;overflow:hidden}.km i{position:absolute;left:0;top:0;bottom:0;background:var(--ok)}
 .km u{position:absolute;top:0;bottom:0;background:repeating-linear-gradient(45deg,#b9cbb0,#b9cbb0 3px,#e7eee3 3px,#e7eee3 6px)}
+.trh{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.trh .trm{margin-left:auto}.trm button{padding:6px 10px;font-size:12px}.trm small{opacity:.7}
+.trhint{color:#8a5a00;font-weight:700;font-size:12.5px;margin-bottom:8px}
+.trgs{display:grid;gap:8px}.trg{background:var(--paper);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.trgh{display:flex;align-items:center;gap:10px;padding:7px 10px;background:var(--paper2,#f8f6f1);border-bottom:1px solid var(--line)}.trgh label{display:flex;align-items:center;gap:8px;font-weight:900;cursor:pointer;flex-wrap:wrap}.trgh>.dim{margin-left:auto}
+.trg .tcs{padding:8px 10px}.tc label{display:flex;align-items:center;gap:6px;cursor:pointer}.tc.on{border-color:var(--accent);background:#f3ecf1}
+.trg input[type=checkbox]{width:17px;height:17px;accent-color:var(--accent)}
+.trbar{position:fixed;left:0;right:0;bottom:0;background:var(--head);color:#fff;padding:10px 16px;display:flex;gap:12px;align-items:center;justify-content:center;flex-wrap:wrap;z-index:40}.trbar .dim{color:#cfc6bd}.trbar b{font-size:16px}.trbar .btn.sm{background:transparent;color:#fff;border-color:#776}
+.bcaps{display:grid;gap:5px;margin:8px 0 4px}.bcap{display:grid;grid-template-columns:86px 1fr 200px;gap:10px;align-items:center;font-size:12.5px}
+.bcap .km{height:10px;background:#f3efe8;border:1px solid var(--line);border-radius:6px;overflow:hidden;position:relative}.bcap .km i{position:absolute;left:0;top:0;bottom:0;background:#e0b43c}.bcap .km u{position:absolute;top:0;bottom:0;background:var(--accent);opacity:.75}
+.bcap.over .km i,.bcap.over .km u{background:var(--bad)}.bcap.over b{color:var(--bad)}
+.bwarn{background:var(--bad-soft);color:var(--bad);border-radius:8px;padding:8px 12px;font-size:13px;font-weight:700;margin:4px 0}.bokk{background:var(--ok-soft);color:var(--ok);border-radius:8px;padding:8px 12px;font-size:13px;font-weight:700}
+.bscroll{max-height:260px;overflow:auto;border:1px solid var(--line);border-radius:8px;margin-bottom:12px}.btbl{width:100%;border-collapse:collapse;font-size:12.5px}.btbl th,.btbl td{border-bottom:1px solid var(--line);padding:5px 6px;text-align:left;white-space:nowrap}.btbl th{font-size:11px;color:var(--mute)}
+@media (max-width:520px){.bcap{grid-template-columns:70px 1fr}.bcap>span:last-child{grid-column:1/-1}}
 .tcs{display:flex;flex-wrap:wrap;gap:6px}
 .tc{display:flex;gap:8px;align-items:center;background:var(--paper);border:1px solid #ecd6a8;border-radius:9px;padding:4px 5px 4px 10px;font-size:12.5px}
 .tc .d{color:var(--mute)}.tc.late{border-color:#e7b8aa}.tc.late .d{color:var(--bad);font-weight:700}
@@ -813,6 +826,86 @@ function renderBaro(){
     <div class="days">${dayHtml}</div>
     <p class="note">納品日で集計。緑＝発送手配済（倉庫を出た分）。斜線＝まだ発送していない分。オレンジ▼＝今日時点の目標ペース（${(T/1000).toFixed(1)}t ÷ 稼働日${wdAll}日 × 経過${wdDone}日）。「受注が足りない分」＝目標 − 実績 − 未発送受注。</p></div>`;
 }
+/* ===== 日程未定トレイ：月で絞る・まとめて日程を決める（v16） ===== */
+let trayM=null;const traySel=new Set();const trayRule={shift:0,avoid:true};
+const ymOf=d=>ymd(d).slice(0,7);
+const isOffDay=d=>d.getDay()===0||!!HOLIDAYS[ymd(d)];
+function schedPlan(o,rule){const back=d=>{let x=new Date(d);while(isOffDay(x))x=addD(x,-1);return x};
+  let ship=addD(o.deliver,-(o.lead||0)-(rule.shift||0)),moved=false;if(rule.avoid&&isOffDay(ship)){ship=back(ship);moved=true}
+  let ready=addD(ship,-1);if(rule.avoid&&isOffDay(ready)){ready=back(ready);moved=true}
+  return {ship,ready,moved}}
+function trayInView(o){const cur=ymOf(TODAY);const m=trayM||cur;return m==='all'||ymOf(o.deliver)===m||(ymOf(o.deliver)<m&&d0(o.deliver)<d0(TODAY))}
+function renderTray(pend){
+  const cur=ymOf(TODAY);if(!trayM)trayM=cur;
+  const pn=new Set(pend.map(o=>o.no));[...traySel].forEach(n=>{if(!pn.has(n))traySel.delete(n)});
+  if(!pend.length){$('tray').innerHTML='';$('v-week').style.paddingBottom='';return}
+  const ms=[...new Set(pend.map(o=>ymOf(o.deliver)).filter(m=>m>=cur))];if(!ms.includes(cur))ms.push(cur);ms.sort();
+  if(trayM!=='all'&&!ms.includes(trayM))trayM=cur;
+  const vis=pend.filter(trayInView);
+  const left=new Date(TODAY.getFullYear(),TODAY.getMonth()+1,0).getDate()-TODAY.getDate();
+  const nextM=ms.find(m=>m>cur);
+  const hint=trayM===cur&&left<=5&&nextM?`月末まで残り${left}日。来月頭の納品分は「${+nextM.slice(5)}月」で確認`:'';
+  const gs={};vis.forEach(o=>{const k=o.kind==='定期'?'R|'+o.cust:'S';(gs[k]=gs[k]||[]).push(o)});
+  const keys=Object.keys(gs).sort((a,b)=>(a==='S')-(b==='S')||gs[a][0].deliver-gs[b][0].deliver);
+  const dows=os=>[...new Set(os.map(o=>o.deliver.getDay()))].sort((a,b)=>((a+6)%7)-((b+6)%7)).map(i=>'日月火水木金土'[i]).join('・');
+  const so=pend.filter(o=>traySel.has(o.no));
+  $('tray').innerHTML=`<div class="tray"><h3 class="trh">日程未定 ${pend.length}件${vis.length<pend.length?` <span class="dim" style="font-weight:400">（表示 ${vis.length}）</span>`:''}
+     <span class="seg trm">${ms.map(m=>`<button data-m="${m}" class="${trayM===m?'on':''}">${+m.slice(5)}月${m===cur?'（今月）':''} <small>${pend.filter(o=>ymOf(o.deliver)===m).length}</small></button>`).join('')}<button data-m="all" class="${trayM==='all'?'on':''}">すべて <small>${pend.length}</small></button></span></h3>
+    <div class="dim" style="margin:-2px 0 8px">チェックして下の「まとめて日程を決める」。1件だけなら「決める」。前の月の決め忘れはどの月でも表示</div>
+    ${hint?`<div class="trhint">${hint}</div>`:''}
+    <div class="trgs">${keys.map(k=>{const os=gs[k];const all=os.every(o=>traySel.has(o.no)),some=os.some(o=>traySel.has(o.no));
+      const title=k==='S'?'<span class="tag t-cat">スポット</span> 単発の注文':`<span class="tag t-定期">定期</span> ${esc(custOf(os[0].cust).name)}　<span class="dim">毎週${dows(os)}　${qtyMain(os[0])}／回</span>`;
+      return `<div class="trg"><div class="trgh"><label><input type="checkbox" data-g="${k}" ${all?'checked':''} ${!all&&some?'data-ind="1"':''}> ${title}</label><span class="dim">${os.length}件</span></div>
+       <div class="tcs">${os.map(o=>{const lt=diffD(o.readySug,TODAY)<0;return `<div class="tc ${lt?'late':''} ${traySel.has(o.no)?'on':''}"><label><input type="checkbox" data-o="${o.no}" ${traySel.has(o.no)?'checked':''}><span class="d">③${mdw(o.deliver)}</span>${k==='S'?`　<b>${esc(custOf(o.cust).name)}</b> ${qtyMain(o)}`:''}${lt?' <span class="d">用意日を過ぎた</span>':''}</label><button class="btn sm" data-s="${o.no}">決める</button></div>`}).join('')}</div></div>`}).join('')}</div>
+    </div>
+    <div class="trbar" ${so.length?'':'hidden'}><span><b>${so.length}</b> 件選択中　<span class="dim">約 ${fmt(so.reduce((s,o)=>s+o.kg,0))} kg</span></span><button class="btn sm" data-x="clr">選択を外す</button><button class="btn acc" data-x="go">まとめて日程を決める →</button></div>`;
+  $('tray').querySelectorAll('[data-ind]').forEach(x=>x.indeterminate=true);
+  $('v-week').style.paddingBottom=so.length?'80px':'';
+}
+$('tray').onclick=e=>{
+  const s=e.target.closest('[data-s]');if(s){openSched(ORDERS.find(o=>o.no===s.dataset.s));return}
+  const m=e.target.closest('[data-m]');if(m){trayM=m.dataset.m;renderWeek();return}
+  const x=e.target.closest('[data-x]');if(x){if(x.dataset.x==='clr'){traySel.clear();renderWeek()}else openBulkSched();return}
+};
+$('tray').onchange=e=>{const t=e.target;
+  if(t.dataset.o){t.checked?traySel.add(t.dataset.o):traySel.delete(t.dataset.o)}
+  if(t.dataset.g){ORDERS.filter(o=>o.status==='受注'&&trayInView(o)&&(t.dataset.g==='S'?o.kind!=='定期':o.kind==='定期'&&'R|'+o.cust===t.dataset.g)).forEach(o=>t.checked?traySel.add(o.no):traySel.delete(o.no))}
+  renderWeek()};
+function openBulkSched(){
+  const os=ORDERS.filter(o=>traySel.has(o.no)&&o.status==='受注').sort((a,b)=>a.deliver-b.deliver);if(!os.length)return;
+  modal(`<h2>まとめて日程を決める</h2><div class="meta"><span>${os.length}件</span><span>${esc([...new Set(os.map(o=>custOf(o.cust).name))].join('・'))}</span></div>
+   <div class="frm"><label>② 発送</label><div class="seg" id="bsShift">${[['0','提案どおり（納品 − 配送日数）'],['1','さらに1日早める'],['2','2日早める']].map(([v,l])=>`<button data-v="${v}" class="${String(trayRule.shift)===v?'on':''}">${l}</button>`).join('')}</div>
+   <label>① 用意</label><div>発送の前日</div>
+   <label>休みの日</label><div><label style="display:inline-flex;gap:6px;align-items:center;font-weight:400;cursor:pointer"><input type="checkbox" id="bsAvoid" ${trayRule.avoid?'checked':''}> 日曜・祝日に当たったら前の日へ前倒し</label></div></div>
+   <div id="bsBody"></div>
+   <button class="btn acc blk" id="bsOk">この日程で確定 → ${os.length}件を準備中にする</button><div class="acts"><button class="btn" id="bsNo">やめる</button></div>`);
+  let pl=[];
+  const draw=()=>{pl=os.map(o=>({o,...schedPlan(o,trayRule)}));
+    const add={};pl.forEach(p=>{const k=ymd(p.ready);add[k]=(add[k]||0)+p.o.kg});
+    const days=Object.keys(add).sort();let over=0;
+    const caps=days.map(k=>{const d=new Date(k+'T00:00:00');const b=readyKgOn(d),a=add[k],t=b+a;if(t>CAP)over++;
+      return `<div class="bcap ${t>CAP?'over':''}"><span>${mdw(d)}</span><div class="km"><i style="width:${Math.min(100,b/CAP*100)}%"></i><u style="left:${Math.min(100,b/CAP*100)}%;width:${Math.max(0,Math.min(100,t/CAP*100)-Math.min(100,b/CAP*100))}%"></u></div><span><b>${fmt(t)}</b> / ${CAP}kg ${t>CAP?'<span class="tag t-late">超える</span>':''} <span class="dim">今回 +${fmt(a)}</span></span></div>`}).join('');
+    const past=pl.filter(p=>d0(p.ready)<d0(TODAY)).length;
+    $('bsBody').innerHTML=`<div style="font-weight:900;margin:6px 0">日ごとの用意量</div>
+     ${over?`<div class="bwarn">上限 ${CAP}kg を超える日が ${over}日 あります。「さらに1日早める」に変えるか、その日の分のチェックを外して個別に決めてください（このまま確定もできます）</div>`:`<div class="bokk">上限を超える日はありません</div>`}
+     ${past?`<div class="bwarn">用意日が今日より前になる注文が ${past}件 あります（赤字）</div>`:''}
+     <div class="bcaps">${caps}</div><div class="dim">黄＝すでに決まっている用意　紫＝今回ふえる分</div>
+     <div style="font-weight:900;margin:12px 0 6px">1件ずつの日程</div>
+     <div class="bscroll"><table class="btbl"><tr><th>No.</th><th>顧客</th><th>数量</th><th>③ 納品</th><th>② 発送</th><th>① 用意</th><th></th></tr>
+     ${pl.map(p=>`<tr><td>${p.o.no}</td><td>${esc(custOf(p.o.cust).name)}</td><td>${qtyMain(p.o)}</td><td>${mdw(p.o.deliver)}</td><td>${mdw(p.ship)}</td><td ${d0(p.ready)<d0(TODAY)?'style="color:var(--bad);font-weight:700"':''}>${mdw(p.ready)}</td><td>${p.moved?'<span class="tag t-受注">休日のため前倒し</span>':''}</td></tr>`).join('')}</table></div>`};
+  $('bsShift').onclick=e=>{const b=e.target.closest('button');if(!b)return;trayRule.shift=+b.dataset.v;[...$('bsShift').children].forEach(x=>x.classList.toggle('on',x===b));draw()};
+  $('bsAvoid').onchange=e=>{trayRule.avoid=e.target.checked;draw()};
+  $('bsNo').onclick=closeModal;draw();
+  $('bsOk').onclick=async()=>{
+    const at=new Date();const rl=trayRule.shift?`発送を${trayRule.shift}日早める`:'提案どおり';
+    const items=pl.map(p=>{const m=`② 発送 ${md(p.ship)}　① 用意 ${md(p.ready)}　まとめて決定（${rl}${p.moved?'・休日前倒し':''}）`;
+      return {p,m,it:{no:p.o.no,fields:{'発送手配日':ymd(p.ship),'用意期限':ymd(p.ready),'状態':'準備中','日程決定者':ME,'日程決定日時':dts(at)},event:{'種別':'日程決定','日時':dts(at),'担当':ME,'内容':m}}}});
+    items.forEach(({p,m})=>{const o=p.o;o.shipFix=p.ship;o.readyFix=p.ready;o.status='準備中';o.schedBy=ME;o.events.push({t:'日程決定',at,by:ME,m})});
+    traySel.clear();closeModal();render();
+    try{const r=await save('updateOrdersFields',{onlyStatus:'受注',items:items.map(x=>x.it)},`${items.length}件の日程を決めました`);
+      if(r&&r.skipped&&r.skipped.length){errBar(`${r.skipped.length}件は保存しませんでした（${r.skipped.map(s=>s.no+'：'+s.why).join('、')}）。最新の状態に読み直します`);reload()}}
+    catch(e){reload()}};
+}
 function renderWeek(){
   const mon=addD(monday(TODAY),wkOff*7),sun=addD(mon,6);const W=weekStats(mon);const T=SETTINGS.targetKg;
   $('wkLabel').textContent=`${md(mon)}（月）〜 ${md(sun)}（日）`;
@@ -822,8 +915,7 @@ function renderWeek(){
   $('wkKpi').innerHTML=`<div class="card wkp"><small>この週の出荷（さつまいも・納品日ベース）</small><div class="big">${(W.kg/1000).toFixed(2)}<span> t 実績</span>　${((W.kg+W.plan)/1000).toFixed(2)}<span> t 予定込み ／ 目標 ${(T/1000).toFixed(1)} t</span></div><div class="km"><i style="width:${p1}%"></i><u style="left:${p1}%;width:${Math.max(0,p2-p1)}%"></u></div><div class="dim">達成 ${Math.round(W.kg/T*100)}%（予定込み ${Math.round((W.kg+W.plan)/T*100)}%）　発送手配済にした分が実績。詳しい内訳は一番下</div></div>
     <div class="card wkp"><small>日程未定</small><div class="big" style="color:${pend.length?'#8a5a00':'inherit'}">${pend.length}<span> 件</span></div><div class="dim">下の黄色い欄で日程を決める</div></div>
     <div class="card wkp"><small>遅れ・要確認</small><div class="big" style="color:${lateN?'var(--bad)':'inherit'}">${lateN}<span> 件</span></div><div class="dim">赤い枠のカード</div></div>`;
-  $('tray').innerHTML=pend.length?`<div class="tray"><h3>日程未定 ${pend.length}件 <span class="dim" style="font-weight:400">流通が ①用意日 ②発送日 を決める。納品日が近い順</span></h3><div class="tcs">${pend.map(o=>{const lt=diffD(o.readySug,TODAY)<0;return `<div class="tc ${lt?'late':''}"><span><b>${esc(custOf(o.cust).name)}</b>　${qtyMain(o)}　<span class="d">③${mdw(o.deliver)}${lt?'　用意日を過ぎた':''}</span></span><button class="btn sm acc" data-s="${o.no}">決める</button></div>`}).join('')}</div></div>`:'';
-  $('tray').onclick=e=>{const b=e.target.closest('[data-s]');if(b)openSched(ORDERS.find(o=>o.no===b.dataset.s))};
+  renderTray(pend);
   const days=[0,1,2,3,4,5,6].map(i=>addD(mon,i));const isCur=wkOff===0;
   const lanes=[
     ['l1','① 用意','倉庫で準備',o=>o.act.readyAt||o.readyFix,o=>!!o.act.readyAt],
