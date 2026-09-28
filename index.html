@@ -458,7 +458,8 @@ async function reload(){busy(true);try{const d=await api('init',{});build(d);ren
 // 画面に戻ってきたとき（別の人の登録を取りこぼさないように）60秒以上たっていれば読み直す
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&KEY&&LAST_LOAD&&Date.now()-LAST_LOAD>60000)reload()});
 
-function build(d){
+let RAW=null;
+function build(d){RAW=d;
   const sget=k=>{const r=d.settings.find(x=>x['キー']===k);return r?String(r['値']??''):''};
   SETTING_ROWS=d.settings;
   SETTINGS.targetKg=Number(sget('週間目標kg'))||5000;SETTINGS.workdays=sget('稼働日')||'月〜土';
@@ -763,14 +764,22 @@ $('fSave').onclick=async()=>{
   $('fSave').disabled=true;
   try{
     if(F.editNo){const o=ORDERS.find(x=>x.no===F.editNo);const before=o.kg;const tmp={lines};const m=`明細変更：${lines.map(l=>`${l.item} ${l.size} ${fmt(l.qty)}${l.unit}`).join('／')}${before!==lines.filter(l=>l.unit==='kg').reduce((s,l)=>s+l.qty,0)?`　計 ${fmt(before)} → ${fmt(lines.filter(l=>l.unit==='kg').reduce((s,l)=>s+l.qty,0))}kg`:''}`;
-      await save('saveOrder',{no:o.no,order:{'納品日':$('fDeliver').value,'申し送り':$('fNote').value,'配送方法':$('fMethod').value,'運送会社':$('fCarrier').value,'営業担当':sales,'送り先別':alt,'カテゴリ':F.cat},lines:lrows,event:{'種別':'内容変更','担当':sales+'（営業）','内容':m}},`${o.no} を更新しました（変更はタイムラインに残ります）`)}
+      const r=await save('saveOrder',{no:o.no,order:{'納品日':$('fDeliver').value,'申し送り':$('fNote').value,'配送方法':$('fMethod').value,'運送会社':$('fCarrier').value,'営業担当':sales,'送り先別':alt,'カテゴリ':F.cat},lines:lrows,event:{'種別':'内容変更','担当':sales+'（営業）','内容':m}},`${o.no} を更新しました（変更はタイムラインに残ります）`);mergeSaved(r)}
     else{const r=await save('saveOrder',{order:{'顧客コード':F.cust||'','カテゴリ':F.cat,'納品日':$('fDeliver').value,'配送方法':$('fMethod').value,'運送会社':$('fCarrier').value,'営業担当':sales,'申し送り':$('fNote').value,'送り先別':alt,'状態':'受注'},lines:lrows,newCustomer,event:{'種別':'受注','担当':sales+'（営業）','内容':`新規登録　③納品 ${$('fDeliver').value.slice(5).replace('-','/')}${$('fNote').value?`　申し送り「${$('fNote').value}」`:''}`}},null);
-      toast(`${r.no} を登録しました → 流通の「週間」に日程未定として出ます`)}
+      mergeSaved(r);toast(`${r.no} を登録しました → 流通の「週間」に日程未定として出ます`)}
     F={cat:'青果',item:'さつまいも',lines:[],cust:null,editNo:null,mode:'pick',reg:'継続'};$('fCustQ').value='';['nName','nTel','nZip','nAttn','nAddr','nHours','nClosed','fAlt'].forEach(i=>$(i).value='');$('fAltOn').checked=false;$('fAlt').hidden=true;$('fNote').value='';
-    await reload();switchTab('list');
+    switchTab('list');
   }catch(e){}finally{$('fSave').disabled=false}
 };
 
+// 保存結果を手元のデータに差し込む（読み直し不要にして登録を速くする）
+function mergeSaved(r){if(!RAW||!r||!r.no)return;
+  if(r.customer){const i=RAW.customers.findIndex(c=>String(c['コード'])===String(r.customer['コード']));if(i<0)RAW.customers.push(r.customer);else RAW.customers[i]=r.customer}
+  const oi=RAW.orders.findIndex(o=>String(o.NO)===String(r.no));
+  if(oi<0)RAW.orders.push(Object.assign({NO:r.no},r.order));else Object.assign(RAW.orders[oi],r.order);
+  RAW.lines=RAW.lines.filter(l=>String(l.NO)!==String(r.no)).concat(r.lines||[]);
+  if(r.event)RAW.events.push(r.event);
+  build(RAW);render()}
 /* ===== 顧客 ===== */
 let cSel=null;
 $('cQ').oninput=renderCust;
