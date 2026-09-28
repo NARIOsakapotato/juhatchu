@@ -214,6 +214,7 @@ tr.sum td{background:var(--bg);font-weight:700;border-top:2px solid var(--line2)
 .alert{background:var(--bad-soft);border:1px solid #e6c4b8;border-radius:10px;padding:9px 12px;font-size:13px;margin:8px 0}
 .alert.ok{background:var(--ok-soft);border-color:#cfe0c6}
 .acts{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-top:10px}
+.errbar{position:fixed;left:50%;top:60px;transform:translateX(-50%);background:#b3261e;color:#fff;padding:10px 14px;border-radius:10px;font-size:13px;font-weight:700;z-index:70;display:flex;gap:10px;align-items:center;max-width:92vw;box-shadow:0 4px 16px rgba(0,0,0,.3)}.errbar .btn{background:#fff;color:#b3261e}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--head);color:#fff;padding:10px 18px;border-radius:999px;font-size:13px;font-weight:700;opacity:0;transition:.25s;pointer-events:none;z-index:60}
 .toast.on{opacity:1}
 /* register */
@@ -268,7 +269,7 @@ tr.sum td{background:var(--bg);font-weight:700;border-top:2px solid var(--line2)
   <h1>🍠 受発注管理</h1>
   <span class="sp"></span>
   <span class="me" id="userName"></span>
-  <button class="gear" id="reloadBtn" title="最新のデータを読み直す">↻</button>
+  <span class="dim" id="lastLoad" style="font-size:11px;color:#ddd;margin-right:4px"></span><button class="gear" id="reloadBtn" title="最新のデータを読み直す">↻</button>
   <button class="gear" id="gearBtn">⚙ 設定</button>
   <button class="gear" id="logoutBtn">ログアウト</button>
 </header>
@@ -398,6 +399,7 @@ tr.sum td{background:var(--bg);font-weight:700;border-top:2px solid var(--line2)
 
 <div id="modalHost"></div>
 <div class="toast" id="toast"></div>
+<div id="errBar" class="errbar" hidden></div>
 
 <script>
 /* ===== 基本 ===== */
@@ -433,13 +435,28 @@ const dts=d=>`${ymd(d)}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getS
 const splitPipe=v=>String(v||'').split('|').map(x=>x.trim()).filter(Boolean);
 function busy(on){$('busy').classList.toggle('on',!!on)}
 async function api(action,payload){
-  const r=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({user:ME,key:KEY,action,payload})});
-  const j=await r.json();
-  if(!j.ok){if(j.authFailed){showLogin(j.error)}throw new Error(j.error||'error')}
-  return j.result;
+  const isRead=action==='init'||action==='ping';
+  for(let attempt=0;;attempt++){
+    const ctl=new AbortController();const tm=setTimeout(()=>ctl.abort(),45000);
+    try{
+      const r=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({user:ME,key:KEY,action,payload}),signal:ctl.signal});
+      const j=await r.json();
+      if(!j.ok){if(j.authFailed){showLogin(j.error)}throw new Error(j.error||'error')}
+      return j.result;
+    }catch(e){
+      const net=e.name==='AbortError'||e instanceof TypeError||/JSON/.test(String(e.message));
+      if(net&&isRead&&attempt<1)continue;// 読み取りは1回だけ自動で再試行
+      if(net)throw new Error(e.name==='AbortError'?'応答がありません（電波が弱いか、サーバーが混んでいます）':'通信できませんでした（電波を確認して、もう一度）');
+      throw e;
+    }finally{clearTimeout(tm)}
+  }
 }
-async function save(action,payload,okMsg){busy(true);try{const r=await api(action,payload);if(okMsg)toast(okMsg);return r}catch(e){toast('保存できませんでした：'+e.message);throw e}finally{busy(false)}}
-async function reload(){busy(true);try{const d=await api('init',{});build(d);render();}catch(e){toast('読み込みに失敗：'+e.message)}finally{busy(false)}}
+function errBar(msg){const b=$('errBar');if(!msg){b.hidden=true;return}b.innerHTML=`<span>⚠ ${esc(msg)}</span><button class="btn sm" id="errClose">閉じる</button>`;b.hidden=false;$('errClose').onclick=()=>{b.hidden=true}}
+async function save(action,payload,okMsg){busy(true);errBar('');try{const r=await api(action,payload);if(okMsg)toast(okMsg);return r}catch(e){errBar('保存できませんでした：'+e.message+'　入力内容は残っています。もう一度保存してください');throw e}finally{busy(false)}}
+let LAST_LOAD=0;
+async function reload(){busy(true);try{const d=await api('init',{});build(d);render();LAST_LOAD=Date.now();$('lastLoad').textContent=new Date().toTimeString().slice(0,5)+' 更新';}catch(e){errBar('読み込みに失敗：'+e.message)}finally{busy(false)}}
+// 画面に戻ってきたとき（別の人の登録を取りこぼさないように）60秒以上たっていれば読み直す
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&KEY&&LAST_LOAD&&Date.now()-LAST_LOAD>60000)reload()});
 
 function build(d){
   const sget=k=>{const r=d.settings.find(x=>x['キー']===k);return r?String(r['値']??''):''};
@@ -477,7 +494,7 @@ function build(d){
 function showLogin(msg){$('login').hidden=false;$('lgErr').textContent=msg||'';document.querySelectorAll('main').forEach(m=>m.hidden=true);
   fetch(API_URL).then(r=>r.json()).then(j=>{const sel=$('lgUser');const cur=sel.value;sel.innerHTML=(j.users||[]).map(u=>`<option>${esc(u)}</option>`).join('');if(cur)sel.value=cur;const saved=localStorage.getItem('juhatchu_user');if(saved)sel.value=saved}).catch(()=>{$('lgErr').textContent='APIに接続できません（電波・URLを確認）'});}
 $('lgOk').onclick=async()=>{ME=$('lgUser').value;KEY=$('lgKey').value;$('lgErr').textContent='確認中…';
-  try{const d=await api('init',{});localStorage.setItem('juhatchu_user',ME);localStorage.setItem('juhatchu_key',KEY);$('login').hidden=true;build(d);switchTab('list')}catch(e){$('lgErr').textContent=e.message}};
+  try{const d=await api('init',{});localStorage.setItem('juhatchu_user',ME);localStorage.setItem('juhatchu_key',KEY);$('login').hidden=true;build(d);switchTab('list');LAST_LOAD=Date.now();$('lastLoad').textContent=new Date().toTimeString().slice(0,5)+' 更新'}catch(e){$('lgErr').textContent=e.message}};
 $('lgKey').onkeydown=e=>{if(e.key==='Enter')$('lgOk').click()};
 $('lgEye').onclick=()=>{const i=$('lgKey');i.classList.toggle('mask');$('lgEye').classList.toggle('on',!i.classList.contains('mask'));i.focus()};
 $('logoutBtn').onclick=()=>{localStorage.removeItem('juhatchu_key');KEY='';showLogin('ログアウトしました')};
@@ -1025,7 +1042,7 @@ $('v-hist').hidden=true;
   ME=localStorage.getItem('juhatchu_user')||'';KEY=localStorage.getItem('juhatchu_key')||'';
   if(!ME||!KEY){showLogin('');return}
   busy(true);
-  try{const d=await api('init',{});build(d);switchTab(location.hash==='#week'?'week':location.hash==='#hist'?'hist':'list')}
+  try{const d=await api('init',{});build(d);switchTab(location.hash==='#week'?'week':location.hash==='#hist'?'hist':'list');LAST_LOAD=Date.now();$('lastLoad').textContent=new Date().toTimeString().slice(0,5)+' 更新'}
   catch(e){if(!$('login').hidden)return;showLogin('読み込みに失敗しました：'+e.message)}
   finally{busy(false)}
 })();
