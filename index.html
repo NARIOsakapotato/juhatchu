@@ -255,6 +255,72 @@ tr.sum td{background:var(--bg);font-weight:700;border-top:2px solid var(--line2)
 .busy{position:fixed;top:0;left:0;right:0;height:3px;background:var(--accent);z-index:99;transform:scaleX(0);transform-origin:left;transition:transform .4s}
 .busy.on{transform:scaleX(.7)}
 .hd .me{font-size:13px;color:#e8e0d4}
+
+/* ---- 一覧（日付ごと1行） ---- */
+.sumbar{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:10px}
+.sb{border:1px solid var(--line);background:var(--paper);border-radius:10px;padding:8px 12px;text-align:left;display:grid;gap:0}
+.sb small{font-size:11.5px;color:var(--mute);font-weight:700}.sb b{font-size:22px;font-weight:900;line-height:1.2;font-variant-numeric:tabular-nums}
+.sb.on{border-color:var(--head);box-shadow:inset 0 0 0 1px var(--head)}.sb.bad b{color:var(--bad)}.sb.warn b{color:#8a5a00}.sb.today b{color:var(--accent)}
+.lgrp{background:var(--paper);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:12px}
+.lgh{display:flex;align-items:baseline;gap:12px;padding:8px 14px;background:var(--paper2);border-bottom:1px solid var(--line);flex-wrap:wrap}
+.lgh b{font-size:15px;font-weight:900}.lgh .tot{margin-left:auto;font-size:12.5px;color:var(--ink2);font-variant-numeric:tabular-nums}
+.lgh.past{background:var(--bad-soft)}.lgh.past>b{color:var(--bad)}.lgh.today{background:var(--accent-soft)}.lgh.today>b{color:var(--accent)}
+.lr{display:grid;grid-template-columns:5px minmax(180px,1.4fr) 100px minmax(300px,1.5fr) 124px;align-items:center;gap:12px;padding:8px 14px 8px 0;border-bottom:1px solid var(--line);cursor:pointer}
+.lr:last-child{border-bottom:0}.lr:hover{background:#fbf9f5}
+.lr .lst{align-self:stretch;border-radius:0 3px 3px 0}.lr.late .lst{background:var(--bad)}.lr.soon .lst{background:var(--warn)}
+.lr .nm{font-weight:700;line-height:1.35}.lr .dim{margin-top:1px}
+.lq{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}.lq small{display:block;font-weight:500;color:var(--mute);font-size:11.5px}
+.lact{display:grid;justify-items:end;gap:4px}
+.stp{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
+.sg{border-radius:7px;padding:3px 8px;font-size:12px;line-height:1.3;border:1px solid transparent;background:#f1ede6;color:var(--mute);font-variant-numeric:tabular-nums}
+.sg i{font-style:normal;font-weight:700;margin-right:4px;font-size:11px}.sg b{font-weight:700}
+.sg.done{background:var(--paper);border-color:var(--line)}.sg.done b::after{content:" ✓";color:var(--ok)}
+.sg.cur{background:var(--paper);border-color:var(--ink2);color:var(--ink)}.sg.cur.late{border-color:var(--bad);color:var(--bad);background:#fff7f4}
+.sg.plan{border:1px dashed var(--line2);background:transparent}.sg .w{display:block;font-size:11px}
+.lmore{display:block;width:100%;padding:8px 14px;font-size:12.5px;color:var(--accent);font-weight:700;border:0;background:none;text-align:left}
+/* ---- 週間（1枚表） ---- */
+.wkk{display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;margin-bottom:12px}
+.wkp{padding:10px 14px;display:grid;gap:4px}.wkp small{font-size:11.5px;color:var(--mute);font-weight:700}
+.wkp .big{font-size:22px;font-weight:900;line-height:1.15;font-variant-numeric:tabular-nums}.wkp .big span{font-size:12.5px;font-weight:700;color:var(--mute)}
+.km{position:relative;height:9px;border-radius:5px;background:#ece6dc;overflow:hidden}.km i{position:absolute;left:0;top:0;bottom:0;background:var(--ok)}
+.km u{position:absolute;top:0;bottom:0;background:repeating-linear-gradient(45deg,#b9cbb0,#b9cbb0 3px,#e7eee3 3px,#e7eee3 6px)}
+.tcs{display:flex;flex-wrap:wrap;gap:6px}
+.tc{display:flex;gap:8px;align-items:center;background:var(--paper);border:1px solid #ecd6a8;border-radius:9px;padding:4px 5px 4px 10px;font-size:12.5px}
+.tc .d{color:var(--mute)}.tc.late{border-color:#e7b8aa}.tc.late .d{color:var(--bad);font-weight:700}
+.wbw{overflow-x:auto;background:var(--paper);border:1px solid var(--line);border-radius:12px;margin-bottom:12px}
+.wbd{display:grid;grid-template-columns:70px repeat(7,minmax(130px,1fr));min-width:990px}
+.wbd>div{border-right:1px solid var(--line);border-bottom:1px solid var(--line)}.wbd>div:nth-child(8n){border-right:0}
+.wbh{padding:7px 9px;background:var(--paper2);display:grid;gap:3px}.wbh b{font-size:13px;font-weight:900}.wbh.today{background:var(--accent-soft)}.wbh.today b{color:var(--accent)}
+.wcap{font-size:11px;color:var(--ink2);font-variant-numeric:tabular-nums}.wcap .km{height:5px;margin-top:2px}.wcap .km i{background:#d9a93a}.wcap.over{color:var(--bad);font-weight:700}.wcap.over .km i{background:var(--bad)}
+.wln{padding:8px 4px;display:grid;align-content:start;justify-items:center;gap:2px;font-size:12px;font-weight:900}.wln span{font-size:10.5px;font-weight:500;color:var(--mute);text-align:center;line-height:1.3}
+.wln.l1{background:var(--ready)}.wln.l2{background:var(--ship)}.wln.l3{background:var(--deliver)}
+.wcl{padding:6px;display:grid;align-content:start;gap:5px;min-height:60px}.wcl.today{background:#fbf7fa}
+.wbc{border:1px solid var(--line);border-left:4px solid var(--c);border-radius:7px;padding:4px 7px;background:var(--paper);font-size:12px;line-height:1.35;text-align:left;width:100%}
+.wbc b{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-weight:700}
+.wbc .qq{color:var(--ink2);font-variant-numeric:tabular-nums}.wbc em{font-style:normal;color:var(--bad);font-weight:700}
+.wbc.done{opacity:.5}.wbc.done .qq::after{content:" ✓済";color:var(--ok);font-weight:700}
+.wbc.late{border-color:#e7b8aa;border-left-color:var(--bad);background:#fff7f4}
+.wbc.un{border-style:dashed;border-left-style:solid}.wbc.un .qq::after{content:" 日程未定";color:#8a5a00;font-weight:700}
+.l1c{--c:#d9a93a}.l2c{--c:#4a7fbf}.l3c{--c:#5d8f4a}
+.wlg{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--ink2);padding:8px 14px}
+/* ---- 定期出荷 ---- */
+.rseg{margin-bottom:12px}.rseg .tag{margin-left:6px}
+.repbox{border:1px solid var(--accent-line);background:var(--accent-soft);border-radius:10px;padding:8px 12px;margin:10px 0}
+.dowp{display:inline-flex;gap:3px;flex-wrap:wrap}.dowp button{width:32px;height:30px;border-radius:7px;border:1px solid var(--line2);background:var(--paper);font-weight:700;font-size:13px;color:var(--ink2)}
+.dowp button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.dowv{display:inline-flex;gap:2px}.dowv b{width:20px;height:20px;border-radius:5px;display:inline-grid;place-items:center;font-size:11px;background:#f1ede6;color:var(--mute)}.dowv b.on{background:var(--accent);color:#fff}
+.rday{border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:8px}
+.rdh{background:var(--paper2);padding:6px 12px;display:flex;justify-content:space-between;align-items:baseline}
+.rit{display:grid;grid-template-columns:24px minmax(160px,1.2fr) minmax(160px,1.4fr) auto auto;gap:10px;align-items:center;padding:7px 12px;border-top:1px solid var(--line);font-size:13px}
+.rit input[type=checkbox]{width:18px;height:18px}.rit.skip{opacity:.5}
+.rtab{width:100%;border-collapse:collapse;font-size:13px}.rtab th{font-size:11px;color:var(--mute);text-align:left;padding:5px 8px;border-bottom:1px solid var(--line)}.rtab td{padding:7px 8px;border-bottom:1px solid var(--line);white-space:nowrap;vertical-align:middle}.rtab td.wr{white-space:normal;min-width:160px}.rtab tr.off{opacity:.55}
+#rpEdit{border:1px solid var(--accent-line);background:var(--accent-soft);border-radius:10px;padding:12px;margin-bottom:12px}
+@media (max-width:820px){
+  .sumbar{grid-template-columns:repeat(3,1fr)}.wkk{grid-template-columns:1fr}
+  .lr{grid-template-columns:5px 1fr auto;grid-template-areas:"st nm q" "st stp stp" "st act act";row-gap:6px}
+  .lr .lst{grid-area:st}.lr .lnm{grid-area:nm}.lr .lq{grid-area:q}.lr .stp{grid-area:stp}.lr .lact{grid-area:act;display:flex;justify-content:flex-start;gap:8px}
+  .rit{grid-template-columns:24px 1fr auto}
+}
 </style>
 </head>
 <body>
@@ -284,25 +350,28 @@ tr.sum td{background:var(--bg);font-weight:700;border-top:2px solid var(--line2)
 </nav>
 
 <main class="wrap" id="v-list">
-  <div class="row mb"><div class="chips" id="lstChips"></div><span class="grow"></span>
-    <select id="lstSort" style="width:auto"><option value="deliver">納品日が近い順</option><option value="ready">用意期限が近い順</option><option value="ship">発送手配日順</option><option value="no">受注No.順</option></select>
-    <input id="lstQ" type="search" placeholder="顧客名・No.・品目" style="width:220px"></div>
-  <div class="olist" id="olist"></div>
-  <p class="note">一覧は進行中のみ。納品済・キャンセルは「履歴」へ移ります。①用意期限＝荷造りを終える日　②発送手配＝集荷依頼する日　③納品＝客先着</p>
+  <div class="sumbar" id="lstSum"></div>
+  <div class="row mb"><span class="dim">まとめ方</span><div class="seg" id="lstGrp"><button class="on" data-g="deliver">③納品日で</button><button data-g="ready">①用意日で（流通向け）</button></div>
+    <input id="lstQ" type="search" placeholder="顧客名・No.・品目で絞り込み" style="width:260px"></div>
+  <div id="olist"></div>
+  <p class="note">一覧は進行中のみ。納品済・キャンセルは「履歴」へ移ります。①用意＝荷造りを終える日　②発送手配＝集荷依頼・配達する日　③納品＝客先着。左端が赤＝遅れ、黄＝日程を急いで決める。</p>
 </main>
 
 <main class="wrap" id="v-week" hidden>
   <div class="wkhead">
     <div class="nav"><button class="btn sm" id="wkPrev">‹</button><b id="wkLabel"></b><button class="btn sm" id="wkNext">›</button><button class="btn sm" id="wkNow">今週</button></div>
-    <div class="mini" id="wkMini"></div>
+    <span class="dim" style="margin-left:auto">カードを押すと詳細が開きます</span>
   </div>
-  <section class="card sec" id="wkShip"></section>
+  <div class="wkk" id="wkKpi"></div>
   <div id="tray"></div>
-  <section class="card sec"><h3>週の予定<span><i class="sw" style="background:var(--ready)"></i>① 用意　<i class="sw" style="background:var(--ship)"></i>② 発送手配　<i class="sw" style="background:var(--deliver)"></i>③ 納品　／ 用意kg は 500 超で赤</span></h3><div class="wk" id="wkGrid"></div></section>
+  <div class="wbw"><div class="wbd" id="wkBoard"></div>
+    <div class="wlg"><span><i class="sw" style="background:#d9a93a"></i>① 用意（倉庫で準備）</span><span><i class="sw" style="background:#4a7fbf"></i>② 発送手配</span><span><i class="sw" style="background:#5d8f4a"></i>③ 納品（客先着）</span><span>点線＝日程未定　薄い＝済　赤枠＝遅れ</span><span>曜日の下＝その日の用意kg（上限を超えると赤）</span></div></div>
   <div id="baro"></div>
 </main>
 
 <main class="wrap" id="v-new" hidden>
+  <div class="seg rseg" id="fView"><button class="on" data-v="one">1件ずつ登録</button><button data-v="rep">定期をまとめて作成<span class="tag t-納品済" id="repBadge" hidden></span></button></div>
+  <div id="fOne">
   <div class="steps"><span><b>1</b>誰から</span>›<span><b>2</b>どこへ</span>›<span><b>3</b>何を</span>›<span><b>4</b>どのくらい</span>›<span><b>5</b>いつまでに</span>›<span><b>6</b>登録</span><span class="dim">発送手配日・用意期限は流通部が決めます</span></div>
   <div class="two">
     <div>
@@ -340,7 +409,23 @@ tr.sum td{background:var(--bg);font-weight:700;border-top:2px solid var(--line2)
     <section class="card"><h3>6 申し送り・登録</h3>
       <textarea id="fNote" rows="2" placeholder="例：午前着希望、段ボール無地"></textarea>
       <div class="sumbox" id="fSummary"></div>
+      <div class="repbox" id="fRepBox"><label class="lbl" style="font-weight:800;color:var(--ink);margin:0"><input type="checkbox" id="fRepOn" style="width:auto"> この内容を定期出荷にする</label>
+        <div id="fRepOpt" hidden><div class="row" style="margin-top:8px"><span>曜日</span><span id="fRepDowW"></span></div>
+          <div class="two" style="gap:8px"><div><label class="lbl">いつから</label><input type="date" id="fRepFrom"></div><div><label class="lbl">いつまで <span class="dim">（空＝続ける）</span></label><input type="date" id="fRepTo"></div></div>
+          <p class="dim" style="margin-top:6px">登録すると、この受注1件と定期への登録が同時に行われます。以後は「定期をまとめて作成」の候補に毎週出てきます。</p></div></div>
       <button class="btn pri blk" id="fSave">流通部へ渡す（登録）</button></section>
+  </div>
+  </div>
+  <div id="fRep" hidden>
+    <section class="card sec"><h3>まとめて作成 <span>定期出荷から候補を出す → 数量を確認して登録</span></h3>
+      <div class="row mb"><span>期間</span><input type="date" id="rpFrom" style="width:auto"> 〜 <input type="date" id="rpTo" style="width:auto"><button class="btn sm" id="rpNext">来週</button><button class="btn sm" id="rpThis">今週の残り</button><span class="dim">同じ顧客・同じ納品日の受注がすでにあれば「登録済」になり、作りません</span></div>
+      <div id="rpDays"></div>
+      <div class="sumbox" id="rpSum"></div>
+      <button class="btn pri blk" id="rpGo">チェックした分をまとめて登録（状態「受注」＝日程未定で入ります）</button>
+      <p class="note">登録後は普通の受注と同じ扱い。流通が週間タブで日程を決めます。申し送りに「定期」が付きます。</p></section>
+    <section class="card sec"><h3>定期出荷の一覧 <span></span><button class="btn sm acc" id="rpAdd" style="margin-left:auto">＋ 定期を追加</button></h3>
+      <div id="rpEdit" hidden></div><div class="tw" id="rpList"></div>
+      <p class="note">曜日は複数OK。数量は基本の量で、まとめて作成の画面でその週だけ直せます。休止は「編集」→ 有効を外す。スプレッドシートの「定期」シートでも直接直せます（曜日は「月|木」の形）。</p></section>
   </div>
 </main>
 
@@ -458,8 +543,8 @@ async function reload(){busy(true);try{const d=await api('init',{});build(d);ren
 // 画面に戻ってきたとき（別の人の登録を取りこぼさないように）60秒以上たっていれば読み直す
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&KEY&&LAST_LOAD&&Date.now()-LAST_LOAD>60000)reload()});
 
-let RAW=null;
-function build(d){RAW=d;
+let RAW=null,REC=[];
+function build(d){RAW=d;d.recurring=d.recurring||[];
   const sget=k=>{const r=d.settings.find(x=>x['キー']===k);return r?String(r['値']??''):''};
   SETTING_ROWS=d.settings;
   SETTINGS.targetKg=Number(sget('週間目標kg'))||5000;SETTINGS.workdays=sget('稼働日')||'月〜土';
@@ -488,6 +573,7 @@ function build(d){RAW=d;
       act:{readyAt:pdt(r['用意完了日時']),readyBy:r['用意担当']||'',readyReason:r['用意理由']||'',readyNote:r['用意メモ']||'',readyBoxes:r['実箱数']!==''&&r['実箱数']!==undefined?Number(r['実箱数']):undefined,shipAt:pdt(r['発送手配日時']),shipBy:r['手配担当']||'',carrier:r['運送会社']||'',waybill:r['伝票No']||'',pieces:Number(r['個口数'])||undefined,shipNote:r['手配メモ']||'',deliverAt:pdt(r['納品確認日時']),deliverBy:r['納品担当']||'',deliverNote:r['納品メモ']||''},
       events:(evBy[r.NO]||[]).map(e=>({t:e['種別']||'',at:pdt(e['日時'])||new Date(),by:e['担当']||'',m:e['内容']||'',late:Number(e['遅れ日数'])||0,plan:pdt(e['予定日'])})).sort((a,b)=>a.at-b.at)};
   });
+  REC=d.recurring.filter(r=>r.ID).map(r=>({id:String(r.ID),cust:String(r['顧客コード']),dow:splitPipe(r['曜日']).map(x=>'日月火水木金土'.indexOf(x)).filter(x=>x>=0),item:String(r['品目']||''),size:String(r['規格']||''),pack:PACK_ALIAS[r['荷姿']]||String(r['荷姿']||''),qty:Number(r['数量'])||0,unit:r['単位']||'kg',per:r['入数']===''||r['入数']===undefined?'':Number(r['入数']),method:r['配送方法']||'',carrier:r['運送会社']||'',note:r['申し送り']||'',from:String(r['開始']||'').slice(0,10),to:String(r['終了']||'').slice(0,10),on:r['有効']!==false&&String(r['有効']).toUpperCase()!=='FALSE',by:r['作成者']||''}));
   $('userName').textContent=ME;
 }
 
@@ -540,26 +626,66 @@ function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');clear
 
 /* ===== 一覧 ===== */
 let lstStatus='all';
-function renderList(){
-  const cnt=s=>ORDERS.filter(o=>active(o)&&(s==='all'||dispStatus(o)===s)).length;
-  $('lstChips').innerHTML=[['all','進行中すべて'],['受注','受注（日程未定）'],['準備中','準備中'],['用意完了','用意完了'],['発送手配済','発送手配済'],['納品確認待ち','納品確認待ち']].map(([k,l])=>`<button class="chip ${lstStatus===k?'on':''}" data-k="${k}">${l} ${cnt(k)}</button>`).join('');
-  $('lstChips').onclick=e=>{const b=e.target.closest('.chip');if(b){lstStatus=b.dataset.k;renderList()}};
-  const q=$('lstQ').value.trim();const sort=$('lstSort').value;
-  let list=ORDERS.filter(o=>active(o)&&(lstStatus==='all'||dispStatus(o)===lstStatus)&&(!q||(custOf(o.cust).name+o.no+o.lines.map(l=>l.item).join()).includes(q)));
-  const key=o=>sort==='deliver'?o.deliver:sort==='ready'?(o.readyFix||o.readySug):sort==='ship'?(o.shipFix||o.shipSug):-parseInt(o.no.slice(1));
-  list.sort((a,b)=>key(a)-key(b));
-  $('olist').innerHTML=list.map(o=>{
-    const c=custOf(o.cust);const a=o.act;
-    const rd=a.readyAt?`<div class="dt r done ${diffD(a.readyAt,o.readyFix)>0?'late':''}"><span>① 用意 済</span><b>${md(a.readyAt)}</b>${diffD(a.readyAt,o.readyFix)>0?`遅れ${diffD(a.readyAt,o.readyFix)}日`:'期限どおり'}</div>`
-      :o.readyFix?`<div class="dt r ${diffD(o.readyFix,TODAY)<0?'late':''}"><span>① 用意期限</span><b>${md(o.readyFix)}</b>${diffD(o.readyFix,TODAY)<0?'期限超過':diffD(o.readyFix,TODAY)===0?'今日':`あと${diffD(o.readyFix,TODAY)}日`}</div>`:`<div class="dt r todo"><span>① 用意</span><b>未定</b>提案 ${md(o.readySug)}</div>`;
-    const sh=a.shipAt?`<div class="dt s done"><span>② 発送 済</span><b>${md(a.shipAt)}</b>${a.carrier}</div>`:o.shipFix?`<div class="dt s"><span>② 発送手配</span><b>${md(o.shipFix)}</b>予定</div>`:`<div class="dt s todo"><span>② 発送</span><b>未定</b>提案 ${md(o.shipSug)}</div>`;
-    const dv=`<div class="dt d"><span>③ 納品</span><b>${md(o.deliver)}</b>${diffD(o.deliver,TODAY)===0?'今日':`${remDays(o.deliver)}`}</div>`;
-    return `<div class="oc" data-no="${o.no}"><div><div class="nm">${esc(c.name)} <span class="tag t-cat ${o.cat}">${o.cat}</span></div><div class="sub">${lineSummary(o)}</div></div>
-    <div style="text-align:right"><span class="tag t-${dispStatus(o)}">${dispStatus(o)}</span><div class="dim">${o.no}　営業 ${esc(o.sales)}</div></div>
-    <div class="dts"><div class="dt o"><span>受注</span><b>${md(o.date)}</b>${o.kg?fmt(o.kg)+'kg':fmt(o.lines[0].qty)+o.lines[0].unit}${o.boxes?'・'+o.boxes+'箱':''}</div>${rd}${sh}${dv}</div></div>`}).join('')||'<p class="dim">該当なし</p>';
-  $('olist').onclick=e=>{const c=e.target.closest('.oc');if(c)openOrder(c.dataset.no)};
+/* ===== 一覧（日付ごとに1件1行） ===== */
+let lstF='all',lstG='deliver';const lstOpen=new Set();
+const stepOf=o=>o.status==='受注'?'sched':!o.act.readyAt?'ready':!o.act.shipAt?'ship':'deliver';
+const stepDate=o=>{const s=stepOf(o);return s==='sched'?o.readySug:s==='ready'?(o.readyFix||o.readySug):s==='ship'?(o.shipFix||o.shipSug):o.deliver};
+const lateOf=o=>active(o)&&diffD(stepDate(o),TODAY)<0;
+const soonOf=o=>active(o)&&!lateOf(o)&&o.status==='受注'&&diffD(o.readySug,TODAY)<=1;
+const whenTxt=d=>{const n=diffD(d,TODAY);return n===0?'今日':n===1?'明日':n<0?`${-n}日遅れ`:`あと${n}日`};
+const qtyMain=o=>o.lines.length===1?`${fmt(o.lines[0].qty)} ${o.lines[0].unit}`:`${fmt(o.kg)} kg`;
+const qtySub=o=>o.lines.length>1?`${o.lines.length}明細${o.boxes?'・'+o.boxes+'箱':''}`:`${o.boxes?o.boxes+'箱':'バラ'}${o.lines[0]&&o.lines[0].unit==='袋'&&o.kg?'・約'+fmt(Math.round(o.kg))+'kg':''}`;
+const itemsTxt=o=>o.lines.map(l=>`${l.item} ${l.size}`).join('／');
+const LST_F=[
+  ['all','進行中すべて','',o=>true],
+  ['today','今日やること','today',o=>ymd(stepDate(o))===ymd(TODAY)],
+  ['late','遅れ・要確認','bad',lateOf],
+  ['un','日程未定','warn',o=>o.status==='受注'],
+  ['wait','納品確認待ち','',o=>dispStatus(o)==='納品確認待ち'],
+];
+function stepSeg(o,k){
+  const lbl={ready:'①用意',ship:'②発送',deliver:'③納品'}[k];
+  const doneAt=k==='ready'?o.act.readyAt:k==='ship'?o.act.shipAt:o.act.deliverAt;
+  const plan=k==='ready'?o.readyFix:k==='ship'?o.shipFix:o.deliver;
+  const sug=k==='ready'?o.readySug:o.shipSug;
+  if(doneAt)return `<div class="sg done"><i>${lbl}</i><b>${md(doneAt)}</b></div>`;
+  if(!plan)return `<div class="sg plan"><i>${lbl}</i>未定<span class="w">提案 ${md(sug)}</span></div>`;
+  if(stepOf(o)===k){const late=diffD(plan,TODAY)<0;const w=k==='deliver'&&dispStatus(o)==='納品確認待ち'?'着いたか確認':whenTxt(plan);return `<div class="sg cur ${late?'late':''}"><i>${lbl}</i><b>${md(plan)}</b><span class="w">${w}</span></div>`}
+  return `<div class="sg"><i>${lbl}</i>${md(plan)}</div>`;
 }
-$('lstQ').oninput=renderList;$('lstSort').onchange=renderList;
+function lstAct(o){const s=stepOf(o);
+  if(s==='sched')return `<button class="btn sm acc" data-go="sched" data-no="${o.no}">日程を決める</button>`;
+  if(s==='ready')return `<button class="btn sm" data-go="用意完了" data-no="${o.no}">用意完了</button>`;
+  if(s==='ship')return `<button class="btn sm" data-go="発送手配済" data-no="${o.no}">発送手配済</button>`;
+  return `<button class="btn sm" data-go="納品済" data-no="${o.no}">納品済にする</button>`}
+function lstRow(o){const c=custOf(o.cust);const ds=dispStatus(o);
+  return `<div class="lr ${lateOf(o)?'late':soonOf(o)?'soon':''}" data-no="${o.no}"><div class="lst"></div>
+   <div class="lnm"><div class="nm">${esc(c.name)} ${o.cat!=='青果'?`<span class="tag t-cat ${o.cat}">${o.cat}</span>`:''}</div><div class="dim">${o.no}　${esc(itemsTxt(o))}　${o.method}${o.sales?'　営業 '+esc(o.sales):''}${o.note?'　📝'+esc(o.note.slice(0,20)):''}</div></div>
+   <div class="lq">${qtyMain(o)}<small>${qtySub(o)}</small></div>
+   <div class="stp">${stepSeg(o,'ready')}${stepSeg(o,'ship')}${stepSeg(o,'deliver')}</div>
+   <div class="lact"><span class="tag t-${ds}">${ds==='受注'?'日程未定':ds}</span>${lstAct(o)}</div></div>`}
+function renderList(){
+  const act=ORDERS.filter(active);
+  $('lstSum').innerHTML=LST_F.map(([k,l,cls,fn])=>`<button class="sb ${cls} ${lstF===k?'on':''}" data-f="${k}"><small>${l}</small><b>${act.filter(fn).length}</b></button>`).join('');
+  const fn=LST_F.find(f=>f[0]===lstF)[3];const q=$('lstQ').value.trim();
+  const list=act.filter(fn).filter(o=>!q||(custOf(o.cust).name+o.no+itemsTxt(o)).includes(q));
+  const keyOf=o=>lstG==='deliver'?o.deliver:(o.act.readyAt?null:(o.readyFix||o.readySug));
+  const by={};list.forEach(o=>{const d=keyOf(o);let k=!d?'readydone':diffD(d,TODAY)<0?'past':diffD(d,TODAY)>6?'later':ymd(d);(by[k]=by[k]||[]).push(o)});
+  const rank=k=>k==='past'?'0':k==='readydone'?'9':k==='later'?'8':'1'+k;
+  const keys=Object.keys(by).sort((a,b)=>rank(a).localeCompare(rank(b)));
+  $('olist').innerHTML=keys.map(k=>{const os=by[k].sort((a,b)=>((keyOf(a)||a.deliver)-(keyOf(b)||b.deliver))||a.no.localeCompare(b.no));
+    const kg=os.reduce((s,o)=>s+o.lines.filter(l=>l.item==='さつまいも'&&l.unit==='kg').reduce((t,l)=>t+l.qty,0),0);const bags=os.reduce((s,o)=>s+bagQty(o),0);
+    const title=k==='past'?(lstG==='deliver'?'納品日を過ぎている':'用意日を過ぎている'):k==='later'?'来週以降':k==='readydone'?'用意済み（発送・納品待ち）':(k===ymd(TODAY)?'今日 ':diffD(new Date(k),TODAY)===1?'明日 ':'')+mdw(new Date(k+'T00:00:00'));
+    const cls=k==='past'?'past':k===ymd(TODAY)?'today':'';
+    const lim=k==='later'&&!lstOpen.has(k)?3:999;const shown=os.slice(0,lim);
+    return `<div class="lgrp"><div class="lgh ${cls}"><b>${title}</b><span class="dim">${os.length}件</span><span class="tot">${lstG==='deliver'?'納品':'用意'}${kg?`　さつまいも <b>${fmt(kg)}</b> kg`:''}${bags?`　袋詰 <b>${fmt(bags)}</b> 袋`:''}</span></div>${shown.map(lstRow).join('')}${os.length>shown.length?`<button class="lmore" data-open="${k}">残り ${os.length-shown.length} 件を表示</button>`:''}</div>`}).join('')||'<div class="lgrp" style="padding:16px"><span class="dim">該当なし</span></div>';
+}
+$('lstSum').onclick=e=>{const b=e.target.closest('[data-f]');if(b){lstF=b.dataset.f;renderList()}};
+$('lstGrp').onclick=e=>{const b=e.target.closest('[data-g]');if(!b)return;lstG=b.dataset.g;[...$('lstGrp').children].forEach(x=>x.classList.toggle('on',x===b));renderList()};
+$('lstQ').oninput=renderList;
+$('olist').onclick=e=>{const g=e.target.closest('[data-go]');if(g){e.stopPropagation();const o=ORDERS.find(x=>x.no===g.dataset.no);if(g.dataset.go==='sched')openSched(o);else openStage(o,g.dataset.go);return}
+  const m=e.target.closest('[data-open]');if(m){lstOpen.add(m.dataset.open);renderList();return}
+  const r=e.target.closest('.lr');if(r)openOrder(r.dataset.no)};
 const lineSummary=o=>o.lines.map(l=>`${l.item} ${l.size} ${fmt(l.qty)}${l.unit}${l.boxes?`（${l.boxes}箱）`:''}`).join('／');
 
 /* ===== 詳細 ===== */
@@ -679,34 +805,33 @@ function renderBaro(){
 }
 function renderWeek(){
   const mon=addD(monday(TODAY),wkOff*7),sun=addD(mon,6);const W=weekStats(mon);const T=SETTINGS.targetKg;
-  $('wkLabel').textContent=`${md(mon)} 〜 ${md(sun)}`;
+  $('wkLabel').textContent=`${md(mon)}（月）〜 ${md(sun)}（日）`;
   const pend=ORDERS.filter(o=>o.status==='受注').sort((a,b)=>a.deliver-b.deliver);
-  $('wkMini').innerHTML=`<span>出荷 <b>${t(W.kg)}</b> <span class="dim">/ ${(T/1000).toFixed(1)}t</span></span><span>予定込み <b>${t(W.kg+W.plan)}</b></span><span class="${pend.length?'bad':''}">日程未定 <b>${pend.length}</b>件</span>`;
-  const inW=d=>d&&d0(d)>=mon&&d0(d)<=sun;
-  const sd=o=>o.deliver;
-  const rows=ORDERS.filter(o=>o.status!=='キャンセル'&&inW(o.deliver)).sort((a,b)=>sd(a)-sd(b));
-  const todo=rows.filter(o=>!o.act.shipAt),done=rows.filter(o=>o.act.shipAt);
-  const st=(at,plan,lab)=>at?`<span class="act ${plan&&diffD(at,plan)>0?'late':''}">${md(at)} 済</span>`:plan?`${lab}${md(plan)}`:'<span class="dim">未定</span>';
-  const NX={'準備中':'用意完了','用意完了':'発送手配済','発送手配済':'納品済'};
-  const row=o=>{const c=custOf(o.cust);const next=NX[o.status];
-    return `<tr class="click ${o.act.shipAt?'done':''}" data-no="${o.no}"><td><b>${md(sd(o))}</b><span class="pv">${'日月火水木金土'[sd(o).getDay()]}</span></td><td><b>${esc(c.name)}</b><span class="pv">${o.no}</span></td><td>${lineSummary(o)}</td><td class="r">${o.kg?fmt(o.kg)+' kg':''}${o.boxes?`<span class="pv">${o.boxes}箱</span>`:''}</td><td>${o.readyFix?st(o.act.readyAt,o.readyFix,'期限'):'<span class="dim">在庫出し</span>'}</td><td>${st(o.act.shipAt,o.shipFix,'予定')}<span class="pv">${o.act.carrier||o.carrier||''}</span></td><td>${st(o.act.deliverAt,o.deliver,'')}</td><td><span class="tag t-${dispStatus(o)}">${dispStatus(o)}</span></td><td class="ga">${o.status==='受注'?`<button class="btn sm acc" data-s="${o.no}">日程</button>`:next&&!o.act.shipAt?`<button class="btn sm pri" data-n="${o.no}">${next}へ</button>`:dispStatus(o)==='納品確認待ち'?`<button class="btn sm pri" data-n="${o.no}">納品済へ</button>`:''}</td></tr>`};
-  $('wkShip').innerHTML=`<h3>今週の出荷 ${rows.length}件（納品日がこの週）<span>残り ${todo.length}件　済み ${done.length}件　さつまいも ${t(W.kg)}（予定込み ${t(W.kg+W.plan)}）</span></h3>
-    <div class="tw"><table class="shp"><tr><th>納品</th><th>顧客</th><th>明細</th><th class="r">量</th><th>① 用意</th><th>② 発送</th><th>③ 納品</th><th>状態</th><th></th></tr>${todo.map(row).join('')||'<tr><td colspan="9" class="dim">未発送はありません</td></tr>'}
-    ${done.length?`<tr><td colspan="9" style="padding:4px 10px"><button class="btn sm" style="font-weight:400;color:var(--mute)" data-toggle="done">${wkShowDone.has('list')?'済みを隠す':`済み ${done.length}件を表示`}</button></td></tr>`:''}${wkShowDone.has('list')?done.map(row).join(''):''}</table></div>`;
-  $('wkShip').onclick=e=>{const g=e.target.closest('[data-toggle]');if(g){wkShowDone.has('list')?wkShowDone.delete('list'):wkShowDone.add('list');renderWeek();return}
-    const sb=e.target.closest('[data-s]');if(sb){openSched(ORDERS.find(o=>o.no===sb.dataset.s));return}
-    const nb=e.target.closest('[data-n]');if(nb){const o=ORDERS.find(x=>x.no===nb.dataset.n);openStage(o,NX[o.status]);return}
-    const r=e.target.closest('[data-no]');if(r)openOrder(r.dataset.no)};
-  $('tray').innerHTML=pend.length?`<div class="tray"><h3>日程未定 ${pend.length}件 — 発送手配日と用意期限を決めてください</h3>${pend.map(o=>`<div class="it"><b>${esc(custOf(o.cust).name)}</b><span>${lineSummary(o)}</span><span class="dim">③納品 ${mdw(o.deliver)}　提案 ②${md(o.shipSug)} ①${md(o.readySug)}</span><span class="grow"></span><button class="btn sm acc" data-no="${o.no}">日程を決める</button></div>`).join('')}</div>`:'';
-  $('tray').onclick=e=>{const b=e.target.closest('[data-no]');if(b)openSched(ORDERS.find(o=>o.no===b.dataset.no))};
-  $('wkGrid').innerHTML=[0,1,2,3,4,5,6].map(i=>{const d=addD(mon,i);const k=ymd(d);const evs=[];
-    ORDERS.filter(o=>o.status!=='キャンセル').forEach(o=>{const c=custOf(o.cust).name.slice(0,8);
-      if(o.readyFix&&ymd(o.readyFix)===k)evs.push({c:'r',done:!!o.act.readyAt,no:o.no,m:`① ${c} ${fmt(o.kg||o.lines[0].qty)}${o.kg?'kg':o.lines[0].unit}`});
-      if((o.shipFix)&&ymd(o.shipFix)===k)evs.push({c:'s',done:!!o.act.shipAt,no:o.no,m:`② ${c}`});
-      if(ymd(o.deliver)===k)evs.push({c:'d',done:!!o.act.deliverAt,no:o.no,m:`③ ${c}`})});
-    const kg=readyKgOn(d);const td=evs.filter(e=>!e.done),dn=evs.filter(e=>e.done);const show=wkShowDone.has(k);
-    return `<div class="wd ${k===ymd(TODAY)?'today':''}"><div class="h"><span>${'月火水木金土日'[i]} ${md(d)}</span>${k===ymd(TODAY)?'<span style="color:var(--accent)">今日</span>':''}</div><div class="kg ${kg>CAP?'over':''}">用意 ${fmt(kg)} kg${kg>CAP?' ⚠':''}</div>${td.map(e=>`<div class="ev ${e.c}" data-no="${e.no}">${e.m}</div>`).join('')}${!td.length?'<div class="dim">—</div>':''}${dn.length?`<button class="btn sm" style="margin-top:6px;width:100%;font-weight:400;color:var(--mute);background:none;border-style:dashed" data-done="${k}">${show?'済みを隠す':`済み ${dn.length}`}</button>`:''}${show?dn.map(e=>`<div class="ev ${e.c} done" data-no="${e.no}">${e.m}</div>`).join(''):''}</div>`}).join('');
-  $('wkGrid').onclick=e=>{const t=e.target.closest('[data-done]');if(t){wkShowDone.has(t.dataset.done)?wkShowDone.delete(t.dataset.done):wkShowDone.add(t.dataset.done);renderWeek();return}const b=e.target.closest('[data-no]');if(b)openOrder(b.dataset.no)};
+  const lateN=ORDERS.filter(lateOf).length;
+  const p1=Math.min(100,W.kg/T*100),p2=Math.min(100,(W.kg+W.plan)/T*100);
+  $('wkKpi').innerHTML=`<div class="card wkp"><small>この週の出荷（さつまいも・納品日ベース）</small><div class="big">${(W.kg/1000).toFixed(2)}<span> t 実績</span>　${((W.kg+W.plan)/1000).toFixed(2)}<span> t 予定込み ／ 目標 ${(T/1000).toFixed(1)} t</span></div><div class="km"><i style="width:${p1}%"></i><u style="left:${p1}%;width:${Math.max(0,p2-p1)}%"></u></div><div class="dim">達成 ${Math.round(W.kg/T*100)}%（予定込み ${Math.round((W.kg+W.plan)/T*100)}%）　発送手配済にした分が実績。詳しい内訳は一番下</div></div>
+    <div class="card wkp"><small>日程未定</small><div class="big" style="color:${pend.length?'#8a5a00':'inherit'}">${pend.length}<span> 件</span></div><div class="dim">下の黄色い欄で日程を決める</div></div>
+    <div class="card wkp"><small>遅れ・要確認</small><div class="big" style="color:${lateN?'var(--bad)':'inherit'}">${lateN}<span> 件</span></div><div class="dim">赤い枠のカード</div></div>`;
+  $('tray').innerHTML=pend.length?`<div class="tray"><h3>日程未定 ${pend.length}件 <span class="dim" style="font-weight:400">流通が ①用意日 ②発送日 を決める。納品日が近い順</span></h3><div class="tcs">${pend.map(o=>{const lt=diffD(o.readySug,TODAY)<0;return `<div class="tc ${lt?'late':''}"><span><b>${esc(custOf(o.cust).name)}</b>　${qtyMain(o)}　<span class="d">③${mdw(o.deliver)}${lt?'　用意日を過ぎた':''}</span></span><button class="btn sm acc" data-s="${o.no}">決める</button></div>`}).join('')}</div></div>`:'';
+  $('tray').onclick=e=>{const b=e.target.closest('[data-s]');if(b)openSched(ORDERS.find(o=>o.no===b.dataset.s))};
+  const days=[0,1,2,3,4,5,6].map(i=>addD(mon,i));const isCur=wkOff===0;
+  const lanes=[
+    ['l1','① 用意','倉庫で準備',o=>o.act.readyAt||o.readyFix,o=>!!o.act.readyAt],
+    ['l2','② 発送','集荷・配達',o=>o.act.shipAt||o.shipFix,o=>!!o.act.shipAt],
+    ['l3','③ 納品','客先着',o=>o.deliver,o=>o.status==='納品済']];
+  const live=ORDERS.filter(o=>o.status!=='キャンセル');
+  let h='<div class="wbh"></div>'+days.map(d=>{const kg=readyKgOn(d);const un=ORDERS.filter(o=>o.status==='受注'&&ymd(o.readySug)===ymd(d)).reduce((s,o)=>s+o.kg,0);const tdy=ymd(d)===ymd(TODAY);const hol=HOLIDAYS[ymd(d)];
+    return `<div class="wbh ${tdy?'today':''}"><b ${hol||d.getDay()===0?'style="color:var(--bad)"':''}>${tdy?'今日 ':''}${mdw(d)}</b>${hol?`<span class="dim">${esc(hol)}</span>`:''}<div class="wcap ${kg>CAP?'over':''}">用意 ${fmt(kg)} / ${CAP}kg${un?`<span class="dim">（未定 +${fmt(un)}）</span>`:''}<div class="km"><i style="width:${Math.min(100,kg/CAP*100)}%"></i></div></div></div>`}).join('');
+  lanes.forEach(([cls,lbl,sub,dateOf,isDone])=>{
+    h+=`<div class="wln ${cls}">${lbl}<span>${sub}</span></div>`;
+    days.forEach((d,di)=>{
+      let os=live.filter(o=>{const x=dateOf(o);return x&&ymd(x)===ymd(d)});
+      if(isCur&&di===0)os=os.concat(live.filter(o=>{const x=dateOf(o);return x&&d0(x)<mon&&!isDone(o)&&active(o)&&(cls!=='l3'||o.act.shipAt)}));
+      os.sort((a,b)=>isDone(a)-isDone(b)||a.no.localeCompare(b.no));
+      h+=`<div class="wcl ${ymd(d)===ymd(TODAY)?'today':''}">${os.map(o=>{const dn=isDone(o);const x=dateOf(o);const late=!dn&&active(o)&&d0(x)<d0(TODAY);const un=cls==='l3'&&o.status==='受注';
+        return `<button class="wbc ${cls}c ${dn?'done':''} ${late?'late':''} ${un?'un':''}" data-no="${o.no}"><b>${esc(custOf(o.cust).name)}</b><span class="qq">${qtyMain(o)}${late?`　<em>${md(x)}予定</em>`:''}</span></button>`}).join('')}</div>`})});
+  $('wkBoard').innerHTML=h;
+  $('wkBoard').onclick=e=>{const b=e.target.closest('[data-no]');if(b)openOrder(b.dataset.no)};
   renderBaro();
 }
 
@@ -715,6 +840,7 @@ let F={cat:'青果',item:'さつまいも',lines:[],cust:null,editNo:null,mode:'
 function newLine(){const it=ITEMS.find(i=>i.name===F.item);return {item:it.name,size:it.sizes[0],pack:it.packs[0].n,qty:'',per:''}}
 function loadForm(o){F={cat:o.cat,item:(o.lines[0]||{}).item||'さつまいも',lines:o.lines.map(l=>({item:l.item,size:l.size,pack:PACK_ALIAS[l.pack]||l.pack,qty:l.qty,per:l.per||''})),cust:o.cust,editNo:o.no,mode:'pick',reg:'継続',carrierTouched:true};$('fDeliver').value=ymd(o.deliver);$('fNote').value=o.note;$('fSales').value=o.sales;$('fCustQ').value=custOf(o.cust).name;$('fMethod').value=o.method||'宅配便';setTimeout(()=>{$('fCarrier').value=o.carrier||''},0);$('fAltOn').checked=!!o.addrAlt;$('fAlt').value=o.addrAlt||'';$('fAlt').hidden=!o.addrAlt}
 function renderForm(){
+  if(!$('fRepDow'))$('fRepDowW').innerHTML=dowPick('fRepDow',[]);$('fRepBox').hidden=!!F.editNo;repBadge();if(FV==='rep')renderRep();
   if(!$('fDeliver').value)$('fDeliver').value=ymd(addD(TODAY,3));if(!$('fSales').value)$('fSales').value=ME;
   if(!ITEMS.length){toast('品目マスタが空です');return}if(!ITEMS.find(i=>i.name===F.item)){F.item=(ITEMS.find(i=>i.cat===F.cat)||ITEMS[0]).name;F.cat=ITEMS.find(i=>i.name===F.item).cat}
   if(!F.lines.length)F.lines=[newLine()];
@@ -762,25 +888,123 @@ $('fSave').onclick=async()=>{
   const lrows=lines.map(l=>({'品目':l.item,'規格':l.size,'荷姿':l.pack,'数量':l.qty,'単位':l.unit,'入数':l.per,'箱数':l.boxes}));
   const alt=$('fAltOn').checked?$('fAlt').value:'';
   const sales=$('fSales').value||ME;
+  let recurring=null;
+  if(!F.editNo&&$('fRepOn').checked){const dw=dowGet('fRepDow');if(!dw.length){toast('定期の曜日を選んでください');return}recurring={'曜日':dowStr(dw),'開始':$('fRepFrom').value||$('fDeliver').value,'終了':$('fRepTo').value}}
   $('fSave').disabled=true;
   try{
     if(F.editNo){const o=ORDERS.find(x=>x.no===F.editNo);const before=o.kg;const tmp={lines};const m=`明細変更：${lines.map(l=>`${l.item} ${l.size} ${fmt(l.qty)}${l.unit}`).join('／')}${before!==lines.filter(l=>l.unit==='kg').reduce((s,l)=>s+l.qty,0)?`　計 ${fmt(before)} → ${fmt(lines.filter(l=>l.unit==='kg').reduce((s,l)=>s+l.qty,0))}kg`:''}`;
       const r=await save('saveOrder',{no:o.no,order:{'納品日':$('fDeliver').value,'申し送り':$('fNote').value,'配送方法':$('fMethod').value,'運送会社':$('fCarrier').value,'営業担当':sales,'送り先別':alt,'カテゴリ':F.cat},lines:lrows,event:{'種別':'内容変更','担当':sales+'（営業）','内容':m}},`${o.no} を更新しました（変更はタイムラインに残ります）`);mergeSaved(r)}
-    else{const r=await save('saveOrder',{order:{'顧客コード':F.cust||'','カテゴリ':F.cat,'納品日':$('fDeliver').value,'配送方法':$('fMethod').value,'運送会社':$('fCarrier').value,'営業担当':sales,'申し送り':$('fNote').value,'送り先別':alt,'状態':'受注'},lines:lrows,newCustomer,event:{'種別':'受注','担当':sales+'（営業）','内容':`新規登録　③納品 ${$('fDeliver').value.slice(5).replace('-','/')}${$('fNote').value?`　申し送り「${$('fNote').value}」`:''}`}},null);
-      mergeSaved(r);toast(`${r.no} を登録しました → 流通の「週間」に日程未定として出ます`)}
-    F={cat:'青果',item:'さつまいも',lines:[],cust:null,editNo:null,mode:'pick',reg:'継続'};$('fCustQ').value='';['nName','nTel','nZip','nAttn','nAddr','nHours','nClosed','fAlt'].forEach(i=>$(i).value='');$('fAltOn').checked=false;$('fAlt').hidden=true;$('fNote').value='';
+    else{const r=await save('saveOrder',{order:{'顧客コード':F.cust||'','カテゴリ':F.cat,'納品日':$('fDeliver').value,'配送方法':$('fMethod').value,'運送会社':$('fCarrier').value,'営業担当':sales,'申し送り':$('fNote').value,'送り先別':alt,'状態':'受注'},lines:lrows,newCustomer,recurring,event:{'種別':'受注','担当':sales+'（営業）','内容':`新規登録　③納品 ${$('fDeliver').value.slice(5).replace('-','/')}${$('fNote').value?`　申し送り「${$('fNote').value}」`:''}`}},null);
+      mergeSaved(r);toast(`${r.no} を登録しました${r.recurring&&r.recurring.length?'（定期にも追加）':''} → 流通の「週間」に日程未定として出ます`)}
+    F={cat:'青果',item:'さつまいも',lines:[],cust:null,editNo:null,mode:'pick',reg:'継続'};$('fCustQ').value='';['nName','nTel','nZip','nAttn','nAddr','nHours','nClosed','fAlt'].forEach(i=>$(i).value='');$('fAltOn').checked=false;$('fAlt').hidden=true;$('fNote').value='';$('fRepOn').checked=false;$('fRepOpt').hidden=true;$('fRepTo').value='';$('fRepFrom').value='';
     switchTab('list');
   }catch(e){}finally{$('fSave').disabled=false}
 };
 
 // 保存結果を手元のデータに差し込む（読み直し不要にして登録を速くする）
-function mergeSaved(r){if(!RAW||!r||!r.no)return;
+function mergeSaved(r){if(!RAW||!r||!r.no)return;mergeOne(r);build(RAW);render()}
+function mergeOne(r){if(!RAW||!r||!r.no)return;
+  if(r.recurring&&r.recurring.length)RAW.recurring=(RAW.recurring||[]).concat(r.recurring);
   if(r.customer){const i=RAW.customers.findIndex(c=>String(c['コード'])===String(r.customer['コード']));if(i<0)RAW.customers.push(r.customer);else RAW.customers[i]=r.customer}
   const oi=RAW.orders.findIndex(o=>String(o.NO)===String(r.no));
   if(oi<0)RAW.orders.push(Object.assign({NO:r.no},r.order));else Object.assign(RAW.orders[oi],r.order);
   RAW.lines=RAW.lines.filter(l=>String(l.NO)!==String(r.no)).concat(r.lines||[]);
-  if(r.event)RAW.events.push(r.event);
-  build(RAW);render()}
+  if(r.event)RAW.events.push(r.event)}
+/* ===== 定期出荷 ===== */
+const DOWJ='日月火水木金土';const DOW_ORDER=[1,2,3,4,5,6,0];
+let FV='one',RP=[],rpEdit=null;
+const dowPick=(id,sel)=>`<span class="dowp" id="${id}">${DOW_ORDER.map(d=>`<button type="button" class="${sel.includes(d)?'on':''}" data-d="${d}">${DOWJ[d]}</button>`).join('')}</span>`;
+const dowGet=id=>[...$(id).querySelectorAll('.on')].map(b=>Number(b.dataset.d));
+const dowStr=a=>DOW_ORDER.filter(d=>a.includes(d)).map(d=>DOWJ[d]).join('|');
+const dowPills=a=>`<span class="dowv">${DOW_ORDER.map(d=>`<b class="${a.includes(d)?'on':''}">${DOWJ[d]}</b>`).join('')}</span>`;
+document.addEventListener('click',e=>{const b=e.target.closest('.dowp button');if(b)b.classList.toggle('on')});
+$('fView').onclick=e=>{const b=e.target.closest('[data-v]');if(!b)return;FV=b.dataset.v;[...$('fView').children].forEach(x=>x.classList.toggle('on',x===b));$('fOne').hidden=FV!=='one';$('fRep').hidden=FV!=='rep';if(FV==='rep')renderRep()};
+$('fRepOn').onchange=()=>{$('fRepOpt').hidden=!$('fRepOn').checked;if($('fRepOn').checked&&!$('fRepFrom').value)$('fRepFrom').value=$('fDeliver').value};
+function nextMon(){return addD(monday(TODAY),7)}
+function rpRange(){if(!$('rpFrom').value){$('rpFrom').value=ymd(nextMon());$('rpTo').value=ymd(addD(nextMon(),6))}return [new Date($('rpFrom').value+'T00:00:00'),new Date($('rpTo').value+'T00:00:00')]}
+function rpCands(from,to){const out=[];
+  for(let d=new Date(from);d<=to;d=addD(d,1)){const k=ymd(d);
+    REC.forEach(r=>{if(!r.on||!r.dow.includes(d.getDay())||!custOf(r.cust))return;if(r.from&&k<r.from)return;if(r.to&&k>r.to)return;
+      const done=ORDERS.find(o=>o.status!=='キャンセル'&&o.cust===r.cust&&ymd(o.deliver)===k);
+      out.push({date:k,d:new Date(d),r,qty:r.qty,sel:!done,done:done?done.no:''})})}
+  return out}
+function repBadge(){const [f,t]=[nextMon(),addD(nextMon(),6)];const n=rpCands(f,t).filter(c=>!c.done).length;$('repBadge').textContent=n?`来週 ${n}件`:'';$('repBadge').hidden=!n}
+function renderRep(){
+  const [f,t]=rpRange();RP=rpCands(f,t);renderRpDays();renderRpList();
+}
+function renderRpDays(){
+  const by={};RP.forEach((c,i)=>{c.i=i;(by[c.date]=by[c.date]||[]).push(c)});
+  $('rpDays').innerHTML=Object.keys(by).sort().map(k=>`<div class="rday"><div class="rdh"><b>${mdw(by[k][0].d)}</b><span class="dim">${by[k].length}件</span></div>${by[k].map(c=>{const cu=custOf(c.r.cust);const p=packOf(c.r);
+    return `<div class="rit ${c.sel&&!c.done?'':'skip'}"><input type="checkbox" data-i="${c.i}" ${c.sel&&!c.done?'checked':''} ${c.done?'disabled':''}><div><b>${esc(cu?cu.name:c.r.cust)}</b><div class="dim">${esc(c.r.method||cu.method)}${c.r.note?'　'+esc(c.r.note):''}</div></div><div class="dim">${esc(c.r.item)} ${esc(c.r.size)}　${esc(c.r.pack)}</div><div class="row" style="gap:4px;flex-wrap:nowrap"><input type="number" data-q="${c.i}" value="${c.qty}" ${c.done?'disabled':''} style="width:90px;text-align:right"> ${c.r.unit}${p&&p.per?`<span class="dim">＝${Math.ceil(c.qty/(c.r.per||p.per))}箱</span>`:''}</div><span class="tag ${c.done?'':'t-納品済'}">${c.done?'登録済 '+c.done:'新規'}</span></div>`}).join('')}</div>`).join('')||`<p class="dim" style="padding:10px 0">この期間に作る定期出荷はありません。${REC.length?'':'下の「＋ 定期を追加」か、1件ずつ登録の「この内容を定期出荷にする」で登録できます。'}</p>`;
+  const s=RP.filter(c=>c.sel&&!c.done);
+  $('rpSum').innerHTML=`登録する <b style="font-size:18px">${s.length}</b> 件　さつまいも <b>${fmt(s.filter(c=>c.r.unit==='kg'&&c.r.item==='さつまいも').reduce((a,c)=>a+Number(c.qty),0))}</b> kg　袋詰 <b>${fmt(s.filter(c=>c.r.unit==='袋'&&c.r.item==='さつまいも').reduce((a,c)=>a+Number(c.qty),0))}</b> 袋　<span class="dim">登録済 ${RP.filter(c=>c.done).length}件は作りません</span>`;
+  $('rpGo').disabled=!s.length;
+}
+const packOf=r=>{const it=ITEMS.find(i=>i.name===r.item);return it&&it.packs.find(p=>p.n===r.pack)};
+$('rpDays').onchange=e=>{const el=e.target;if(el.dataset.i!==undefined){RP[el.dataset.i].sel=el.checked;renderRpDays()}if(el.dataset.q!==undefined){RP[el.dataset.q].qty=Number(el.value)||0;renderRpDays()}};
+$('rpFrom').onchange=$('rpTo').onchange=renderRep;
+$('rpNext').onclick=()=>{$('rpFrom').value=ymd(nextMon());$('rpTo').value=ymd(addD(nextMon(),6));renderRep()};
+$('rpThis').onclick=()=>{$('rpFrom').value=ymd(addD(TODAY,1));$('rpTo').value=ymd(addD(monday(TODAY),6));renderRep()};
+$('rpGo').onclick=async()=>{
+  const s=RP.filter(c=>c.sel&&!c.done&&c.qty>0);if(!s.length)return;
+  const grp={};s.forEach(c=>{const k=c.r.cust+'|'+c.date;(grp[k]=grp[k]||[]).push(c)});
+  const orders=Object.values(grp).map(cs=>{const r=cs[0].r;const cu=custOf(r.cust);const it=ITEMS.find(i=>i.name===r.item);
+    const lines=cs.map(c=>line(c.r.item,c.r.size,c.r.pack,Number(c.qty),c.r.per)).map(l=>({'品目':l.item,'規格':l.size,'荷姿':l.pack,'数量':l.qty,'単位':l.unit,'入数':l.per,'箱数':l.boxes}));
+    const note=['定期',...new Set(cs.map(c=>c.r.note).filter(Boolean))].join('　');
+    return {order:{'顧客コード':r.cust,'カテゴリ':(it&&it.cat)||'青果','納品日':cs[0].date,'配送方法':r.method||cu.method,'運送会社':r.carrier||cu.carrier||'','営業担当':r.by||ME,'申し送り':note,'送り先別':'','状態':'受注'},lines,event:{'種別':'受注','担当':ME,'内容':`定期からまとめて作成（${cs.map(c=>c.r.id).join(',')}）`}}});
+  $('rpGo').disabled=true;
+  try{const res=await save('createFromRecurring',{orders},null);
+    res.created.forEach(r=>mergeOne(r));build(RAW);render();renderRep();
+    toast(`${res.created.length}件を登録しました${res.skipped.length?`（${res.skipped.length}件は登録済のため作らず）`:''} → 一覧・週間に「日程未定」で出ます`)}catch(e){}finally{$('rpGo').disabled=false}
+};
+function renderRpList(){
+  $('rpList').innerHTML=REC.length?`<table class="rtab"><tr><th>顧客</th><th>曜日</th><th>内容</th><th>配送</th><th>申し送り</th><th>期間</th><th>状態</th><th></th></tr>${[...REC].sort((a,b)=>(b.on-a.on)||(custOf(a.cust)||{name:''}).name.localeCompare((custOf(b.cust)||{name:''}).name)).map(r=>{const cu=custOf(r.cust);const p=packOf(r);
+    return `<tr class="${r.on?'':'off'}"><td><b>${esc(cu?cu.name:r.cust)}</b><div class="dim">${r.id}</div></td><td>${dowPills(r.dow)}</td><td class="wr">${esc(r.item)} ${esc(r.size)}<div class="dim">${esc(r.pack)}　${fmt(r.qty)}${r.unit}${p&&p.per?`（${Math.ceil(r.qty/(r.per||p.per))}箱）`:''}</div></td><td>${esc(r.method||(cu?cu.method:''))}</td><td class="wr dim">${esc(r.note)||'—'}</td><td class="dim">${r.from?md(new Date(r.from+'T00:00:00')):''}〜${r.to?md(new Date(r.to+'T00:00:00')):''}</td><td><span class="tag ${r.on?'t-納品済':''}">${r.on?'有効':'休止'}</span></td><td><button class="btn sm" data-e="${r.id}">編集</button></td></tr>`}).join('')}</table>`:'<p class="dim">まだ定期出荷はありません</p>';
+}
+$('rpList').onclick=e=>{const b=e.target.closest('[data-e]');if(b){rpEdit=REC.find(r=>r.id===b.dataset.e);renderRpForm()}};
+$('rpAdd').onclick=()=>{rpEdit={id:'',cust:'',dow:[],item:'さつまいも',size:'',pack:'',qty:'',unit:'kg',per:'',method:'',carrier:'',note:'',from:ymd(nextMon()),to:'',on:true,_mode:'pick'};renderRpForm()};
+function renderRpForm(){
+  const r=rpEdit;if(!r){$('rpEdit').hidden=true;return}
+  const it=ITEMS.find(i=>i.name===r.item)||ITEMS[0];const p=it.packs.find(x=>x.n===r.pack)||it.packs[0];r.pack=p.n;r.unit=p.u;
+  const sizes=p.bag?it.bagSizes:it.sizes;if(!sizes.includes(r.size))r.size=sizes[0]||'';
+  const cu=r.cust&&custOf(r.cust);const isNew=!r.id;
+  $('rpEdit').hidden=false;
+  $('rpEdit').innerHTML=`<h3 style="margin-bottom:8px">${isNew?'定期を追加':'定期を編集 '+r.id}</h3>
+   ${isNew?`<div class="seg" id="rpMode" style="margin-bottom:8px"><button class="${r._mode!=='new'?'on':''}" data-m="pick">既存の顧客</button><button class="${r._mode==='new'?'on':''}" data-m="new">新規の顧客</button></div>`:''}
+   ${r._mode==='new'&&isNew?`<div class="two" style="gap:8px"><div><label class="lbl">顧客名 <span style="color:var(--bad)">必須</span></label><input id="rnName"></div><div><label class="lbl">電話</label><input id="rnTel"></div></div>
+     <div class="two" style="gap:8px"><div><label class="lbl">区分</label><select id="rnKind"><option>小売</option><option>市場</option><option>卸</option><option>農家</option><option>その他</option></select></div><div><label class="lbl">配送日数（発送→着）</label><input type="number" id="rnLead" value="1"></div></div>
+     <div class="two" style="gap:8px"><div><label class="lbl">郵便番号</label><input id="rnZip"></div><div><label class="lbl">住所</label><input id="rnAddr"></div></div>
+     <p class="dim">顧客マスタにも登録されます（継続）。次からは「既存の顧客」で選べます</p>`
+   :`<label class="lbl">顧客</label>${isNew?`<input id="rpCust" list="rpCustList" placeholder="顧客名を入力して候補から選ぶ" value="${cu?esc(cu.name):''}"><datalist id="rpCustList">${CUST.filter(c=>c.active).map(c=>`<option value="${esc(c.name)}">`).join('')}</datalist>`:`<div><b>${esc(cu?cu.name:r.cust)}</b></div>`}`}
+   <label class="lbl">曜日（複数OK）</label>${dowPick('rpDow',r.dow)}
+   <div class="two" style="gap:8px"><div><label class="lbl">品目</label><select id="rpItem">${ITEMS.map(i=>`<option ${i.name===r.item?'selected':''}>${esc(i.name)}</option>`).join('')}</select></div><div><label class="lbl">荷姿</label><select id="rpPack">${it.packs.map(x=>`<option ${x.n===r.pack?'selected':''}>${esc(x.n)}</option>`).join('')}</select></div></div>
+   <div class="two" style="gap:8px"><div><label class="lbl">${p.bag?'1袋の重さ':'規格'}</label><select id="rpSize">${sizes.map(x=>`<option ${x===r.size?'selected':''}>${esc(x)}</option>`).join('')}</select></div><div><label class="lbl">数量（${p.u}）${p.bag?'　1箱の袋数':''}</label><div class="row" style="gap:6px;flex-wrap:nowrap"><input type="number" id="rpQty" value="${r.qty}" style="width:110px"> ${p.u}${p.bag?`<input type="number" id="rpPer" value="${r.per||p.per||''}" style="width:70px"> 袋/箱`:''}</div></div></div>
+   <div class="two" style="gap:8px"><div><label class="lbl">配送方法</label><select id="rpMethod"><option value="">顧客の標準</option>${['宅配便','自社便','引取り','チャーター'].map(x=>`<option ${x===r.method?'selected':''}>${x}</option>`).join('')}</select></div><div><label class="lbl">申し送り</label><input id="rpNote" value="${esc(r.note)}" placeholder="午前着 など"></div></div>
+   <div class="two" style="gap:8px"><div><label class="lbl">いつから</label><input type="date" id="rpF" value="${r.from}"></div><div><label class="lbl">いつまで <span class="dim">（空＝続ける）</span></label><input type="date" id="rpT" value="${r.to}"></div></div>
+   ${isNew?'':`<label class="lbl"><input type="checkbox" id="rpOn" style="width:auto" ${r.on?'checked':''}> 有効（外すと休止。履歴は残る）</label>`}
+   <div class="row" style="margin-top:10px"><button class="btn acc" id="rpSave">${isNew?'定期に追加':'保存'}</button><button class="btn" id="rpCancel">やめる</button></div>`;
+  const keep=()=>{r.dow=dowGet('rpDow');r.qty=$('rpQty').value;r.note=$('rpNote').value;r.from=$('rpF').value;r.to=$('rpT').value;r.method=$('rpMethod').value;if($('rpPer'))r.per=$('rpPer').value;if($('rpCust')){const c=CUST.find(x=>x.name===$('rpCust').value);r.cust=c?c.code:'';r._q=$('rpCust').value}};
+  if($('rpMode'))$('rpMode').onclick=e=>{const b=e.target.closest('[data-m]');if(!b)return;keep();r._mode=b.dataset.m;renderRpForm()};
+  $('rpItem').onchange=()=>{keep();r.item=$('rpItem').value;r.pack='';r.size='';renderRpForm()};
+  $('rpPack').onchange=()=>{keep();r.pack=$('rpPack').value;r.per='';renderRpForm()};
+  $('rpSize').onchange=()=>{r.size=$('rpSize').value};
+  $('rpCancel').onclick=()=>{rpEdit=null;renderRpForm()};
+  $('rpSave').onclick=async()=>{keep();r.size=$('rpSize').value;
+    let newCustomer=null;
+    if(isNew&&r._mode==='new'){if(!$('rnName').value.trim()){toast('顧客名を入れてください');return}
+      newCustomer={'顧客名':$('rnName').value.trim(),'区分':$('rnKind').value,'カテゴリ':it.cat,'郵便番号':$('rnZip').value,'住所1':$('rnAddr').value,'住所2':'','宛名':'','電話':$('rnTel').value,'配送方法':r.method||'宅配便','標準運送会社':'','配送日数':Number($('rnLead').value)||1,'有効':true,'登録区分':'継続','備考':'定期出荷から登録'}}
+    else if(!r.cust){toast('顧客を候補から選んでください');return}
+    if(!r.dow.length){toast('曜日を選んでください');return}
+    if(!(Number(r.qty)>0)){toast('数量を入れてください');return}
+    const pk=it.packs.find(x=>x.n===r.pack)||p;
+    const rec={'ID':r.id||'','顧客コード':r.cust,'曜日':dowStr(r.dow),'品目':r.item,'規格':r.size,'荷姿':r.pack,'数量':Number(r.qty),'単位':pk.u,'入数':pk.bag?(Number(r.per)||pk.per):(pk.per||''),'配送方法':r.method,'運送会社':'','申し送り':r.note,'開始':r.from,'終了':r.to,'有効':isNew?true:$('rpOn').checked};
+    try{const res=await save('saveRecurring',{rec,newCustomer},isNew?'定期に追加しました':'定期を保存しました');
+      if(res.customer){RAW.customers.push(res.customer)}
+      const i=(RAW.recurring=RAW.recurring||[]).findIndex(x=>String(x.ID)===String(res.rec.ID));if(i<0)RAW.recurring.push(res.rec);else RAW.recurring[i]=res.rec;
+      rpEdit=null;build(RAW);render();renderRep()}catch(e){}
+  };
+}
+
 /* ===== 顧客 ===== */
 let cSel=null;
 $('cQ').oninput=renderCust;
