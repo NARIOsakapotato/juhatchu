@@ -426,7 +426,7 @@ let REASONS=[],CARRIERS=[],CANCEL_REASONS=[],DELIVER_HOW=[],STAFF_NAMES=[],SETTI
 let ITEMS=[],CUST=[],ORDERS=[];
 const custOf=c=>CUST.find(x=>x.code===c);
 const PACK_ALIAS={'5kg箱':'5kg箱（バラ）','10kg箱':'10kg箱（バラ）','コンテナ（バラ）':'野菜コンテナ（バラ）','袋詰 10kg箱（18袋入）':'10kg箱（袋詰）','袋詰 10kg箱（24袋入）':'10kg箱（袋詰）','袋詰 5kg箱（9袋入）':'10kg箱（袋詰）','袋詰 10kg箱':'10kg箱（袋詰）'};
-function line(item,size,pack,qty,perOverride){const it=ITEMS.find(i=>i.name===item);pack=PACK_ALIAS[pack]||pack;const p=(it&&it.packs.find(x=>x.n===pack))||(it&&it.packs[0])||{n:pack,u:'kg',per:''};const per=p.per?(Number(perOverride)||p.per):'';return {item,size,pack:p.n,qty,unit:p.u,per,boxes:per?Math.ceil(qty/per):''}}
+function line(item,size,pack,qty,perOverride){const it=ITEMS.find(i=>i.name===item);pack=PACK_ALIAS[pack]||pack;const p=(it&&it.packs.find(x=>x.n===pack))||(it&&it.packs[0])||{n:pack,u:'kg',per:''};const per=p.bag?(Number(perOverride)||p.per):(p.per||'');return {item,size,pack:p.n,qty,unit:p.u,per,boxes:per?Math.ceil(qty/per):''}}
 
 /* ===== API ===== */
 let ME='',KEY='';
@@ -724,12 +724,13 @@ function renderForm(){
   $('fItems').onclick=e=>{const b=e.target.closest('[data-i]');if(b){F.item=b.dataset.i;F.lines.push(newLine());renderForm()}};
   $('fLines').innerHTML=F.lines.map((l,i)=>{const it=ITEMS.find(x=>x.name===l.item);const p=it.packs.find(x=>x.n===l.pack)||it.packs[0];
     const sizes=p.bag?it.bagSizes:it.sizes;if(!sizes.includes(l.size))l.size=sizes[0];
-    const per=p.per?(Number(l.per)||p.per):'';const boxes=per&&l.qty?Math.ceil(l.qty/per):'';
+    const per=p.bag?(Number(l.per)||p.per):(p.per||'');const boxes=per&&l.qty?Math.ceil(l.qty/per):'';
     return `<div class="line"><div class="lf"><small>品目</small><b>${l.item}</b></div><div class="lf"><small>${p.bag?'1袋の重さ':'規格'}</small><select data-i="${i}" data-f="size">${sizes.map(s=>`<option ${s===l.size?'selected':''}>${s}</option>`).join('')}</select></div><div class="lf"><small>荷姿</small><select data-i="${i}" data-f="pack">${it.packs.map(x=>`<option ${x.n===l.pack?'selected':''}>${x.n}</option>`).join('')}</select></div><div class="brk"></div>${p.per?`<div class="lf"><small>箱数</small><span class="s"><input type="number" data-i="${i}" data-f="boxes" value="${boxes}" placeholder="箱" style="width:70px"> 箱</span></div>${p.bag?`<div class="lf eq">×</div><div class="lf"><small>1箱の袋数</small><span class="s"><input type="number" data-i="${i}" data-f="per" value="${per}" style="width:60px"> 袋</span></div>`:''}<div class="lf eq">＝</div>`:''}<div class="lf"><small>数量（${p.u}）${p.per&&!p.bag?`<span class="dim">1箱${p.per}${p.u}</span>`:''}</small><span class="s"><input type="number" data-i="${i}" data-f="qty" value="${l.qty}" placeholder="${p.u}で入力" style="width:90px"> ${p.u}</span></div><div class="lf"><small>&nbsp;</small><button class="btn sm" data-del="${i}" title="この明細を消す">×</button></div></div>`}).join('');
   $('fLines').onchange=e=>{const el=e.target;const f=el.dataset.f;if(!f)return;const l=F.lines[el.dataset.i];
     if(f==='boxes'){const it=ITEMS.find(x=>x.name===l.item);const p=it.packs.find(x=>x.n===l.pack)||it.packs[0];l.qty=el.value===''?'':Number(el.value)*((p.bag&&Number(l.per))||p.per||1)}
     else if(f==='per'){const it=ITEMS.find(x=>x.name===l.item);const p=it.packs.find(x=>x.n===l.pack)||it.packs[0];const oldPer=Number(l.per)||p.per||18;const boxes=l.qty?Math.ceil(l.qty/oldPer):0;l.per=Number(el.value)||'';const newPer=l.per||p.per||18;if(boxes)l.qty=boxes*newPer}
     else l[f]=f==='qty'?(el.value===''?'':Number(el.value)):el.value;
+    if(f==='pack')l.per='';// 荷姿を変えたら前の入数は捨てる
     setTimeout(renderForm,0)};
   $('fLines').onclick=e=>{const b=e.target.closest('[data-del]');if(b){F.lines.splice(b.dataset.del,1);renderForm()}};
   $('fAddLine').onclick=()=>{F.lines.push(newLine());renderForm()};
