@@ -1006,8 +1006,9 @@ $('fSave').onclick=async()=>{
   $('fSave').disabled=true;
   try{
     if(F.editNo){const o=ORDERS.find(x=>x.no===F.editNo);const before=o.kg;const tmp={lines};const m=`明細変更：${lines.map(l=>`${l.item} ${l.size} ${fmt(l.qty)}${l.unit}`).join('／')}${before!==lines.filter(l=>l.unit==='kg').reduce((s,l)=>s+l.qty,0)?`　計 ${fmt(before)} → ${fmt(lines.filter(l=>l.unit==='kg').reduce((s,l)=>s+l.qty,0))}kg`:''}`;
-      const r=await save('saveOrder',{no:o.no,order:{'納品日':$('fDeliver').value,'申し送り':$('fNote').value,'配送方法':$('fMethod').value,'運送会社':$('fCarrier').value,'営業担当':sales,'送り先別':alt,'カテゴリ':F.cat,'注文区分':F.kind||''},lines:lrows,event:{'種別':'内容変更','担当':sales+'（営業）','内容':m}},`${o.no} を更新しました（変更はタイムラインに残ります）`);mergeOne(r);
-      if(recList.length){const res=await saveRec(recList,o.cust,null,sales,alt,lrows);toast(`${o.no} を更新し、先の分 ${res.created.length}件を作りました${res.skipped.length?`（${res.skipped.length}件はすでにあるので作らず）`:''}`)}
+      const custChg=newCustomer?`顧客変更：${custOf(o.cust)?custOf(o.cust).name:o.cust} → ${newCustomer['顧客名']}（新規）　`:(F.cust!==o.cust?`顧客変更：${custOf(o.cust)?custOf(o.cust).name:o.cust} → ${custOf(F.cust).name}　`:'');
+      const r=await save('saveOrder',{no:o.no,newCustomer,order:{'顧客コード':newCustomer?'':F.cust,'納品日':$('fDeliver').value,'申し送り':$('fNote').value,'配送方法':$('fMethod').value,'運送会社':$('fCarrier').value,'営業担当':sales,'送り先別':alt,'カテゴリ':F.cat,'注文区分':F.kind||''},lines:lrows,event:{'種別':'内容変更','担当':sales+'（営業）','内容':custChg+m}},`${o.no} を更新しました（変更はタイムラインに残ります）`);mergeOne(r);
+      if(recList.length){const res=await saveRec(recList,(r&&r.custCode)||F.cust||o.cust,null,sales,alt,lrows);toast(`${o.no} を更新し、先の分 ${res.created.length}件を作りました${res.skipped.length?`（${res.skipped.length}件はすでにあるので作らず）`:''}`)}
       build(RAW);render()}
     else if(F.kind==='定期'){const res=await saveRec([$('fDeliver').value,...recList.filter(x=>x!==$('fDeliver').value)],F.cust||'',newCustomer,sales,alt,lrows);build(RAW);render();
       toast(`定期 ${res.created.length}件を登録しました（${md(new Date($('fDeliver').value+'T00:00:00'))}〜${md(new Date($('fRecTo').value+'T00:00:00'))}）${res.skipped.length?`　${res.skipped.length}件はすでにあるので作らず`:''}`)}
