@@ -533,6 +533,7 @@ let SETTINGS={targetKg:5000,workdays:'月〜土',from:'',to:''};
 let REASONS=[],CARRIERS=[],CANCEL_REASONS=[],DELIVER_HOW=[],STAFF_NAMES=[],SETTING_ROWS=[],OPT={};
 let ITEMS=[],CUST=[],ORDERS=[];
 const custOf=c=>CUST.find(x=>x.code===c);
+const custNorm=x=>String(x||'').normalize('NFKC').replace(/[\s　]/g,'').replace(/[（(]株[)）]|株式会社|[（(]有[)）]|有限会社/g,'').toLowerCase().replace(/[ァ-ヶ]/g,ch=>String.fromCharCode(ch.charCodeAt(0)-0x60));
 const PACK_ALIAS={'折り畳みコンテナ（袋詰）':'イフコンテナ（袋詰）','5kg箱':'5kg箱（バラ）','10kg箱':'10kg箱（バラ）','コンテナ（バラ）':'野菜コンテナ（バラ）','袋詰 10kg箱（18袋入）':'10kg箱（袋詰）','袋詰 10kg箱（24袋入）':'10kg箱（袋詰）','袋詰 5kg箱（9袋入）':'10kg箱（袋詰）','袋詰 10kg箱':'10kg箱（袋詰）'};
 function line(item,size,pack,qty,perOverride){const it=ITEMS.find(i=>i.name===item);pack=PACK_ALIAS[pack]||pack;const p=(it&&it.packs.find(x=>x.n===pack))||(it&&it.packs[0])||{n:pack,u:'kg',per:''};const per=p.bag?(Number(perOverride)||p.per):(p.per||'');return {item,size,pack:p.n,qty,unit:p.u,per,boxes:per?Math.ceil(qty/per):''}}
 
@@ -965,8 +966,15 @@ function renderForm(){
   const kg=F.lines.reduce((s,l)=>s+lineKg(line(l.item,l.size,l.pack,Number(l.qty)||0,l.per)),0);
   $('fSum').innerHTML=`合計 <b>${fmt(Math.round(kg))} kg</b>${F.lines.some(l=>(ITEMS.find(x=>x.name===l.item).packs.find(p=>p.n===l.pack)||{}).u==='袋')?'（袋詰は袋数×1袋の重さで換算）':''}　${F.lines.length}明細<br><span class="dim">規格：極小／小／中／大／傷／奇形（細かいg指定は申し送りへ）。袋詰は規格の代わりに1袋の重さ（550g入り／350g入り）を選ぶ。箱数と数量はどちらを入れても片方が自動で入る（10kg箱（バラ）＝10kg、10kg箱（袋詰）は1箱18袋が基本・袋数は変えられる）。イフコンテナ（袋詰）は1コンテナ18袋が基本、袋数は変えられる。合計の袋数を直接入れてもよい</span>`;
   const q=$('fCustQ').value.trim();
-  const cands=CUST.filter(c=>c.reg==='継続'&&(c.cats.includes(F.cat))&&(!q||c.name.includes(q)));
-  $('fSugg').innerHTML=cands.map(c=>`<button class="${F.cust===c.code?'on':''}" data-c="${c.code}"><b>${esc(c.name)}</b> <span class="dim">${c.kind}　配送${c.lead}日　${c.hours}</span></button>`).join('');
+  // 入力した名前が選択中の顧客と違えば選択を外す（前に選んだ顧客のまま登録されるのを防ぐ）
+  if(F.cust&&custOf(F.cust)&&custOf(F.cust).name!==q)F.cust=null;
+  const nq=custNorm(q);
+  // カテゴリが違う顧客・スポット顧客も、名前を入れれば候補に出す（カテゴリが合う継続顧客を先頭に）
+  const cands=CUST.filter(c=>c.active!==false&&(q?custNorm(c.name).includes(nq):(c.reg==='継続'&&c.cats.includes(F.cat))))
+    .sort((a,b)=>(b.cats.includes(F.cat)-a.cats.includes(F.cat))||((a.reg==='継続'?0:1)-(b.reg==='継続'?0:1))).slice(0,40);
+  $('fSugg').innerHTML=cands.map(c=>`<button class="${F.cust===c.code?'on':''}" data-c="${c.code}"><b>${esc(c.name)}</b> <span class="dim">${c.kind}　配送${c.lead}日　${c.hours}</span>${!c.cats.includes(F.cat)?` <span class="tag t-cat">${esc(c.cats.join('・')||'カテゴリなし')}</span>`:''}${c.reg!=='継続'?' <span class="tag t-cat">スポット</span>':''}</button>`).join('')
+    +(q&&!cands.length?`<div class="dim" style="padding:6px 2px">「${esc(q)}」に当たる顧客はいません。はじめての顧客なら上の「新規」から登録</div>`:'')
+    +(!F.cust&&q&&cands.length?'<div class="dim" style="padding:4px 2px">候補を押して選んでください（まだ選ばれていません）</div>':'');
   $('fSugg').onclick=e=>{const b=e.target.closest('[data-c]');if(b){F.cust=b.dataset.c;$('fCustQ').value=custOf(F.cust).name;renderForm()}};
   $('fMode').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.m===F.mode));$('fReg').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.r===F.reg));
   const isNew=F.mode==='new';$('fPick').hidden=isNew;$('fNew').hidden=!isNew;$('fAddrPick').hidden=isNew;$('fAddrNew').hidden=!isNew;
