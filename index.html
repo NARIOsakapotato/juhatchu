@@ -342,6 +342,20 @@ tr.sum td{background:var(--bg);font-weight:700;border-top:2px solid var(--line2)
   .lr .lst{grid-area:st}.lr .lnm{grid-area:nm}.lr .lq{grid-area:q}.lr .stp{grid-area:stp}.lr .lact{grid-area:act;display:flex;justify-content:flex-start;gap:8px}
   .rit{grid-template-columns:24px 1fr auto}
 }
+/* フォーム受付 */
+.fibanner{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--accent-soft);border:1px solid var(--accent-line);border-radius:10px;padding:10px 14px;margin-bottom:10px;font-size:13px;color:var(--ink2)}.fibanner b{color:var(--accent);font-size:14px}
+.fi{display:grid;gap:8px;margin-bottom:10px}.fidone{opacity:.72}
+.fir1{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}.fiwho{font-size:15.5px;font-weight:900}.fiwhen{margin-left:auto;font-size:12px;color:var(--mute);font-variant-numeric:tabular-nums}
+.fiord{display:flex;gap:12px;align-items:baseline;flex-wrap:wrap}.fiord b{font-size:17px;font-variant-numeric:tabular-nums}
+.fi>.btn.sm{justify-self:start}
+.fi-ok{background:var(--ok-soft);color:var(--ok-ink)}.fi-ng{background:var(--warn-soft);color:#8a5a00}.fi-stop{background:var(--bad-soft);color:var(--bad)}
+.fikv{display:grid;grid-template-columns:7.5em minmax(0,1fr);gap:4px 10px;font-size:13px}.fikv .k{color:var(--mute)}.fikv span{overflow-wrap:anywhere}
+.fidiff{background:var(--warn-soft);border-radius:4px;padding:0 3px}
+.fiopts{display:grid;gap:6px;background:var(--paper2);border-radius:8px;padding:8px 10px;font-size:13px}.fiopts label{display:flex;gap:8px;align-items:flex-start}.fiopts input{width:auto;margin-top:3px;accent-color:var(--accent)}
+.ficonf{display:grid;gap:6px;border:1px solid var(--accent-line);background:var(--accent-soft);border-radius:8px;padding:8px 10px;font-size:13px}
+.fipick{display:grid;gap:6px;border:1px dashed var(--line2);border-radius:8px;padding:8px 10px;font-size:13px}.ficand{display:flex;flex-wrap:wrap;gap:6px}
+.fiwarn{font-size:12px;color:var(--ink2);background:var(--warn-soft);border-radius:6px;padding:6px 9px;margin:8px 0}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
 </style>
 </head>
 <body>
@@ -364,6 +378,7 @@ tr.sum td{background:var(--bg);font-weight:700;border-top:2px solid var(--line2)
   <button class="tab on" data-t="list">一覧</button>
   <button class="tab" data-t="week">週間<span class="bd" id="bdWeek" hidden></span></button>
   <button class="tab" data-t="new">登録</button>
+  <button class="tab" data-t="form">フォーム受付<span class="bd" id="bdForm" hidden></span></button>
   <button class="tab" data-t="cust">顧客</button>
   <button class="tab" data-t="shift">シフト</button>
   <button class="tab" data-t="bag">袋詰</button>
@@ -459,6 +474,8 @@ tr.sum td{background:var(--bg);font-weight:700;border-top:2px solid var(--line2)
       <p class="note">曜日は複数OK。数量は基本の量で、まとめて作成の画面でその週だけ直せます。休止は「編集」→ 有効を外す。スプレッドシートの「定期」シートでも直接直せます（曜日は「月|木」の形）。</p></section>
   </div>
 </main>
+
+<main class="wrap" id="v-form" hidden><div id="fiBody"></div></main>
 
 <main class="wrap" id="v-cust" hidden>
   <div class="card cbar"><span class="cb"><label>期間</label><span class="seg" id="cPer"><button data-v="30">30日</button><button data-v="90" class="on">90日</button><button data-v="season">今シーズン</button><button data-v="all">すべて</button></span></span>
@@ -574,7 +591,7 @@ async function api(action,payload){
   }
 }
 function errBar(msg){const b=$('errBar');if(!msg){b.hidden=true;return}b.innerHTML=`<span>⚠ ${esc(msg)}</span><button class="btn sm" id="errClose">閉じる</button>`;b.hidden=false;$('errClose').onclick=()=>{b.hidden=true}}
-const PATCH_ACTIONS=['updateOrderFields','updateOrdersFields','saveCustomer','setShift','setShifts','saveBag','saveStaff','saveSettings'];
+const PATCH_ACTIONS=['updateOrderFields','updateOrdersFields','approveFormOrder','rejectFormOrder','saveCustomer','setShift','setShifts','saveBag','saveStaff','saveSettings'];
 const ridOf=(action,payload)=>{const t=ME+'|'+action+'|'+JSON.stringify(payload);let h=5381;for(let i=0;i<t.length;i++)h=((h<<5)+h+t.charCodeAt(i))|0;return action+'_'+(h>>>0).toString(36)+'_'+t.length};
 async function save(action,payload,okMsg){busy(true);errBar('');
   // 新規登録系は内容から再送防止IDを付ける（応答切れのあと押し直しても二重登録しない）
@@ -600,7 +617,7 @@ async function reload(){busy(true);try{const d=await api('init',{});TODAY=new Da
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&KEY&&LAST_LOAD&&Date.now()-LAST_LOAD>60000)reload()});
 
 let RAW=null,REC=[];
-function build(d){RAW=d;d.recurring=d.recurring||[];
+function build(d){RAW=d;d.recurring=d.recurring||[];d.formInbox=d.formInbox||[];
   const sget=k=>{const r=d.settings.find(x=>x['キー']===k);return r?String(r['値']??''):''};
   SETTING_ROWS=d.settings;
   SETTINGS.targetKg=Number(sget('週間目標kg'))||5000;SETTINGS.workdays=sget('稼働日')||'月〜土';
@@ -674,10 +691,10 @@ function weekStats(mon){
 
 /* ===== ナビ ===== */
 let TAB='list';
-function switchTab(t){TAB=t;document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t===t));['list','week','new','cust','shift','bag','hist'].forEach(v=>$('v-'+v).hidden=v!==t);render()}
+function switchTab(t){TAB=t;document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t===t));['list','week','new','form','cust','shift','bag','hist'].forEach(v=>$('v-'+v).hidden=v!==t);render()}
 $('tabs').addEventListener('click',e=>{const b=e.target.closest('.tab');if(b)switchTab(b.dataset.t)});
-function render(){renderBadge();({list:renderList,week:renderWeek,new:renderForm,cust:renderCust,shift:renderShift,bag:renderBag,hist:renderHist})[TAB]()}
-function renderBadge(){const n=ORDERS.filter(o=>o.status==='受注').length;$('bdWeek').hidden=!n;$('bdWeek').textContent=n}
+function render(){renderBadge();({list:renderList,week:renderWeek,new:renderForm,form:renderInbox,cust:renderCust,shift:renderShift,bag:renderBag,hist:renderHist})[TAB]()}
+function renderBadge(){const n=ORDERS.filter(o=>o.status==='受注').length;$('bdWeek').hidden=!n;$('bdWeek').textContent=n;const f=fiOpenN();$('bdForm').hidden=!f;$('bdForm').textContent=f}
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('on'),2200)}
 
 /* ===== 一覧 ===== */
@@ -770,7 +787,7 @@ function openOrder(no){
   <div class="meta"><span>${o.no}</span><span class="tag ${o.kind==='定期'?'t-定期':''}">${o.kind||'区分未設定'}</span><span>受注日 ${md(o.date)}</span><span>営業 ${esc(o.sales)}</span><span class="tag t-${dispStatus(o)}">${dispStatus(o)}</span><span>${o.method}${o.carrier?'・'+o.carrier:'・運送会社は流通が選ぶ'}</span><span>③納品 ${mdw(o.deliver)}${active(o)?`　${remDays(o.deliver)}`:''}</span></div>
   ${acts.join('')}<div class="acts" style="margin-bottom:12px">${sub.join('')}</div>
   <div class="kv"><span class="k">明細</span><span>${o.lines.map(l=>`${l.item} ${l.size}　<b>${fmt(l.qty)} ${l.unit}</b>　${l.pack}${l.boxes?`　${l.boxes}箱`:''}`).join('<br>')}${o.kg?`<br><b>計 ${fmt(o.kg)} kg${o.boxes?'・'+o.boxes+'箱':''}</b>`:''}</span></div>
-  <div class="kv"><span class="k">送り先</span><span>〒${c.zip} ${esc(c.addr)}　${esc(c.attn)}　${c.tel}<br><span class="dim">受入 ${c.hours||'—'}　不可 ${c.closed||'—'}　${esc(c.note)}</span></span></div>
+  <div class="kv"><span class="k">送り先</span><span>〒${c.zip} ${esc(c.addr)}　${esc(c.attn)}　${c.tel}${((RAW.customers.find(x=>String(x['コード'])===c.code)||{})['お客様番号'])?`　<span class="dim">お客様番号 ${esc(RAW.customers.find(x=>String(x['コード'])===c.code)['お客様番号'])}</span>`:''}<br><span class="dim">受入 ${c.hours||'—'}　不可 ${c.closed||'—'}　${esc(c.note)}</span></span></div>
   ${o.note?`<div class="kv"><span class="k">申し送り</span><span>${esc(o.note)}</span></div>`:''}
   ${o.act.waybill?`<div class="kv"><span class="k">配送</span><span>${o.act.carrier}　伝票 ${o.act.waybill}　${o.act.pieces}個口</span></div>`:''}
   ${timeline(o)}`);
@@ -1224,7 +1241,7 @@ function renderCust(){
     <div class="tw"><table><tr><th>受注No.</th><th>受注</th><th>明細</th><th>① 用意</th><th>② 発送</th><th>③ 納品</th><th>状態</th></tr>
     ${os.map(o=>`<tr class="click" data-no="${o.no}"><td>${o.no}</td><td>${md(o.date)}</td><td>${lineSummary(o)}</td><td>${o.status==='キャンセル'?'—':cell(o.act.readyAt,o.readyFix,'期限')}</td><td>${o.status==='キャンセル'?'—':cell(o.act.shipAt,o.shipFix,'予定')}</td><td>${o.status==='キャンセル'?'—':cell(o.act.deliverAt,o.deliver,'予定')}</td><td><span class="tag t-${o.status}">${o.status}</span></td></tr>`).join('')}</table></div>
     <p class="note">よく頼まれるもの：${top.map(([k,n])=>`${k}（${n}回）`).join('／')||'—'}　平均 ${ok.length?fmt(Math.round(kg/ok.length)):0}kg／回</p>
-    <div class="acts"><button class="btn" id="cEdit">顧客情報を編集</button>${c.reg!=='スポット'?'<button class="btn" id="cSpot">スポットにする（登録の候補に出さない）</button>':'<button class="btn" id="cSpot">継続に戻す</button>'}<button class="btn warn" id="cOff">${c.active===false?'有効に戻す':'無効にする（一覧から隠す）'}</button></div></div>`;
+    <div class="acts"><button class="btn" id="cEdit">顧客情報を編集</button><button class="btn acc" id="cLink" ${fiTel(c.tel)?'':'disabled title="電話番号を登録すると押せます"'}>注文リンクをコピー</button>${fiTel(c.tel)?'':'<span class="dim">電話番号を登録すると注文リンクを出せます</span>'}${c.reg!=='スポット'?'<button class="btn" id="cSpot">スポットにする（登録の候補に出さない）</button>':'<button class="btn" id="cSpot">継続に戻す</button>'}<button class="btn warn" id="cOff">${c.active===false?'有効に戻す':'無効にする（一覧から隠す）'}</button></div></div>`;
   {const r=custStats().find(x=>x.c.code===c.code);const ms=[];for(let i=5;i>=0;i--)ms.push(new Date(TODAY.getFullYear(),TODAY.getMonth()-i,1));
    const vals=ms.map(m=>r.all.filter(o=>o.deliver.getFullYear()===m.getFullYear()&&o.deliver.getMonth()===m.getMonth()).reduce((a,o)=>a+imoKg(o),0));const mx=Math.max(1,...vals);
    const gap=r.all.length>1?Math.round(diffD(r.last,r.all.reduce((m,o)=>o.deliver<m?o.deliver:m,r.all[0].deliver))/(r.all.length-1)):null;
@@ -1233,10 +1250,111 @@ function renderCust(){
      ${r.flag==='sleep'?`<div class="cnote">${diffD(TODAY,r.last)}日注文がありません${gap?`（いつもは${gap}日ごと）`:''}。声かけの候補です</div>`:''}${r.flag==='none'?'<div class="cnote">登録だけで注文がありません。二重登録か、見込み客のまま止まっていないか確認</div>':''}`;
    const kp=$('cdetail').querySelector('.kpis');if(kp)kp.after(box)}
   $('cdetail').onclick=async e=>{if(e.target.id==='cEdit'){openCustEdit(c);return}
+    if(e.target.id==='cLink'){if(!e.target.disabled)openFormLink(c);return}
     if(e.target.id==='cSpot'||e.target.id==='cOff'){const row=RAW.customers.find(x=>String(x['コード'])===c.code);if(!row)return;const upd=Object.assign({},row);delete upd._row;
       if(e.target.id==='cSpot')upd['登録区分']=c.reg==='スポット'?'継続':'スポット';else upd['有効']=c.active===false;
       try{await save('saveCustomer',{customer:upd},`${c.name} を${e.target.id==='cSpot'?(upd['登録区分']):(upd['有効']?'有効':'無効')}にしました`);build(RAW);render()}catch(err){}return}const r=e.target.closest('[data-no]');if(r)openOrder(r.dataset.no)};
 }
+/* ===== フォーム受付（お客さんがGoogleフォームから送った注文） ===== */
+const FI={filter:'未処理',pick:{},q:{},ask:{},open:{}};
+const fiRows=()=>(RAW&&RAW.formInbox||[]).filter(r=>r['受付ID']).slice().sort((a,b)=>String(b['受付日時']).localeCompare(String(a['受付日時'])));
+const fiOpenN=()=>fiRows().filter(r=>r['状態']==='未処理').length;
+const fiDig=s=>String(s||'').normalize('NFKC').replace(/\D/g,'');
+const fiTel=s=>{let d=fiDig(s);if(d&&d[0]!=='0'&&(d.length===9||d.length===10))d='0'+d;return d};
+const fiAddr=s=>String(s||'').normalize('NFKC').replace(/[\s,、]/g,'').replace(/丁目|番地|番|号/g,'-').replace(/-+/g,'-').replace(/-$/,'');
+const fiQty=r=>{const q=Number(r['数量'])||0;return r['単位']==='袋'?`${fmt(q)}袋（${Number(r['kg'])||Math.round(q*0.55*10)/10}kg）`:`${fmt(q)}kg`};
+const fiKind=r=>r['種類キー']==='fukuro'?'袋詰（550g×18袋）':r['種類キー']==='bara'?'バラ（大）':esc(r['種類']||'');
+function renderInbox(){
+  const all=fiRows(),open=all.filter(r=>r['状態']==='未処理');
+  const list=all.filter(r=>FI.filter==='すべて'||(FI.filter==='未処理'?r['状態']==='未処理':r['状態']!=='未処理'));
+  $('fiBody').innerHTML=`${open.length?`<div class="fibanner"><b>フォーム受付 未処理 ${open.length}件</b><span>承認すると受注になり「日程未定」（週間の一括日程）に入ります。営業なら誰でも承認できます。</span></div>`:''}
+   <div class="row mb"><div class="seg" id="fiSeg">${['未処理','処理済','すべて'].map(f=>`<button data-f="${f}" class="${f===FI.filter?'on':''}">${f}</button>`).join('')}</div><span class="dim">新しい順。メールの通知と同じ内容です</span></div>
+   ${list.length?list.map(fiCard).join(''):`<div class="card"><p class="dim">${FI.filter==='未処理'?'未処理のフォーム受付はありません。':'表示するものはありません。'}</p></div>`}`;
+}
+function fiCard(r){
+  const id=String(r['受付ID']);const code=FI.pick[id]||r['顧客コード'];const c=code?custOf(code):null;const done=r['状態']!=='未処理';
+  const cAddr=c?fiAddr((c.addr1||'')+(c.addr2||'')):'';const addrDiff=!!(c&&cAddr&&(fiDig(c.zip)!==fiDig(r['郵便番号'])||cAddr!==fiAddr(r['住所'])));
+  const firstAddr=!!(c&&!cAddr);const telNew=!!(c&&!fiTel(c.tel));const telDiff=!!(c&&fiTel(c.tel)&&fiTel(c.tel)!==fiTel(r['電話']));
+  const how=FI.pick[id]?'<span class="tag fi-ok">営業が選んで特定</span>':r['特定方法']==='不明'||!r['顧客コード']?'<span class="tag fi-stop">顧客が特定できません</span>':`<span class="tag fi-ok">${esc(r['特定方法'])}で特定</span>`;
+  const checks=String(r['チェック']||'').split('｜').filter(x=>x&&!/顧客が特定できません/.test(x));
+  if(FI.pick[id]){if(addrDiff)checks.push('送り先が登録と違う → 要確認');if(telDiff)checks.push('電話番号が登録と違う')}
+  const st=done?`<span class="tag ${r['状態']==='承認済'?'fi-ok':'t-キャンセル'}">${esc(r['状態'])}${r['受注NO']?' '+esc(r['受注NO']):''}${r['処理者']?'・'+esc(r['処理者']):''}</span>`:'';
+  return `<div class="card fi ${done?'fidone':''}" data-id="${esc(id)}">
+   <div class="fir1"><b class="fiwho">${esc(c?c.name:(r['貴社名']||'（店名なし）'))}</b>${c&&r['貴社名']&&custNorm(c.name)!==custNorm(r['貴社名'])?`<span class="dim">（記入：${esc(r['貴社名'])}）</span>`:''}${how}${st}<span class="fiwhen">受付 ${esc(String(r['受付日時']).slice(5,16).replace('T',' ').replace('-','/'))}</span></div>
+   <div class="fiord"><span class="tag t-定期">${esc(r['納品希望日（表示）']||String(r['納品希望日']).slice(5,10))}着</span><b>${fiKind(r)} ${esc(r['箱数'])}箱</b><span class="dim">＝ ${fiQty(r)}</span><span class="dim">担当：${esc(r['担当営業']||'—')}</span></div>
+   <div>${checks.length?checks.map(t=>`<span class="tag fi-ng">${esc(t)}</span>`).join(' '):'<span class="tag fi-ok">自動チェック：問題なし</span>'}${done&&r['メモ']?` <span class="dim">理由：${esc(r['メモ'])}</span>`:''}</div>
+   <button class="btn sm" data-fo="${esc(id)}" aria-expanded="${!!FI.open[id]}">${FI.open[id]?'詳しくを閉じる':'詳しく見る'}</button>
+   ${FI.open[id]?`<div class="fikv"><span class="k">電話</span><span>${esc(r['電話'])}${telDiff?` <span class="dim">（登録：${esc(c.tel)}）</span>`:''}</span>
+     <span class="k">お届け先</span><span><span class="${addrDiff?'fidiff':''}">〒${esc(r['郵便番号'])} ${esc(r['住所'])}</span>${r['宛名']?'　'+esc(r['宛名']):''}${addrDiff?`<br><span class="dim">登録：〒${esc(c.zip)} ${esc(c.addr)}</span>`:''}</span>
+     <span class="k">連絡事項</span><span>${esc(r['連絡事項']||'なし')}</span>
+     <span class="k">受注になる中身</span><span>${esc(r['品目'])}／${esc(r['規格'])}／${esc(r['荷姿'])}／${fmt(Number(r['数量'])||0)}${esc(r['単位'])}${r['単位']==='袋'?'（入数'+esc(r['入数'])+'）':''}・箱数 ${esc(r['箱数'])}</span></div>`:''}
+   ${done?'':fiActs(r,id,c,{addrDiff,firstAddr,telNew,telDiff})}</div>`;
+}
+function fiActs(r,id,c,f){
+  if(FI.ask[id]==='reject')return `<div class="ficonf"><b>却下しますか？</b><span class="dim">受注にはなりません。お客さんへの連絡は営業から別にしてください。</span>
+    <div class="row"><select id="fiR-${esc(id)}" style="width:auto"><option>テスト送信</option><option>二重送信</option><option>お客さんと相談して取り消し</option><option>その他</option></select><button class="btn warn" data-frj="${esc(id)}">却下する</button><button class="btn" data-fx="${esc(id)}">やめる</button></div></div>`;
+  if(!c){const q=FI.q[id]??String(r['貴社名']||'').replace(/(さん|様)$/,'');const nq=custNorm(q);const tel=fiTel(r['電話']);
+    const hit=CUST.filter(x=>x.active!==false&&((nq&&custNorm(x.name).includes(nq))||(tel&&fiTel(x.tel)===tel))).slice(0,12);
+    return `<div class="fipick"><b>顧客を選んでください</b><span class="dim">自動では決めません。選ぶと「${esc(r['貴社名']||'')}」をその顧客の別名として覚え、次からは自動で特定します。新しいお客さんは「登録」タブで顧客を作ってから選んでください。</span>
+      <input type="search" id="fiQ-${esc(id)}" value="${esc(q)}" placeholder="店名・電話で探す">
+      <div class="ficand">${hit.map(x=>`<button class="btn sm" data-fp="${esc(id)}|${esc(x.code)}">${esc(x.name)}</button>`).join('')||'<span class="dim">見つかりません</span>'}</div></div>
+      <div class="row"><button class="btn warn" data-fask="${esc(id)}">却下</button></div>`}
+  const o=[];
+  if(f.firstAddr)o.push(`<label><input type="checkbox" data-opt="addrReg" checked> このお届け先を顧客情報に登録する（次の注文リンクから最初から入ります）</label>`);
+  if(f.addrDiff)o.push(`<label><input type="radio" name="fiA-${esc(id)}" value="alt" checked> 今回だけこのお届け先に送る（顧客情報は変えない・受注に「送り先別」を付ける）</label><label><input type="radio" name="fiA-${esc(id)}" value="overwrite"> 顧客情報のお届け先を、この内容に書き換える</label>`);
+  if(f.telNew)o.push(`<label><input type="checkbox" data-opt="telReg" checked> この電話番号を顧客情報に登録する</label>`);
+  if(f.telDiff)o.push(`<label><input type="checkbox" data-opt="telOw"> 顧客情報の電話番号を、この番号に書き換える</label>`);
+  if(FI.pick[id])o.push(`<label><input type="checkbox" data-opt="alias" checked> 「${esc(r['貴社名']||'')}」を、この顧客の別名として覚える</label>`);
+  const opts=o.length?`<div class="fiopts">${o.join('')}</div>`:'';
+  if(FI.ask[id]==='ok')return `${opts}<div class="ficonf"><b>この内容で受注に登録します</b><span>${esc(c.name)}／${esc(r['納品希望日（表示）'])}着／${esc(r['品目'])} ${fiKind(r)} ${esc(r['箱数'])}箱（${fiQty(r)}）</span>
+     <span class="dim">状態：日程未定／注文区分：フォーム／営業：${esc(r['担当営業']||ME)}／申し送り：${esc(r['連絡事項']||'なし')}</span>
+     <div class="row"><button class="btn acc" data-fok="${esc(id)}">登録する</button><button class="btn" data-fx="${esc(id)}">やめる</button></div></div>`;
+  return `${opts}<div class="row"><button class="btn acc" data-fa="${esc(id)}">承認</button>${FI.pick[id]?`<button class="btn sm" data-fun="${esc(id)}">顧客を選び直す</button>`:''}<button class="btn warn" data-fask="${esc(id)}">却下</button></div>`;
+}
+function fiSyncRaw(r){if(!RAW||!r)return;if(r.saved)mergeOne(r.saved);if(r.customer){const i=RAW.customers.findIndex(c=>String(c['コード'])===String(r.customer['コード']));if(i>=0)RAW.customers[i]=r.customer}
+  if(r.inbox){RAW.formInbox=RAW.formInbox||[];const i=RAW.formInbox.findIndex(x=>String(x['受付ID'])===String(r.inbox['受付ID']));if(i<0)RAW.formInbox.push(r.inbox);else RAW.formInbox[i]=r.inbox}}
+$('fiBody').addEventListener('click',async e=>{const t=e.target.closest('button');if(!t)return;const d=t.dataset;
+  if(d.f){FI.filter=d.f;return renderInbox()}
+  if(d.fo){FI.open[d.fo]=!FI.open[d.fo];return renderInbox()}
+  if(d.fask){FI.ask[d.fask]='reject';return renderInbox()}
+  if(d.fa){FI.ask[d.fa]='ok';return renderInbox()}
+  if(d.fx){delete FI.ask[d.fx];return renderInbox()}
+  if(d.fp){const [id,code]=d.fp.split('|');FI.pick[id]=code;FI.open[id]=true;return renderInbox()}
+  if(d.fun){delete FI.pick[d.fun];delete FI.ask[d.fun];return renderInbox()}
+  if(d.fok){const id=d.fok;const card=t.closest('.fi');const q=s=>card.querySelector(s);
+    const radio=q(`input[name="fiA-${CSS.escape(id)}"]:checked`);
+    const p={id,custCode:FI.pick[id]||'',addr:q('[data-opt="addrReg"]')&&q('[data-opt="addrReg"]').checked?'register':radio?radio.value:'none',
+      tel:q('[data-opt="telReg"]')&&q('[data-opt="telReg"]').checked?'register':q('[data-opt="telOw"]')&&q('[data-opt="telOw"]').checked?'overwrite':'none',alias:!!(q('[data-opt="alias"]')&&q('[data-opt="alias"]').checked)};
+    t.disabled=true;
+    try{const r=await save('approveFormOrder',p,null);fiSyncRaw(r);delete FI.ask[id];delete FI.pick[id];build(RAW);render();toast(`${r.saved.no} として受注に登録しました（日程未定）`)}catch(err){}return}
+  if(d.frj){const id=d.frj;const reason=$('fiR-'+id)?$('fiR-'+id).value:'';t.disabled=true;
+    try{const r=await save('rejectFormOrder',{id,reason},'却下しました');fiSyncRaw(r);delete FI.ask[id];renderInbox();renderBadge()}catch(err){}return}
+});
+$('fiBody').addEventListener('input',e=>{const el=e.target;if(!el.id||!el.id.startsWith('fiQ-'))return;const id=el.id.slice(4);FI.q[id]=el.value;const pos=el.selectionStart;renderInbox();const n=$(el.id);if(n){n.focus();n.setSelectionRange(pos,pos)}});
+
+/* ===== 顧客の注文リンク（店名・電話・お届け先が入った状態で開く専用リンク） ===== */
+function fiLinkOf(code){
+  let cfg={};try{cfg=JSON.parse(((RAW.settings||[]).find(x=>x['キー']==='フォーム_入力欄')||{})['値']||'{}')}catch(e){}
+  if(!cfg.base||!cfg.entry)return '';
+  const row=RAW.customers.find(x=>String(x['コード'])===String(code))||{};
+  let zip=fiDig(row['郵便番号']);if(zip.length===7)zip=zip.slice(0,3)+'-'+zip.slice(3);
+  const tel=fiTel(row['電話']);
+  const v={tok:row['お客様番号'],name:row['顧客名'],tel,zip,addr:[row['住所1'],row['住所2']].filter(Boolean).join(' '),atena:row['宛名']};
+  return cfg.base+Object.keys(cfg.entry).filter(k=>v[k]).map(k=>'&'+cfg.entry[k]+'='+encodeURIComponent(String(v[k]))).join('');
+}
+function openFormLink(c){
+  const link=fiLinkOf(c.code);
+  if(!link){modal(`<h2>注文リンク</h2><p class="dim">フォームの設定（フォーム_入力欄）が見つかりません。管理者に確認してください。</p><div class="acts"><button class="btn" onclick="closeModal()">閉じる</button></div>`);return}
+  const msg=`${c.name} 様\n\nいつもありがとうございます。オオサカポテトです。\nさつまいも（10kgダンボール）のご注文は、下記の専用フォームからお願いいたします。\nお名前・お届け先は入力済みの状態で開きます（変更がある場合のみ書き換えてください）。\n\n${link}\n\n毎週火曜日・金曜日着です。\n火曜日着は前週土曜日17時、金曜日着は火曜日17時までのご注文となります。`;
+  modal(`<h2>注文リンク <span class="dim" style="font-size:13px;font-weight:400">${esc(c.name)}</span></h2>
+   <p class="dim" style="margin:6px 0">この案内文をLINE・メールに貼って送ってください。${c.addr?'':'お届け先がまだ登録されていないので、住所欄は空で開きます（初回の注文を承認すると登録され、次にコピーするリンクから入ります）。'}</p>
+   <textarea id="flMsg" rows="12" style="font-size:13px">${esc(msg)}</textarea>
+   <p class="fiwarn">このリンクには、お届け先と電話番号が入っています。お客さん本人にだけ（個別のLINE・メールで）送ってください。グループや掲示には貼らないでください。</p>
+   <div class="acts"><button class="btn acc" id="flCopy">案内文をコピー</button><button class="btn" id="flCopyL">リンクだけコピー</button><button class="btn" onclick="closeModal()">閉じる</button></div>`);
+  const cp=(text,ok)=>{try{navigator.clipboard.writeText(text).then(()=>toast(ok),()=>{$('flMsg').select();toast('選択しました。コピーしてください')})}catch(e){$('flMsg').select()}};
+  $('flCopy').onclick=()=>cp($('flMsg').value,'案内文とリンクをコピーしました');$('flCopyL').onclick=()=>cp(link,'リンクをコピーしました');
+}
+
 function openCustEdit(c){
   const f=(id,l,v,ph='')=>`<label>${l}</label><input id="ce_${id}" value="${esc(v??'')}" placeholder="${ph}">`;
   modal(`<h2>顧客情報を編集</h2><div class="meta"><span>${esc(c.code)}</span></div><div class="frm" style="grid-template-columns:110px 1fr">
