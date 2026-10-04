@@ -1262,8 +1262,11 @@ const fiOpenN=()=>fiRows().filter(r=>r['状態']==='未処理').length;
 const fiDig=s=>String(s||'').normalize('NFKC').replace(/\D/g,'');
 const fiTel=s=>{let d=fiDig(s);if(d&&d[0]!=='0'&&(d.length===9||d.length===10))d='0'+d;return d};
 const fiAddr=s=>String(s||'').normalize('NFKC').replace(/[\s,、]/g,'').replace(/丁目|番地|番|号/g,'-').replace(/-+/g,'-').replace(/-$/,'');
-const fiQty=r=>{const q=Number(r['数量'])||0;return r['単位']==='袋'?`${fmt(q)}袋（${Number(r['kg'])||Math.round(q*0.55*10)/10}kg）`:`${fmt(q)}kg`};
-const fiKind=r=>r['種類キー']==='fukuro'?'袋詰（550g×18袋）':r['種類キー']==='bara'?'バラ（大）':esc(r['種類']||'');
+const fiQty=r=>{const ls=fiLines(r);return ls.length?ls.map(fiLineQty).join('＋')+(ls.length>1?`　合計 ${esc(r['箱数'])}箱`:''):'—'};
+const fiLines=r=>{try{const ls=JSON.parse(r['明細JSON']||'[]');if(ls.length)return ls}catch(e){}return r['荷姿']?[{kind:r['種類キー'],size:r['規格'],pack:r['荷姿'],unit:r['単位'],per:r['入数'],boxes:Number(r['箱数'])||0,qty:Number(r['数量'])||0}]:[]};
+const fiKindOf=l=>l.kind==='fukuro'||/袋詰/.test(l.pack||'')?'袋詰（550g×18袋）':'バラ（大）';
+const fiKind=r=>{const ls=fiLines(r);return ls.length?ls.map(l=>`${fiKindOf(l)} ${l.boxes}箱`).join('＋'):'（個数なし）'};
+const fiLineQty=l=>l.unit==='袋'?`${fmt(l.qty)}袋（${Math.round(l.qty*0.55*10)/10}kg）`:`${fmt(l.qty)}kg`;
 function renderInbox(){
   const all=fiRows(),open=all.filter(r=>r['状態']==='未処理');
   const list=all.filter(r=>FI.filter==='すべて'||(FI.filter==='未処理'?r['状態']==='未処理':r['状態']!=='未処理'));
@@ -1281,13 +1284,13 @@ function fiCard(r){
   const st=done?`<span class="tag ${r['状態']==='承認済'?'fi-ok':'t-キャンセル'}">${esc(r['状態'])}${r['受注NO']?' '+esc(r['受注NO']):''}${r['処理者']?'・'+esc(r['処理者']):''}</span>`:'';
   return `<div class="card fi ${done?'fidone':''}" data-id="${esc(id)}">
    <div class="fir1"><b class="fiwho">${esc(c?c.name:(r['貴社名']||'（店名なし）'))}</b>${c&&r['貴社名']&&custNorm(c.name)!==custNorm(r['貴社名'])?`<span class="dim">（記入：${esc(r['貴社名'])}）</span>`:''}${how}${st}<span class="fiwhen">受付 ${esc(String(r['受付日時']).slice(5,16).replace('T',' ').replace('-','/'))}</span></div>
-   <div class="fiord"><span class="tag t-定期">${esc(r['納品希望日（表示）']||String(r['納品希望日']).slice(5,10))}着</span><b>${fiKind(r)} ${esc(r['箱数'])}箱</b><span class="dim">＝ ${fiQty(r)}</span><span class="dim">担当：${esc(r['担当営業']||'—')}</span></div>
+   <div class="fiord"><span class="tag t-定期">${esc(r['納品希望日（表示）']||String(r['納品希望日']).slice(5,10))}着</span><b>${fiKind(r)}</b><span class="dim">＝ ${fiQty(r)}</span><span class="dim">担当：${esc(r['担当営業']||'—')}</span></div>
    <div>${checks.length?checks.map(t=>`<span class="tag fi-ng">${esc(t)}</span>`).join(' '):'<span class="tag fi-ok">自動チェック：問題なし</span>'}${done&&r['メモ']?` <span class="dim">理由：${esc(r['メモ'])}</span>`:''}</div>
    <button class="btn sm" data-fo="${esc(id)}" aria-expanded="${!!FI.open[id]}">${FI.open[id]?'詳しくを閉じる':'詳しく見る'}</button>
    ${FI.open[id]?`<div class="fikv"><span class="k">電話</span><span>${esc(r['電話'])}${telDiff?` <span class="dim">（登録：${esc(c.tel)}）</span>`:''}</span>
      <span class="k">お届け先</span><span><span class="${addrDiff?'fidiff':''}">〒${esc(r['郵便番号'])} ${esc(r['住所'])}</span>${r['宛名']?'　'+esc(r['宛名']):''}${addrDiff?`<br><span class="dim">登録：〒${esc(c.zip)} ${esc(c.addr)}</span>`:''}</span>
      <span class="k">連絡事項</span><span>${esc(r['連絡事項']||'なし')}</span>
-     <span class="k">受注になる中身</span><span>${esc(r['品目'])}／${esc(r['規格'])}／${esc(r['荷姿'])}／${fmt(Number(r['数量'])||0)}${esc(r['単位'])}${r['単位']==='袋'?'（入数'+esc(r['入数'])+'）':''}・箱数 ${esc(r['箱数'])}</span></div>`:''}
+     <span class="k">受注になる中身</span><span>${fiLines(r).map(l=>`${esc(r['品目']||'さつまいも')}／${esc(l.size)}／${esc(l.pack)}／${fmt(l.qty)}${esc(l.unit)}${l.unit==='袋'?'（入数'+esc(l.per)+'）':''}・箱数 ${esc(l.boxes)}`).join('<br>')||'—'}</span></div>`:''}
    ${done?'':fiActs(r,id,c,{addrDiff,firstAddr,telNew,telDiff})}</div>`;
 }
 function fiActs(r,id,c,f){
@@ -1306,7 +1309,7 @@ function fiActs(r,id,c,f){
   if(f.telDiff)o.push(`<label><input type="checkbox" data-opt="telOw"> 顧客情報の電話番号を、この番号に書き換える</label>`);
   if(FI.pick[id])o.push(`<label><input type="checkbox" data-opt="alias" checked> 「${esc(r['貴社名']||'')}」を、この顧客の別名として覚える</label>`);
   const opts=o.length?`<div class="fiopts">${o.join('')}</div>`:'';
-  if(FI.ask[id]==='ok')return `${opts}<div class="ficonf"><b>この内容で受注に登録します</b><span>${esc(c.name)}／${esc(r['納品希望日（表示）'])}着／${esc(r['品目'])} ${fiKind(r)} ${esc(r['箱数'])}箱（${fiQty(r)}）</span>
+  if(FI.ask[id]==='ok')return `${opts}<div class="ficonf"><b>この内容で受注に登録します</b><span>${esc(c.name)}／${esc(r['納品希望日（表示）'])}着／${esc(r['品目']||'さつまいも')} ${fiKind(r)}（${fiQty(r)}）</span>
      <span class="dim">状態：日程未定／注文区分：フォーム／営業：${esc(r['担当営業']||ME)}／申し送り：${esc(r['連絡事項']||'なし')}</span>
      <div class="row"><button class="btn acc" data-fok="${esc(id)}">登録する</button><button class="btn" data-fx="${esc(id)}">やめる</button></div></div>`;
   return `${opts}<div class="row"><button class="btn acc" data-fa="${esc(id)}">承認</button>${FI.pick[id]?`<button class="btn sm" data-fun="${esc(id)}">顧客を選び直す</button>`:''}<button class="btn warn" data-fask="${esc(id)}">却下</button></div>`;
