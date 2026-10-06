@@ -250,6 +250,33 @@ tr.sum td{background:var(--bg);font-weight:700;border-top:2px solid var(--line2)
 .cbar{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--ink2)}
 .cbar i{display:inline-block;height:8px;border-radius:999px;background:var(--ok)}
 @media (max-width:900px){.two,.cust{grid-template-columns:1fr}.days,.wk{grid-template-columns:repeat(4,1fr)}.olist{grid-template-columns:1fr}.line{gap:6px} .hd h1{font-size:15px}}
+.ws-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.ws-tb{border-collapse:separate;border-spacing:0;width:100%;min-width:720px;font-variant-numeric:tabular-nums}
+.ws-tb th,.ws-tb td{border-bottom:1px solid var(--line);padding:5px;text-align:center;font-size:13px}
+.ws-tb th{color:var(--ink2);background:var(--paper2)}
+.ws-tb th.sz{text-align:left;position:sticky;left:0;background:var(--paper);z-index:1;min-width:58px}
+.ws-tb th.td,.ws-tb td.td{background:#fdf7e8}
+.ws-tb tr.tot th,.ws-tb tr.tot td{border-top:2px solid var(--line2);font-weight:700;background:var(--paper2)}
+.ws-tb td.rt{font-weight:700;background:var(--paper2)}
+.ws-c{width:100%;min-height:50px;border:1px dashed var(--line2);border-radius:9px;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px}
+.ws-c:hover{border-color:var(--accent-line)}
+.ws-c .pl{font-size:11px;color:var(--mute)}
+.ws-c .ac{font-size:16px;font-weight:900;line-height:1.15}
+.ws-c em{font-style:normal;font-size:12px;font-weight:700}
+.ws-c .z{color:var(--line2);font-size:16px}
+.ws-c.plan{background:var(--paper2);border-style:solid;border-color:var(--line)}
+.ws-c.ok{background:var(--ok-soft);border-style:solid;border-color:transparent}
+.ws-c.short{background:var(--warn-soft);border-style:solid;border-color:transparent}.ws-c.short .ac{color:#8a5a12}
+.ws-c.over{background:var(--accent-soft);border-style:solid;border-color:transparent}
+.ws-lg{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--ink2);margin-top:10px}
+.ws-lg i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:4px}
+.ws-stp{display:flex;align-items:center;gap:8px}
+.ws-stp button{width:46px;height:46px;border-radius:12px;border:1px solid var(--line2);background:var(--paper2);font-size:20px;font-weight:700}
+.ws-stp button:disabled{opacity:.4}
+.ws-stp output{min-width:76px;text-align:center;font-size:22px;font-weight:900;font-variant-numeric:tabular-nums}
+.ws-stp output small{font-size:12px;font-weight:700;color:var(--mute)}
+.ws-ref{display:flex;justify-content:space-between;gap:8px;background:var(--paper2);border-radius:10px;padding:8px 12px;font-size:13px;margin:8px 0}
+.ws-res{background:var(--paper2);border-radius:10px;padding:10px 12px;font-size:13px;margin-top:8px}
 @media (max-width:520px){.days,.wk{grid-template-columns:repeat(2,1fr)}.frm{grid-template-columns:1fr}.tab{font-size:13px}}
 @media (prefers-reduced-motion:reduce){.toast{transition:none}}
 
@@ -382,6 +409,7 @@ tr.sum td{background:var(--bg);font-weight:700;border-top:2px solid var(--line2)
   <button class="tab" data-t="cust">顧客</button>
   <button class="tab" data-t="shift">シフト</button>
   <button class="tab" data-t="bag">袋詰</button>
+  <button class="tab" data-t="wash">洗浄</button>
   <button class="tab" data-t="hist">履歴</button>
 </nav>
 
@@ -521,6 +549,19 @@ tr.sum td{background:var(--bg);font-weight:700;border-top:2px solid var(--line2)
   </div>
   <section class="card sec"><h3>日別の記録<span>タップで修正</span></h3><div class="tw" id="bTable"></div></section>
 </main>
+<main class="wrap" id="v-wash" hidden>
+  <section class="card" style="margin-bottom:12px"><div class="ws-bar">
+    <button class="btn sm" id="wsPrev">◀ 前の週</button><b id="wsWk" style="font-size:15px"></b><button class="btn sm" id="wsNext">次の週 ▶</button><button class="btn sm" id="wsToday">今週</button>
+    <span class="grow" style="flex:1"></span>
+    <span class="seg" id="wsMode"><button data-m="plan" class="on">予定を入れる</button><button data-m="act">実績を入れる</button></span>
+    <button class="btn sm" id="wsCopy">先週の予定をコピー</button>
+  </div></section>
+  <div class="kpis" id="wsKpi"></div>
+  <section class="card"><h3>洗浄スケジュール<span id="wsHint"></span></h3><div class="tw" id="wsGrid"></div>
+    <div class="ws-lg"><span><i style="background:var(--paper2);border:1px solid var(--line)"></i>予定だけ（実績まだ）</span><span><i style="background:var(--ok-soft)"></i>実績＝予定どおり</span><span><i style="background:var(--warn-soft)"></i>実績が予定より少ない</span><span><i style="background:var(--accent-soft)"></i>実績が予定より多い・予定外</span></div>
+    <p class="note">マスの上段が予定、下段の太字が実績。「1P＋10」は1パレット＋端数10コンテナ（＝34コンテナ）。1パレット＝24コンテナ。サイズは品目マスタ（さつまいもの規格）の順。</p>
+  </section>
+</main>
 <main class="wrap" id="v-hist">
   <div class="kpis" id="hQuick"></div>
   <div class="row mb">
@@ -591,7 +632,7 @@ async function api(action,payload){
   }
 }
 function errBar(msg){const b=$('errBar');if(!msg){b.hidden=true;return}b.innerHTML=`<span>⚠ ${esc(msg)}</span><button class="btn sm" id="errClose">閉じる</button>`;b.hidden=false;$('errClose').onclick=()=>{b.hidden=true}}
-const PATCH_ACTIONS=['updateOrderFields','updateOrdersFields','approveFormOrder','rejectFormOrder','saveCustomer','setShift','setShifts','saveBag','saveStaff','saveSettings'];
+const PATCH_ACTIONS=['updateOrderFields','updateOrdersFields','approveFormOrder','rejectFormOrder','saveCustomer','setShift','setShifts','saveBag','saveWash','saveStaff','saveSettings'];
 const ridOf=(action,payload)=>{const t=ME+'|'+action+'|'+JSON.stringify(payload);let h=5381;for(let i=0;i<t.length;i++)h=((h<<5)+h+t.charCodeAt(i))|0;return action+'_'+(h>>>0).toString(36)+'_'+t.length};
 async function save(action,payload,okMsg){busy(true);errBar('');
   // 新規登録系は内容から再送防止IDを付ける（応答切れのあと押し直しても二重登録しない）
@@ -608,6 +649,7 @@ function syncRaw(action,p,r){if(!RAW)return;const ts=dts(new Date());
   const shiftRow=x=>{const o={'日付':x.date,'名前':x.name,'開始':x.start===''||x.start==null?'':Number(x.start),'終了':x.end===''||x.end==null?'':Number(x.end),'休憩分':Number(x.brk)||0,'人数':x.count===''||x.count==null?'':Number(x.count),'当日変更':!!x.todayChange,'更新者':ME,'更新日時':ts};const i=RAW.shifts.findIndex(y=>String(y['日付']).slice(0,10)===x.date&&y['名前']===x.name);if(i<0)RAW.shifts.push(o);else RAW.shifts[i]=o};
   if(action==='setShift')shiftRow(p);if(action==='setShifts')(p.list||[]).forEach(shiftRow);
   if(action==='saveBag'){const o={'日付':p.date,'350g袋':Number(p.b350)||0,'600g袋':Number(p.b600)||0,'メモ':p.memo||'','手入力':!!p.edited,'人数':p.edited?Number(p.n):'','時間':p.edited?Number(p.h):'','記録者':ME,'更新日時':ts};const i=RAW.bags.findIndex(y=>String(y['日付']).slice(0,10)===p.date);if(i<0)RAW.bags.push(o);else RAW.bags[i]=o}
+  if(action==='saveWash'){RAW.wash=RAW.wash||[];(p.items||[]).forEach(it=>{let o=RAW.wash.find(y=>String(y['日付']).slice(0,10)===it.date&&y['サイズ']===it.size);if(!o){o={'日付':it.date,'サイズ':it.size,'予定':0,'実績':'','メモ':''};RAW.wash.push(o)}if(it.plan!==undefined)o['予定']=it.plan;if(it.act!==undefined)o['実績']=it.act===null?'':it.act;o['記録者']=ME;o['更新日時']=ts})}
   if(action==='saveStaff')RAW.staff=p.rows.slice();
   if(action==='saveSettings')RAW.settings=p.rows.slice();
 }
@@ -617,7 +659,7 @@ async function reload(){busy(true);try{const d=await api('init',{});TODAY=new Da
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&KEY&&LAST_LOAD&&Date.now()-LAST_LOAD>60000)reload()});
 
 let RAW=null,REC=[];
-function build(d){RAW=d;d.recurring=d.recurring||[];d.formInbox=d.formInbox||[];
+function build(d){RAW=d;d.recurring=d.recurring||[];d.formInbox=d.formInbox||[];d.wash=d.wash||[];
   const sget=k=>{const r=d.settings.find(x=>x['キー']===k);return r?String(r['値']??''):''};
   SETTING_ROWS=d.settings;
   SETTINGS.targetKg=Number(sget('週間目標kg'))||5000;SETTINGS.workdays=sget('稼働日')||'月〜土';
@@ -691,9 +733,9 @@ function weekStats(mon){
 
 /* ===== ナビ ===== */
 let TAB='list';
-function switchTab(t){TAB=t;document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t===t));['list','week','new','form','cust','shift','bag','hist'].forEach(v=>$('v-'+v).hidden=v!==t);render()}
+function switchTab(t){TAB=t;document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t===t));['list','week','new','form','cust','shift','bag','wash','hist'].forEach(v=>$('v-'+v).hidden=v!==t);render()}
 $('tabs').addEventListener('click',e=>{const b=e.target.closest('.tab');if(b)switchTab(b.dataset.t)});
-function render(){renderBadge();({list:renderList,week:renderWeek,new:renderForm,form:renderInbox,cust:renderCust,shift:renderShift,bag:renderBag,hist:renderHist})[TAB]()}
+function render(){renderBadge();({list:renderList,week:renderWeek,new:renderForm,form:renderInbox,cust:renderCust,shift:renderShift,bag:renderBag,wash:renderWash,hist:renderHist})[TAB]()}
 function renderBadge(){const n=ORDERS.filter(o=>o.status==='受注').length;$('bdWeek').hidden=!n;$('bdWeek').textContent=n;const f=fiOpenN();$('bdForm').hidden=!f;$('bdForm').textContent=f}
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('on'),2200)}
 
@@ -1460,6 +1502,69 @@ function renderShift(){
   const h=e=>{const c=e.target.closest('[data-k]');if(!c)return;openCell(c.dataset.k)};
   $('shBody').onclick=h;$('shToday').onclick=h;
 }
+
+
+/* ===== 洗浄スケジュール（単位はコンテナ。1パレット＝24コンテナ。予定と実績） ===== */
+const WS_PER=24;let WS_W=null,WS_MODE='plan';
+const wsSizes=()=>{const it=ITEMS.find(i=>i.name==='さつまいも');const s=it?it.sizes.slice():[];(RAW.wash||[]).forEach(r=>{if(r['サイズ']&&!s.includes(r['サイズ']))s.push(r['サイズ'])});return s};
+const wsShort=s=>String(s).replace(/（.*$/,'');
+const wsMon=d=>{const x=new Date(d.getFullYear(),d.getMonth(),d.getDate());x.setDate(x.getDate()-((x.getDay()+6)%7));return x};
+const wsDays=()=>Array.from({length:7},(_,i)=>{const d=new Date(WS_W);d.setDate(d.getDate()+i);return d});
+function wsRec(dk,s){const r=(RAW.wash||[]).find(y=>String(y['日付']).slice(0,10)===dk&&y['サイズ']===s);if(!r)return {p:0,a:undefined};return {p:Number(r['予定'])||0,a:r['実績']===''||r['実績']==null?undefined:Number(r['実績'])}}
+const wsPC=c=>{const p=Math.floor(c/WS_PER),r=c%WS_PER;return r?`${p}P<em>＋${r}</em>`:`${p}P`};
+const wsTx=c=>{const p=Math.floor(c/WS_PER),r=c%WS_PER;return r?`${p}P＋${r}`:`${p}P`};
+const wsSt=(p,a)=>a===undefined?(p?'plan':''):a===p?'ok':a<p?'short':'over';
+function renderWash(){
+  if(!WS_W)WS_W=wsMon(TODAY);
+  const ds=wsDays(),S=wsSizes(),tk=ymd(TODAY);
+  $('wsWk').textContent=`${md(ds[0])}（月）〜 ${md(ds[6])}（日）`;
+  $('wsMode').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.m===WS_MODE));
+  $('wsHint').textContent=WS_MODE==='plan'?'いまは「予定」を入力中。マスをタップ → パレット数と端数を増減':'いまは「実績」を入力中。洗い終わったらマスをタップして実際の数を入れる';
+  if(!S.length){$('wsGrid').innerHTML='<p class="dim">品目マスタに「さつまいも」の規格がありません</p>';$('wsKpi').innerHTML='';return}
+  let h='<table class="ws-tb"><thead><tr><th class="sz">サイズ</th>';
+  ds.forEach(d=>{const t=ymd(d)===tk;h+=`<th class="${t?'td':''}">${mdw(d)}${t?'<br><span class="dim">今日</span>':''}${HOLIDAYS[ymd(d)]?`<br><span class="dim">${esc(HOLIDAYS[ymd(d)])}</span>`:''}</th>`});
+  h+='<th>週計<br><span class="dim">予定／実績</span></th></tr></thead><tbody>';
+  const colP=ds.map(()=>0),colA=ds.map(()=>0);
+  S.forEach(s=>{let sp=0,sa=0;h+=`<tr><th class="sz" title="${esc(s)}">${esc(wsShort(s))}</th>`;
+    ds.forEach((d,i)=>{const dk=ymd(d),r=wsRec(dk,s);sp+=r.p;sa+=r.a||0;colP[i]+=r.p;colA[i]+=r.a||0;
+      const body=(r.p||r.a!==undefined)?`<span class="pl">予定 ${r.p?wsTx(r.p):'—'}</span><span class="ac">${r.a!==undefined?wsPC(r.a):'<span class="dim">実績 未</span>'}</span>`:'<span class="z">＋</span>';
+      h+=`<td class="${dk===tk?'td':''}"><button class="ws-c ${wsSt(r.p,r.a)}" data-d="${dk}" data-s="${esc(s)}" aria-label="${esc(wsShort(s))} ${md(d)}">${body}</button></td>`});
+    h+=`<td class="rt">${sp||sa?`${wsTx(sp)}<br><span class="dim">実 ${wsTx(sa)}</span>`:'—'}</td></tr>`});
+  const tp=colP.reduce((a,b)=>a+b,0),ta=colA.reduce((a,b)=>a+b,0);
+  h+='<tr class="tot"><th class="sz">日計</th>'+ds.map((d,i)=>`<td>${colP[i]||colA[i]?`${wsTx(colP[i])}<br><span class="dim">実 ${wsTx(colA[i])}</span>`:'—'}</td>`).join('')+`<td>${wsTx(tp)}<br><span class="dim">実 ${wsTx(ta)}</span></td></tr></tbody></table>`;
+  $('wsGrid').innerHTML=h;
+  const dP=S.reduce((a,s)=>a+wsRec(tk,s).p,0),dA=S.reduce((a,s)=>a+(wsRec(tk,s).a||0),0);
+  let up=0,ua=0,miss=0;ds.forEach(d=>{const dk=ymd(d);if(dk>tk)return;S.forEach(s=>{const r=wsRec(dk,s);up+=r.p;ua+=r.a||0;if(r.p&&r.a===undefined&&dk<tk)miss++})});
+  $('wsKpi').innerHTML=`<div class="kpi"><small>今日 予定</small><b>${wsTx(dP)}</b><small>${dP}コンテナ</small></div><div class="kpi"><small>今日 実績</small><b>${wsTx(dA)}</b><small>${dA}コンテナ</small></div>`+
+    `<div class="kpi"><small>この週の今日までの達成</small><b>${up?Math.round(ua/up*100):0}</b><span class="u"> %</span><small>予定 ${up} ／ 実績 ${ua} コンテナ</small></div>`+
+    `<div class="kpi ${miss?'bad':''}"><small>実績の入れ忘れ</small><b>${miss}</b><span class="u"> マス</span><small>昨日まで・予定あり実績なし</small></div>`;
+}
+function wsOpen(dk,s){const r=wsRec(dk,s),d=pdt(dk),act=WS_MODE==='act';let c=act?(r.a!==undefined?r.a:r.p):r.p;
+  modal(`<h2>${act?'実績':'予定'}　${esc(wsShort(s))}　${mdw(d)}</h2><div class="meta"><span>${esc(s)}</span></div>
+   <div class="ws-ref"><span>${act?'予定':'実績'}</span><b>${act?(r.p?`${wsTx(r.p)}（${r.p}コンテナ）`:'予定なし'):(r.a!==undefined?`${wsTx(r.a)}（${r.a}コンテナ）`:'まだ')}</b></div>
+   <div class="frm" style="grid-template-columns:90px 1fr"><label>パレット</label><div class="ws-stp"><button id="wsPm" aria-label="パレットを1減らす">−</button><output id="wsPv"></output><button id="wsPp" aria-label="パレットを1増やす">＋</button></div>
+   <label>端数<br><span class="dim">コンテナ</span></label><div class="ws-stp"><button id="wsCm" aria-label="コンテナを1減らす">−</button><output id="wsCv"></output><button id="wsCp" aria-label="コンテナを1増やす">＋</button></div></div>
+   <div class="ws-res" id="wsRes"></div>
+   <div class="acts">${act&&r.p?'<button class="btn" id="wsSame">予定どおり</button>':''}<button class="btn" id="wsZero">0にする</button>${act&&r.a!==undefined?'<button class="btn warn" id="wsDel">実績を消す</button>':''}<button class="btn" id="wsNo">やめる</button><button class="btn pri" id="wsOk">保存</button></div>
+   <p class="note">パレットの＋−は24コンテナずつ。端数の＋−は1コンテナずつで、24になると1パレットに繰り上がります。${act?'実績は予定の数から始まるので、違う分だけ直してください。':''}</p>`);
+  const up=()=>{const p=Math.floor(c/WS_PER),x=c%WS_PER;$('wsPv').innerHTML=`${p}<small> P</small>`;$('wsCv').innerHTML=`${x}<small> 個</small>`;$('wsPm').disabled=p===0;$('wsCm').disabled=c===0;
+    let df='';if(act&&r.p){const z=c-r.p;df=z===0?'　予定どおり':z<0?`　予定より ${-z} 少ない`:`　予定より ${z} 多い`}
+    $('wsRes').innerHTML=`合計 <b>${c}</b> コンテナ　＝　${p}パレット${x?` ＋ 端数${x}コンテナ`:'（端数なし）'}${df}`};
+  $('wsPp').onclick=()=>{c+=WS_PER;up()};$('wsPm').onclick=()=>{c=Math.max(0,c-WS_PER);up()};$('wsCp').onclick=()=>{c+=1;up()};$('wsCm').onclick=()=>{c=Math.max(0,c-1);up()};
+  $('wsZero').onclick=()=>{c=0;up()};if($('wsSame'))$('wsSame').onclick=()=>{c=r.p;up()};$('wsNo').onclick=closeModal;
+  const go=async item=>{closeModal();try{await save('saveWash',{items:[item]},`${wsShort(s)} ${md(d)} の${act?'実績':'予定'}を保存しました`)}catch(e){}renderWash()};
+  if($('wsDel'))$('wsDel').onclick=()=>go({date:dk,size:s,act:null});
+  $('wsOk').onclick=()=>go(act?{date:dk,size:s,act:c}:{date:dk,size:s,plan:c});
+  up()}
+$('wsGrid').addEventListener('click',e=>{const b=e.target.closest('.ws-c');if(b)wsOpen(b.dataset.d,b.dataset.s)});
+$('wsMode').addEventListener('click',e=>{const b=e.target.closest('[data-m]');if(b){WS_MODE=b.dataset.m;renderWash()}});
+$('wsPrev').onclick=()=>{WS_W.setDate(WS_W.getDate()-7);renderWash()};
+$('wsNext').onclick=()=>{WS_W.setDate(WS_W.getDate()+7);renderWash()};
+$('wsToday').onclick=()=>{WS_W=wsMon(TODAY);renderWash()};
+$('wsCopy').onclick=()=>{const ds=wsDays(),S=wsSizes(),items=[];ds.forEach(d=>{const pv=new Date(d);pv.setDate(pv.getDate()-7);S.forEach(s=>{const a=wsRec(ymd(pv),s).p,b=wsRec(ymd(d),s);if(a!==b.p&&(a||b.p||b.a!==undefined))items.push({date:ymd(d),size:s,plan:a})})});
+  if(!items.length){toast('先週の予定と同じなので、変えるところはありません');return}
+  modal(`<h2>先週の予定をコピー</h2><p style="margin:8px 0">${md(ds[0])}〜${md(ds[6])} の予定を、先週と同じ数に置き換えます（${items.length}マス）。実績はそのまま残ります。</p><div class="acts"><button class="btn" id="wcNo">やめる</button><button class="btn pri" id="wcOk">コピーする</button></div>`);
+  $('wcNo').onclick=closeModal;$('wcOk').onclick=async()=>{closeModal();await save('saveWash',{items},`先週の予定をコピーしました（${items.length}マス）`);renderWash()}};
 
 /* ===== 袋詰 原価 ===== */
 let MATERIAL_PER_BAG=0;
