@@ -277,6 +277,22 @@ tr.sum td{background:var(--bg);font-weight:700;border-top:2px solid var(--line2)
 .ws-stp output small{font-size:12px;font-weight:700;color:var(--mute)}
 .ws-ref{display:flex;justify-content:space-between;gap:8px;background:var(--paper2);border-radius:10px;padding:8px 12px;font-size:13px;margin:8px 0}
 .ws-res{background:var(--paper2);border-radius:10px;padding:10px 12px;font-size:13px;margin-top:8px}
+/* ===== よくある質問（ヘッダーの「？ 質問」） ===== */
+.hd h1,.hd .me,.hd .gear,#lastLoad{white-space:nowrap}
+.hd #askBtn.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.ak-ov{position:fixed;inset:0;background:rgba(30,25,20,.4);z-index:45;display:flex;justify-content:flex-end}
+.ak-sh{background:var(--bg);width:min(560px,100%);height:100%;overflow:auto;padding:14px 16px 24px;display:grid;gap:12px;align-content:start;box-shadow:-8px 0 30px rgba(0,0,0,.2)}
+.ak-top{display:flex;align-items:center;gap:8px}.ak-top b{font-size:16px;flex:1}
+.ak-grp{display:grid;gap:6px;margin-bottom:10px}.ak-grp>small{color:var(--mute);font-size:12px;font-weight:700;letter-spacing:.04em}
+.ak-q{font-weight:700;color:var(--accent);margin-bottom:6px}
+.ak-p{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:4px 0 8px}.ak-p select{width:auto}
+.ak-big{font-size:22px;font-weight:900;font-variant-numeric:tabular-nums;margin:2px 0 6px}.ak-big small{font-size:13px;font-weight:700;color:var(--ink2)}
+.ak-t{border-collapse:collapse;width:100%;font-size:13px;font-variant-numeric:tabular-nums}
+.ak-t th,.ak-t td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}.ak-t th{color:var(--ink2);background:var(--paper2)}
+.ak-t .r{text-align:right}
+.ak-hint{background:var(--warn-soft);color:#8a5a12;border-radius:8px;padding:8px 10px;font-size:13px;margin:4px 0 8px}
+.ak-no{background:none;border:none;color:var(--accent);font-weight:700;text-decoration:underline;padding:0;font-size:13px}
+@media (max-width:520px){.hd{gap:6px;padding:8px 10px}.hd h1{font-size:15px}.hd .gear{padding:4px 7px;font-size:12px}#lastLoad{display:none}.ak-ov{align-items:flex-end}.ak-sh{height:92%;border-radius:16px 16px 0 0;box-shadow:0 -8px 30px rgba(0,0,0,.2)}}
 @media (max-width:520px){.days,.wk{grid-template-columns:repeat(2,1fr)}.frm{grid-template-columns:1fr}.tab{font-size:13px}}
 @media (prefers-reduced-motion:reduce){.toast{transition:none}}
 
@@ -397,7 +413,7 @@ tr.sum td{background:var(--bg);font-weight:700;border-top:2px solid var(--line2)
   <h1>🍠 受発注管理</h1>
   <span class="sp"></span>
   <span class="me" id="userName"></span>
-  <span class="dim" id="lastLoad" style="font-size:11px;color:#ddd;margin-right:4px"></span><button class="gear" id="reloadBtn" title="最新のデータを読み直す">↻</button>
+  <span class="dim" id="lastLoad" style="font-size:11px;color:#ddd;margin-right:4px"></span><button class="gear" id="askBtn" aria-haspopup="dialog">？ 質問</button><button class="gear" id="reloadBtn" title="最新のデータを読み直す">↻</button>
   <button class="gear" id="gearBtn">⚙ 設定</button>
   <button class="gear" id="logoutBtn">ログアウト</button>
 </header>
@@ -413,6 +429,15 @@ tr.sum td{background:var(--bg);font-weight:700;border-top:2px solid var(--line2)
   <button class="tab" data-t="hist">履歴</button>
 </nav>
 
+<div class="ak-ov" id="akOv" hidden><div class="ak-sh" role="dialog" aria-labelledby="akTitle">
+  <div class="ak-top"><b id="akTitle">？ よくある質問</b><button class="btn" id="akClose">閉じる</button></div>
+  <section class="card"><h3>質問を選ぶ<span>押すとその場で答えます（読み込み済みのデータから計算）</span></h3>
+    <div class="ak-grp"><small>流通</small><div class="chips" id="akG1"></div></div>
+    <div class="ak-grp"><small>営業</small><div class="chips" id="akG2"></div></div>
+    <div class="ak-grp" style="margin-bottom:0"><small>全体</small><div class="chips" id="akG3"></div></div>
+  </section>
+  <section class="card" id="akOut"></section>
+</div></div>
 <main class="wrap" id="v-list">
   <div class="sumbar" id="lstSum"></div>
   <div class="row mb"><span class="dim">まとめ方</span><div class="seg" id="lstGrp"><button class="on" data-g="deliver">③納品日で</button><button data-g="ready">①用意日で（流通向け）</button></div>
@@ -1504,6 +1529,7 @@ function renderShift(){
 }
 
 
+/* ===== よくある質問 は下 ===== */
 /* ===== 洗浄スケジュール（単位はコンテナ。1パレット＝24コンテナ。予定と実績） ===== */
 const WS_PER=24;let WS_W=null,WS_MODE='plan';
 const wsSizes=()=>{const it=ITEMS.find(i=>i.name==='さつまいも');const s=it?it.sizes.slice():[];(RAW.wash||[]).forEach(r=>{if(r['サイズ']&&!s.includes(r['サイズ']))s.push(r['サイズ'])});return s};
@@ -1565,6 +1591,68 @@ $('wsCopy').onclick=()=>{const ds=wsDays(),S=wsSizes(),items=[];ds.forEach(d=>{c
   if(!items.length){toast('先週の予定と同じなので、変えるところはありません');return}
   modal(`<h2>先週の予定をコピー</h2><p style="margin:8px 0">${md(ds[0])}〜${md(ds[6])} の予定を、先週と同じ数に置き換えます（${items.length}マス）。実績はそのまま残ります。</p><div class="acts"><button class="btn" id="wcNo">やめる</button><button class="btn pri" id="wcOk">コピーする</button></div>`);
   $('wcNo').onclick=closeModal;$('wcOk').onclick=async()=>{closeModal();await save('saveWash',{items},`先週の予定をコピーしました（${items.length}マス）`);renderWash()}};
+
+
+/* ===== よくある質問（AIなし。読み込み済みの ORDERS / CUST から計算するだけ・保存はしない） ===== */
+const AK={cur:'ready',day:null,cust:null,week:0};
+const akSame=(a,b)=>a&&b&&d0(a).getTime()===d0(b).getTime();
+const akLive=()=>ORDERS.filter(o=>o.status!=='キャンセル');
+const akLine=l=>`${esc(l.item==='さつまいも'?'':l.item+' ')}${esc(String(l.size).replace(/（.*$/,''))} ${esc(String(l.pack).replace(/（.*）/,''))} ${fmt(l.qty)}${esc(l.unit)}${l.boxes?`（${l.boxes}箱）`:''}`;
+const akNo=o=>`<button class="ak-no" data-no="${esc(o.no)}">${esc(o.no)}</button>`;
+const akCn=o=>esc((custOf(o.cust)||{}).name||o.cust);
+const akSt=o=>{const s=dispStatus(o);return `<span class="tag t-${s}">${s==='受注'?'日程未定':s}</span>`};
+const akTbl=(h,rows)=>`<div class="tw"><table class="ak-t"><thead><tr>${h.map(x=>`<th class="${x[1]?'r':''}">${x[0]}</th>`).join('')}</tr></thead><tbody>${rows.join('')}</tbody></table></div>`;
+const akKg=os=>fmt(Math.round(os.reduce((s,o)=>s+imoKg(o),0)));
+function akPacks(os){const m={};os.forEach(o=>o.lines.forEach(l=>{const k=l.pack||'（荷姿なし）';m[k]=m[k]||{q:0,u:l.unit,b:0};m[k].q+=l.qty;m[k].b+=Number(l.boxes)||0}));return Object.entries(m).map(([k,v])=>`${esc(k)} ${fmt(v.q)}${esc(v.u)}${v.b?`（${v.b}箱）`:''}`).join('　／　')}
+const AKQ=[
+ {g:'akG1',id:'ready',t:'○日に用意するもの',p:'day',f:d=>{const os=akLive().filter(o=>o.status==='準備中'&&akSame(o.readyFix,d)).sort((a,b)=>a.deliver-b.deliver);
+   if(!os.length)return `<p class="dim">${mdw(d)} が用意期限の注文はありません。</p>`;
+   return `<div class="ak-big">${os.length}<small> 件　さつまいも 約 ${akKg(os)} kg</small></div><p style="margin-bottom:8px">${akPacks(os)}</p>`+akTbl([['NO'],['お客さん'],['中身'],['納品',1]],os.map(o=>`<tr><td>${akNo(o)}</td><td>${akCn(o)}</td><td>${o.lines.map(akLine).join('<br>')}</td><td class="r">${md(o.deliver)}</td></tr>`))}},
+ {g:'akG1',id:'ship',t:'○日に発送手配するもの',p:'day',f:d=>{const os=akLive().filter(o=>['準備中','用意完了'].includes(o.status)&&akSame(o.shipFix,d)).sort((a,b)=>a.deliver-b.deliver);
+   if(!os.length)return `<p class="dim">${mdw(d)} に発送手配する注文はありません。</p>`;
+   const nr=os.filter(o=>o.status==='準備中');
+   return `<div class="ak-big">${os.length}<small> 件　さつまいも 約 ${akKg(os)} kg</small></div>`+(nr.length?`<div class="ak-hint">まだ「用意完了」になっていないもの：${nr.map(o=>esc(o.no)).join('、')}</div>`:'')+akTbl([['NO'],['お客さん'],['状態'],['納品',1]],os.map(o=>`<tr><td>${akNo(o)}</td><td>${akCn(o)}</td><td>${akSt(o)}</td><td class="r">${md(o.deliver)}</td></tr>`))}},
+ {g:'akG1',id:'wait',t:'納品確認がまだのもの',f:()=>{const os=akLive().filter(o=>dispStatus(o)==='納品確認待ち').sort((a,b)=>a.deliver-b.deliver);
+   if(!os.length)return '<p class="dim">納品日を迎えて「発送手配済」のままの注文はありません。</p>';
+   return `<div class="ak-big">${os.length}<small> 件</small></div>`+akTbl([['NO'],['お客さん'],['納品日',1]],os.map(o=>`<tr><td>${akNo(o)}</td><td>${akCn(o)}</td><td class="r">${mdw(o.deliver)}</td></tr>`))+'<p class="note">追跡で着いていれば、注文を開いて「納品済」にしてください。</p>'}},
+ {g:'akG2',id:'next',t:'このお客さんのこれからの注文',p:'cust',f:c=>{const os=akLive().filter(o=>o.cust===c&&o.status!=='納品済').sort((a,b)=>a.deliver-b.deliver);
+   const nm=esc((custOf(c)||{}).name||c);if(!os.length)return `<p class="dim">${nm} のこれからの注文はありません。</p>`;
+   const by={};os.forEach(o=>{const k=md(o.deliver);by[k]=(by[k]||0)+1});const dup=Object.entries(by).filter(x=>x[1]>1);
+   return `<div class="ak-big">${os.length}<small> 件</small></div>`+(dup.length?`<div class="ak-hint">同じ納品日に複数の注文があります：${dup.map(x=>`${x[0]}（${x[1]}件）`).join('、')}　まとめて送るなら日程をそろえてください</div>`:'')+akTbl([['納品'],['NO'],['中身'],['状態']],os.map(o=>`<tr><td>${mdw(o.deliver)}</td><td>${akNo(o)}</td><td>${o.lines.map(akLine).join('<br>')}</td><td>${akSt(o)}</td></tr>`))}},
+ {g:'akG2',id:'last',t:'このお客さんの最近の注文',p:'cust',f:c=>{const os=ORDERS.filter(o=>o.cust===c&&o.status==='納品済').sort((a,b)=>b.deliver-a.deliver).slice(0,5);
+   const nm=esc((custOf(c)||{}).name||c);if(!os.length)return `<p class="dim">${nm} の納品済みの注文はまだありません。</p>`;
+   return akTbl([['納品'],['NO'],['中身'],['kg',1]],os.map(o=>`<tr><td>${md(o.deliver)}</td><td>${akNo(o)}</td><td>${o.lines.map(akLine).join('<br>')}</td><td class="r">${fmt(Math.round(imoKg(o)))}</td></tr>`))+'<p class="note">直近5件まで。いつもの注文の確認や、電話を受けたときの参考に。</p>'}},
+ {g:'akG2',id:'undec',t:'日程が決まっていない注文',f:()=>{const os=akLive().filter(o=>o.status==='受注').sort((a,b)=>a.deliver-b.deliver);
+   if(!os.length)return '<p class="dim">日程未定の注文はありません。</p>';
+   return `<div class="ak-big">${os.length}<small> 件</small></div>`+akTbl([['NO'],['お客さん'],['担当'],['納品',1],['あと',1]],os.map(o=>{const n=Math.round((d0(o.deliver)-d0(TODAY))/864e5);return `<tr><td>${akNo(o)}</td><td>${akCn(o)}</td><td>${esc(o.sales||'—')}</td><td class="r">${mdw(o.deliver)}</td><td class="r">${n<=3?`<span class="tag t-late">${n<0?(-n)+'日過ぎ':n+'日'}</span>`:n+'日'}</td></tr>`}))}},
+ {g:'akG3',id:'week',t:'今週・来週の出荷量',p:'week',f:w=>{const s=addD(d0(TODAY),-((TODAY.getDay()+6)%7)+7*w),e=addD(s,6);const os=akLive().filter(o=>d0(o.deliver)>=s&&d0(o.deliver)<=e).sort((a,b)=>a.deliver-b.deliver);
+   const by={};os.forEach(o=>{const k=mdw(o.deliver);by[k]=by[k]||{n:0,kg:0};by[k].n++;by[k].kg+=imoKg(o)});const und=os.filter(o=>o.status==='受注').length;
+   return `<p>${mdw(s)}〜${mdw(e)} 納品</p><div class="ak-big">${os.length}<small> 件　さつまいも 約 ${akKg(os)} kg</small></div>`+(und?`<div class="ak-hint">うち日程未定 ${und} 件</div>`:'')+(os.length?akTbl([['納品日'],['件',1],['kg',1]],Object.entries(by).map(([k,v])=>`<tr><td>${k}</td><td class="r">${v.n}</td><td class="r">${fmt(Math.round(v.kg))}</td></tr>`)):'')}},
+ {g:'akG3',id:'rank',t:'先月のお客さん別の量',f:()=>{const s=new Date(TODAY.getFullYear(),TODAY.getMonth()-1,1),e=new Date(TODAY.getFullYear(),TODAY.getMonth(),1);
+   const os=ORDERS.filter(o=>o.status==='納品済'&&o.deliver>=s&&o.deliver<e&&imoKg(o)>0);const by={};os.forEach(o=>{by[o.cust]=(by[o.cust]||0)+imoKg(o)});
+   const tot=Object.values(by).reduce((a,b)=>a+b,0);const r=Object.entries(by).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]);
+   if(!tot)return `<p class="dim">${s.getMonth()+1}月に納品済みのさつまいもはありません。</p>`;
+   return `<p>${s.getMonth()+1}月 納品済み分（さつまいも）</p><div class="ak-big">${fmt(Math.round(tot))}<small> kg（${os.length}件）</small></div>`+akTbl([['お客さん'],['kg',1],['割合',1]],r.map(([c,v])=>`<tr><td>${esc((custOf(c)||{}).name||c)}</td><td class="r">${fmt(Math.round(v))}</td><td class="r">${Math.round(v/tot*100)}%</td></tr>`))}},
+];
+function renderAsk(){
+  ['akG1','akG2','akG3'].forEach(g=>{$(g).innerHTML=AKQ.filter(q=>q.g===g).map(q=>`<button class="chip ${AK.cur===q.id?'on':''}" data-akq="${q.id}">${q.t}</button>`).join('')});
+  const q=AKQ.find(x=>x.id===AK.cur);let pr='',arg;
+  if(q.p==='day'){const ds=[0,1,2,3].map(n=>addD(d0(TODAY),n));if(!AK.day)AK.day=ymd(ds[1]);pr=`<div class="ak-p">日付 <select id="akDay">${ds.map((d,i)=>`<option value="${ymd(d)}" ${ymd(d)===AK.day?'selected':''}>${mdw(d)}${i===0?' 今日':i===1?' 明日':''}</option>`).join('')}</select></div>`;arg=pdt(AK.day)}
+  if(q.p==='cust'){const up={};akLive().forEach(o=>{if(o.status!=='納品済')up[o.cust]=(up[o.cust]||0)+1});
+    const cs=CUST.filter(c=>c.active!==false||up[c.code]).slice().sort((a,b)=>(up[b.code]?1:0)-(up[a.code]?1:0)||String(a.name).localeCompare(String(b.name),'ja'));
+    if(!AK.cust||!cs.some(c=>c.code===AK.cust))AK.cust=(cs[0]||{}).code;
+    pr=`<div class="ak-p">お客さん <select id="akCust">${cs.map(c=>`<option value="${esc(c.code)}" ${c.code===AK.cust?'selected':''}>${esc(c.name)}${up[c.code]?`（これから${up[c.code]}件）`:''}</option>`).join('')}</select></div>`;arg=AK.cust}
+  if(q.p==='week'){pr=`<div class="ak-p"><select id="akWeek"><option value="0" ${AK.week==0?'selected':''}>今週</option><option value="1" ${AK.week==1?'selected':''}>来週</option></select></div>`;arg=Number(AK.week)}
+  let body;try{body=q.f(arg)}catch(e){body=`<p class="dim">計算できませんでした：${esc(e.message)}</p>`}
+  $('akOut').innerHTML=`<div class="ak-q">Q. ${q.t}</div>${pr}${body}`;
+  [['akDay','day'],['akCust','cust'],['akWeek','week']].forEach(([id,k])=>{const el=$(id);if(el)el.onchange=()=>{AK[k]=el.value;renderAsk()}});
+}
+function openAsk(){if(!RAW)return;$('akOv').hidden=false;$('askBtn').classList.add('on');renderAsk();$('akClose').focus()}
+function closeAsk(){$('akOv').hidden=true;$('askBtn').classList.remove('on')}
+$('askBtn').onclick=()=>$('akOv').hidden?openAsk():closeAsk();
+$('akClose').onclick=closeAsk;
+$('akOv').addEventListener('click',e=>{if(e.target.id==='akOv'){closeAsk();return}const c=e.target.closest('[data-akq]');if(c){AK.cur=c.dataset.akq;renderAsk();return}const n=e.target.closest('.ak-no');if(n){closeAsk();openOrder(n.dataset.no)}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('akOv').hidden)closeAsk()});
 
 /* ===== 袋詰 原価 ===== */
 let MATERIAL_PER_BAG=0;
