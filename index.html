@@ -364,6 +364,12 @@ tr.sum td{background:var(--bg);font-weight:700;border-top:2px solid var(--line2)
 .wbc .qq{color:var(--ink2);font-variant-numeric:tabular-nums}.wbc em{font-style:normal;color:var(--bad);font-weight:700}
 .wbc.done{opacity:.5}.wbc.done .qq::after{content:" ✓済";color:var(--ok);font-weight:700}
 .wbc.late{border-color:#e7b8aa;border-left-color:var(--bad);background:#fff7f4}
+.wln.l4{background:var(--bad-soft);color:var(--bad)}.wln.l4 span{color:var(--bad)}.wln.l4 em{font-style:normal;background:var(--bad);color:#fff;border-radius:999px;padding:0 7px;font-size:11px;margin-top:3px}
+.wcl.l4c{background:#fcf8f6}
+.gpt{margin-top:6px;border:1px solid var(--bad);background:var(--paper);color:var(--bad);border-radius:6px;font-size:10.5px;font-weight:700;padding:2px 4px;line-height:1.3}.wln.l4 .gph{font-size:10px;margin-top:2px}
+.wbc.gp{--c:var(--bad);border-style:dashed;border-left-style:solid;background:var(--paper)}.wbc.gp em{display:block}
+.wbc.gx{--c:#b5aca2;background:var(--paper2);color:var(--mute)}.wbc.gx b{text-decoration:line-through;font-weight:500}.wbc.gx em{display:block;color:var(--mute);font-weight:500}
+.wbc.gm{--c:var(--line2);opacity:.6}.wbc.gm em{display:block;color:var(--ink2);font-weight:500}
 .wbc.un{border-style:dashed;border-left-style:solid}.wbc.un .qq::after{content:" 日程未定";color:#8a5a00;font-weight:700}
 .l1c{--c:#d9a93a}.l2c{--c:#4a7fbf}.l3c{--c:#5d8f4a}
 .wlg{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--ink2);padding:8px 14px}
@@ -454,7 +460,7 @@ tr.sum td{background:var(--bg);font-weight:700;border-top:2px solid var(--line2)
   <div class="wkk" id="wkKpi"></div>
   <div id="tray"></div>
   <div class="wbw"><div class="wbd" id="wkBoard"></div>
-    <div class="wlg"><span><i class="sw" style="background:#d9a93a"></i>① 用意（倉庫で準備）</span><span><i class="sw" style="background:#4a7fbf"></i>② 発送手配</span><span><i class="sw" style="background:#5d8f4a"></i>③ 納品（客先着）</span><span>点線＝日程未定　薄い＝済　赤枠＝遅れ</span><span>曜日の下＝その日の用意kg（上限を超えると赤）</span></div></div>
+    <div class="wlg"><span><i class="sw" style="background:#d9a93a"></i>① 用意（倉庫で準備）</span><span><i class="sw" style="background:#4a7fbf"></i>② 発送手配</span><span><i class="sw" style="background:#5d8f4a"></i>③ 納品（客先着）</span><span>点線＝日程未定　薄い＝済　赤枠＝遅れ</span><span><i class="sw" style="background:#9a4a2e"></i>④ 前週比（先週あって今週ない。薄い＝曜日がずれただけ）</span><span>曜日の下＝その日の用意kg（上限を超えると赤）</span></div></div>
   <div id="baro"></div>
 </main>
 
@@ -1023,6 +1029,27 @@ function openBulkSched(){
       if(r&&r.skipped&&r.skipped.length){errBar(`${r.skipped.length}件は保存しませんでした（${r.skipped.map(s=>s.no+'：'+s.why).join('、')}）。最新の状態に読み直します`);reload()}}
     catch(e){}};
 }
+/* 先週（mon の7日前〜）にあって、今週ない注文。顧客ごとに同じ曜日→別の曜日の順で今週の注文と組み合わせ、残った先週分を出す */
+let GAP_ALL=false;// false＝定期・よく来る顧客だけ（先週を含む直近4週のうち2週以上）　true＝スポットも全部
+function weekGaps(mon,all=GAP_ALL){
+  const pm=addD(mon,-7);const inW=(d,m)=>d&&d0(d)>=m&&d0(d)<=addD(m,6);const wd=d=>(d.getDay()+6)%7;
+  const prev=ORDERS.filter(o=>o.status!=='キャンセル'&&inW(o.deliver,pm));const cur=ORDERS.filter(o=>inW(o.deliver,mon));
+  const reg=c=>prev.some(o=>o.cust===c&&o.kind==='定期')||[0,1,2,3].filter(i=>ORDERS.some(o=>o.cust===c&&o.status!=='キャンセル'&&inW(o.deliver,addD(pm,-7*i)))).length>=2;
+  const byC={};prev.forEach(o=>(byC[o.cust]=byC[o.cust]||[]).push(o));let hid=0;
+  Object.keys(byC).forEach(c=>{if(!all&&!reg(c)){hid++;delete byC[c]}});
+  const byDay=[[],[],[],[],[],[],[]];let n=0;
+  Object.keys(byC).forEach(c=>{
+    const P=byC[c].sort((a,b)=>a.deliver-b.deliver);const live=cur.filter(o=>o.cust===c&&o.status!=='キャンセル');const cx=cur.filter(o=>o.cust===c&&o.status==='キャンセル');
+    const used=new Set();const left=[];
+    P.forEach(p=>{const m=live.find(o=>!used.has(o)&&wd(o.deliver)===wd(p.deliver));if(m)used.add(m);else left.push(p)});
+    left.forEach(p=>{const m=live.find(o=>!used.has(o));
+      if(m){used.add(m);byDay[wd(p.deliver)].push({k:'move',p,o:m});return}
+      const x=cx.find(o=>wd(o.deliver)===wd(p.deliver))||cx[0];const ev=x&&[...x.events].reverse().find(e=>e.t==='キャンセル');
+      byDay[wd(p.deliver)].push({k:x?'cancel':'none',p,o:x,why:ev?String(ev.m||'').split('　')[0]:''});n++});
+  });
+  const rk={none:0,cancel:1,move:2};byDay.forEach(a=>a.sort((x,y)=>rk[x.k]-rk[y.k]));
+  return {byDay,n,hid};
+}
 function renderWeek(){
   const mon=addD(monday(TODAY),wkOff*7),sun=addD(mon,6);const W=weekStats(mon);const T=SETTINGS.targetKg;
   $('wkLabel').textContent=`${md(mon)}（月）〜 ${md(sun)}（日）`;
@@ -1049,8 +1076,15 @@ function renderWeek(){
       os.sort((a,b)=>isDone(a)-isDone(b)||a.no.localeCompare(b.no));
       h+=`<div class="wcl ${ymd(d)===ymd(TODAY)?'today':''}">${os.map(o=>{const dn=isDone(o);const x=dateOf(o);const late=!dn&&active(o)&&d0(x)<d0(TODAY);const un=cls==='l3'&&o.status==='受注';
         return `<button class="wbc ${cls}c ${dn?'done':''} ${late?'late':''} ${un?'un':''}" data-no="${o.no}"><b>${esc(custOf(o.cust).name)}</b><span class="qq">${qtyMain(o)}${late?`　<em>${md(x)}予定</em>`:''}</span></button>`}).join('')}</div>`})});
+  // ④ 前週比：先週あって今週ない注文（同じ顧客・同じ曜日で照合。曜日がずれただけの分は薄く表示）
+  const gp=weekGaps(mon);
+  h+=`<div class="wln l4">④ 前週比<span>先週あって<br>今週ない</span>${gp.n?`<em>${gp.n}件</em>`:''}<button class="gpt" id="gpAll">${GAP_ALL?'定期・常連だけ':'スポットも表示'}</button>${!GAP_ALL&&gp.hid?`<span class="gph">スポットのみの${gp.hid}社は非表示</span>`:''}</div>`;
+  days.forEach((d,di)=>{h+=`<div class="wcl l4c">${gp.byDay[di].map(g=>{const nm=esc(custOf(g.p.cust).name);const q='先週 '+qtyMain(g.p);
+    if(g.k==='none')return `<button class="wbc gp" data-no="${g.p.no}" title="先週の注文 ${g.p.no} を開く"><b>${nm}</b><span class="qq">${q}</span><em>今週 注文なし</em></button>`;
+    if(g.k==='cancel')return `<button class="wbc gx" data-no="${g.o.no}"><b>${nm}</b><span class="qq">${q}</span><em>今週はキャンセル${g.why?'（'+esc(g.why)+'）':''}</em></button>`;
+    return `<button class="wbc gm" data-no="${g.o.no}"><b>${nm}</b><span class="qq">${q}</span><em>→ ${mdw(g.o.deliver)}にあり</em></button>`}).join('')}</div>`});
   $('wkBoard').innerHTML=h;
-  $('wkBoard').onclick=e=>{const b=e.target.closest('[data-no]');if(b)openOrder(b.dataset.no)};
+  $('wkBoard').onclick=e=>{if(e.target.closest('#gpAll')){GAP_ALL=!GAP_ALL;renderWeek();return}const b=e.target.closest('[data-no]');if(b)openOrder(b.dataset.no)};
   renderBaro();
 }
 
