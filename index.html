@@ -177,6 +177,12 @@ textarea{resize:vertical}
 .bar .l{color:var(--mute);margin-top:4px}
 /* tables */
 .tw{overflow-x:auto}
+.szr{gap:10px;margin:5px 0;align-items:center}.szn{width:130px}.szb{flex:1;height:18px;background:#eee7dc;border-radius:999px;overflow:hidden;display:flex}.szb i{display:block;height:100%;background:var(--ok)}.szb i.bg{background:#a9c79a}
+.szv{width:150px;text-align:right;font-variant-numeric:tabular-nums;line-height:1.25}.szp{width:40px;text-align:right}.sz-none .szb i{background:var(--bad)}
+.szt th,.szt td{white-space:nowrap;font-variant-numeric:tabular-nums}.szt th.bad{color:var(--bad)}
+#hBody a[data-no]{color:var(--accent);font-weight:700}
+@media(max-width:520px){.szn{width:84px;font-size:12px}.szv{width:96px;font-size:12px}.szp{width:32px}}
+
 table{width:100%;border-collapse:collapse;background:var(--paper);border:1px solid var(--line);border-radius:12px;overflow:hidden;font-size:13px}
 th{background:var(--paper2);text-align:left;padding:9px 10px;font-size:12px;color:#555;white-space:nowrap}
 td{padding:9px 10px;border-top:1px solid #efe9df;vertical-align:top}
@@ -759,7 +765,7 @@ function weekStats(mon){
   const shipped=ORDERS.filter(o=>o.status!=='キャンセル'&&o.act.shipAt&&inW(o.deliver));
   const planned=ORDERS.filter(o=>active(o)&&!o.act.shipAt&&inW(o.deliver));
   const kg=shipped.reduce((s,o)=>s+imoKg(o),0);const plan=planned.reduce((s,o)=>s+imoKg(o),0);
-  const sizes={};shipped.forEach(o=>o.lines.forEach(l=>{const k=lineKg(l),n=l.size||'規格なし';if(k)sizes[n]=(sizes[n]||0)+k}));
+  const sizes={};shipped.forEach(o=>o.lines.forEach(l=>{const k=lineKg(l),n=sizeOf(l);if(k)sizes[n]=(sizes[n]||0)+k}));
   return {mon,sun,shipped,planned,kg,plan,sizes,onion:shipped.reduce((s,o)=>s+otherKg(o),0),kako:shipped.reduce((s,o)=>s+kakoQty(o),0),nae:shipped.reduce((s,o)=>s+naeQty(o),0),bags:shipped.reduce((s,o)=>s+bagQty(o),0),boxes:shipped.reduce((s,o)=>s+(o.act.pieces||o.boxes),0),late:shipped.filter(isLate).length,count:shipped.length};
 }
 
@@ -1772,11 +1778,24 @@ function histOrders(){
   $('hBody').onclick=e=>{if(e.target.id==='hToCust'){cSel=qc.code;switchTab('cust');return}const r=e.target.closest('[data-no]');if(r)openOrder(r.dataset.no)};
 }
 const GRADES_=()=>(ITEMS.find(i=>i.name==='さつまいも')||{sizes:[]}).sizes;
-function gradeCard(rows,title){const g={};let tot=0;rows.forEach(o=>o.lines.forEach(l=>{const k=lineKg(l),n=l.size||'規格なし';if(k){g[n]=(g[n]||0)+k;tot+=k}}));
-  const list=[...new Set([...GRADES_(),...Object.keys(g)])].map(k=>[k,g[k]||0]).sort((a,b)=>b[1]-a[1]);const mx=list[0]?.[1]||1;
-  return `<div class="card sec"><h3>規格別 出荷量（さつまいも）　${title}<span>多い順。棒＝kg、右＝割合</span></h3>
-  ${list.map(([k,v],i)=>`<div class="row" style="gap:10px;margin:5px 0"><span style="width:130px;font-weight:${i===0?800:600};color:${i===0?'var(--accent)':'inherit'}">${i===0?'① ':''}${k}</span><div style="flex:1;height:18px;background:#eee7dc;border-radius:999px;overflow:hidden"><i style="display:block;height:100%;width:${v/mx*100}%;background:${i===0?'var(--accent)':'var(--ok)'};border-radius:999px"></i></div><span class="r" style="width:90px;text-align:right;font-variant-numeric:tabular-nums"><b>${fmt(v)}</b> kg</span><span class="dim" style="width:44px;text-align:right">${tot?Math.round(v/tot*100):0}%</span></div>`).join('')}
-  <p class="note">袋詰（袋単位）は含まない。傷・奇形の割合が上がる週は選果側の課題として見る。</p></div>`}
+/* サイズ別：袋詰は中身のサイズに振り分け（550g入り＝中、350g入り＝小）。規格が空は「規格なし」 */
+const BAG_SIZE={'550g入り':'中（81〜250g）','350g入り':'小（31〜80g）'};
+const sizeOf=l=>{const s=String(l.size||'');if(BAG_SIZE[s])return BAG_SIZE[s];if(/550/.test(s))return '中（81〜250g）';if(/350/.test(s))return '小（31〜80g）';return s||'規格なし'};
+const isBagLine=l=>l.unit==='袋'||/入り/.test(String(l.size||''));
+function sizeAgg(rows){const g={};let tot=0,none=0;const noneNo=new Set();rows.forEach(o=>o.lines.forEach(l=>{const k=lineKg(l);if(!k)return;const n=sizeOf(l);const x=g[n]=g[n]||{bara:0,bag:0};if(isBagLine(l))x.bag+=k;else x.bara+=k;tot+=k;if(n==='規格なし'){none+=k;noneNo.add(o.no)}}));return {g,tot,none,noneNo:[...noneNo]}}
+const sizeList=g=>{const m=GRADES_();return [...new Set([...m,...Object.keys(g).filter(k=>k!=='規格なし')])].concat(g['規格なし']?['規格なし']:[])};
+function gradeCard(rows,title){const A=sizeAgg(rows);const list=sizeList(A.g);const v=k=>(A.g[k]||{bara:0,bag:0});const mx=Math.max(1,...list.map(k=>v(k).bara+v(k).bag));
+  const top=list.filter(k=>k!=='規格なし').sort((x,y)=>(v(y).bara+v(y).bag)-(v(x).bara+v(x).bag))[0];
+  return `<div class="card sec"><h3>サイズ別 出荷量（さつまいも）　${title}<span>小さい順。<b style="color:var(--ok)">■</b> バラ　<b style="color:#a9c79a">■</b> 袋詰（550g入り＝中、350g入り＝小に入れる）　右＝割合</span></h3>
+  ${list.map(k=>{const x=v(k),t=x.bara+x.bag,nn=k==='規格なし';return `<div class="row szr${nn?' sz-none':''}"><span class="szn" style="font-weight:${k===top?800:600};color:${k===top?'var(--accent)':nn?'var(--bad)':'inherit'}">${k}</span><div class="szb"><i style="width:${x.bara/mx*100}%"></i><i class="bg" style="width:${x.bag/mx*100}%"></i></div><span class="szv"><b>${fmt(Math.round(t))}</b> kg${x.bag&&x.bara?`<br><span class="dim">バラ ${fmt(Math.round(x.bara))}・袋 ${fmt(Math.round(x.bag))}</span>`:x.bag?'<br><span class="dim">袋詰</span>':''}</span><span class="dim szp">${A.tot?Math.round(t/A.tot*100):0}%</span></div>`}).join('')}
+  <div class="row szr" style="border-top:1px solid var(--line);padding-top:6px"><span class="szn">合計</span><div class="szb" style="background:none"></div><span class="szv"><b>${fmt(Math.round(A.tot))}</b> kg</span><span class="szp"></span></div>
+  ${A.none?`<p class="note" style="color:var(--bad)">「規格なし」＝明細の規格が空の分（${A.noneNo.length}件）。埋めるとサイズに振り分けられます：${A.noneNo.slice(0,12).map(n=>`<a href="#" data-no="${n}">${n}</a>`).join(' ')}${A.noneNo.length>12?' ほか':''}</p>`:''}</div>`}
+/* 週・月 × サイズの推移表。periods：[{label, rows, cur}] */
+function sizeTable(periods,head){const all=sizeAgg(periods.flatMap(p=>p.rows));const list=sizeList(all.g);
+  const cell=(A,k)=>{const x=A.g[k];const t=x?x.bara+x.bag:0;return t?`<b>${fmt(Math.round(t))}</b><span class="dim">　${Math.round(t/A.tot*100)}%</span>`:'<span class="dim">—</span>'};
+  return `<div class="card sec"><h3>サイズ別の推移（kg）<span>出荷済のみ。袋詰は 550g入り＝中、350g入り＝小</span></h3><div class="tw"><table class="szt"><tr><th>${head}</th>${list.map(k=>`<th class="r${k==='規格なし'?' bad':''}">${k.replace(/（.*）/,'')}<br><span class="dim">${(k.match(/（(.*)）/)||['',''])[1]}</span></th>`).join('')}<th class="r">合計</th></tr>
+  ${periods.map(p=>{const A=sizeAgg(p.rows);return `<tr class="${p.cur?'cur':''}"><td><b>${p.label}</b></td>${list.map(k=>`<td class="r">${cell(A,k)}</td>`).join('')}<td class="r"><b>${fmt(Math.round(A.tot))}</b></td></tr>`}).join('')}
+  <tr class="sum"><td>合計</td>${list.map(k=>`<td class="r">${cell(all,k)}</td>`).join('')}<td class="r">${fmt(Math.round(all.tot))}</td></tr></table></div></div>`}
 function histWeek(){
   const cur=monday(TODAY);const weeks=[];for(let i=12;i>=0;i--)weeks.push(weekStats(addD(cur,-7*i)));weeks.push(weekStats(addD(cur,7)));
   const T=SETTINGS.targetKg;const mx=Math.max(T,...weeks.map(w=>w.kg+w.plan))*1.1;
@@ -1787,19 +1806,22 @@ function histWeek(){
     <div class="bars" style="grid-template-columns:repeat(${weeks.length},1fr)"><div class="gl" style="top:${100-T/mx*100}%"><span>${(T/1000).toFixed(1)}t</span></div>
     ${weeks.map((w,i)=>`<div class="bar ${i===12?'cur':''}" data-w="${ymd(w.mon)}"><span class="v">${(w.kg/1000).toFixed(w.kg?1:0)}${w.plan?`<span class="dim">+${(w.plan/1000).toFixed(1)}</span>`:''}</span>${w.plan?`<i class="plan" style="height:${w.plan/mx*100}%"></i>`:''}<i class="${i<12&&w.kg<T?'miss':''}" style="height:${w.kg/mx*100}%;${w.plan?'border-radius:0':''}"></i><span class="l">${md(w.mon)}</span></div>`).join('')}</div></div>
   ${gradeCard(weeks.slice(0,13).flatMap(w=>w.shipped),'直近13週')}
+  ${sizeTable(weeks.slice(0,13).reverse().map((w,i)=>({label:`${md(w.mon)}〜${md(w.sun)}`,rows:w.shipped,cur:i===0})),'週')}
   <div class="tw"><table><tr><th>週</th><th class="r">さつまいも</th><th class="r">内訳（規格）</th><th class="r">目標</th><th class="r">達成率</th><th class="r">玉ねぎ</th><th class="r">加工品</th><th class="r">苗</th><th class="r">件数／箱</th><th class="r">遅れ</th><th></th></tr>
-  ${weeks.slice(0,13).reverse().map((w,i)=>`<tr class="${i===0?'cur':''} click" data-w="${ymd(w.mon)}"><td><b>${md(w.mon)}〜${md(w.sun)}</b>${i===0?'<br><span class="dim">今週（進行中）</span>':''}</td><td class="r"><b>${fmt(w.kg)}</b> kg${w.plan?`<br><span class="dim">＋予定 ${fmt(w.plan)}kg</span>`:''}</td><td class="r dim">${Object.entries(w.sizes).map(([s,k])=>`${s} ${fmt(k)}`).join('／')||'—'}</td><td class="r">${fmt(T)}</td><td class="r"><span class="ach ${w.kg>=T?'ok':'ng'}">${Math.round(w.kg/T*100)}%</span></td><td class="r">${w.onion?fmt(w.onion)+' kg':'—'}</td><td class="r">${w.kako?fmt(w.kako):'—'}</td><td class="r">${w.nae?fmt(w.nae)+' 本':'—'}</td><td class="r">${w.count} 件／${fmt(w.boxes)} 箱</td><td class="r">${w.late?`<span class="tag t-late">${w.late}</span>`:'0'}</td><td class="dim">受注を見る ›</td></tr>`).join('')}
+  ${weeks.slice(0,13).reverse().map((w,i)=>`<tr class="${i===0?'cur':''} click" data-w="${ymd(w.mon)}"><td><b>${md(w.mon)}〜${md(w.sun)}</b>${i===0?'<br><span class="dim">今週（進行中）</span>':''}</td><td class="r"><b>${fmt(w.kg)}</b> kg${w.plan?`<br><span class="dim">＋予定 ${fmt(w.plan)}kg</span>`:''}</td><td class="r dim">${Object.entries(w.sizes).map(([s,k])=>`${s.replace(/（.*）/,'')} ${fmt(Math.round(k))}`).join('／')||'—'}</td><td class="r">${fmt(T)}</td><td class="r"><span class="ach ${w.kg>=T?'ok':'ng'}">${Math.round(w.kg/T*100)}%</span></td><td class="r">${w.onion?fmt(w.onion)+' kg':'—'}</td><td class="r">${w.kako?fmt(w.kako):'—'}</td><td class="r">${w.nae?fmt(w.nae)+' 本':'—'}</td><td class="r">${w.count} 件／${fmt(w.boxes)} 箱</td><td class="r">${w.late?`<span class="tag t-late">${w.late}</span>`:'0'}</td><td class="dim">受注を見る ›</td></tr>`).join('')}
   <tr class="sum"><td>13週 合計</td><td class="r">${fmt(sum.kg)} kg（${(sum.kg/1000).toFixed(1)}t）</td><td></td><td class="r">${fmt(T*13)}</td><td class="r">${Math.round(sum.kg/(T*13)*100)}%</td><td class="r">${fmt(sum.onion)||'—'}</td><td class="r">${fmt(sum.kako)}</td><td class="r">${fmt(sum.nae)} 本</td><td class="r">${sum.count} 件</td><td class="r">${sum.late}</td><td></td></tr></table></div>
   <p class="note">集計＝納品日がその週の受注。実績＝発送手配済にした分、予定＝まだの分。目標は「⚙ 目標設定」で期間ごとに変えられ、過去の週は当時の目標で達成率を出す。行をタップでその週の受注一覧へ。</p>`;
-  $('hBody').onclick=e=>{const r=e.target.closest('[data-w]');if(r){const mon=new Date(r.dataset.w);H.mode='orders';H.ym=new Date(mon.getFullYear(),mon.getMonth(),1);$('hQ').value='';renderHist();toast(`${md(mon)}週を含む月の受注ごと表示に切替（実装時は週で絞ります）`)}};
+  $('hBody').onclick=e=>{const a=e.target.closest('a[data-no]');if(a){e.preventDefault();openOrder(a.dataset.no);return}const r=e.target.closest('[data-w]');if(r){const mon=new Date(r.dataset.w);H.mode='orders';H.ym=new Date(mon.getFullYear(),mon.getMonth(),1);$('hQ').value='';renderHist();toast(`${md(mon)}週を含む月の受注ごと表示に切替（実装時は週で絞ります）`)}};
 }
 function histMonth(){
   const months=[];for(let i=5;i>=0;i--){const m0=new Date(TODAY.getFullYear(),TODAY.getMonth()-i,1),m1=new Date(TODAY.getFullYear(),TODAY.getMonth()-i+1,0);const os=ORDERS.filter(o=>o.status!=='キャンセル'&&o.act.shipAt&&d0(o.deliver)>=m0&&d0(o.deliver)<=m1);months.push({m0,kg:os.reduce((s,o)=>s+imoKg(o),0),kako:os.reduce((s,o)=>s+kakoQty(o),0),count:os.length,late:os.filter(isLate).length,weeks:workdaysBetween(m0,m1)/6})}
   const mx=Math.max(...months.map(m=>m.kg),1)*1.1;const T=SETTINGS.targetKg;
   $('hBody').innerHTML=`<div class="card" style="margin-bottom:12px"><h3>さつまいも 月別出荷量（t）<span>目安：週目標 × 週数</span></h3><div class="bars" style="grid-template-columns:repeat(6,1fr)">${months.map((m,i)=>`<div class="bar ${i===5?'cur':''}"><span class="v">${(m.kg/1000).toFixed(1)}</span><i style="height:${m.kg/mx*100}%"></i><span class="l">${m.m0.getMonth()+1}月</span></div>`).join('')}</div></div>
   ${gradeCard(ORDERS.filter(o=>o.status!=='キャンセル'&&o.act.shipAt&&o.deliver.getMonth()===TODAY.getMonth()&&o.deliver.getFullYear()===TODAY.getFullYear()),`${TODAY.getMonth()+1}月`)}
+  ${sizeTable(months.slice().reverse().map((m,i)=>{const m1=new Date(m.m0.getFullYear(),m.m0.getMonth()+1,0);return {label:`${m.m0.getFullYear()}年${m.m0.getMonth()+1}月`,rows:ORDERS.filter(o=>o.status!=='キャンセル'&&o.act.shipAt&&d0(o.deliver)>=m.m0&&d0(o.deliver)<=m1),cur:i===0}}),'月')}
   <div class="tw"><table><tr><th>月</th><th class="r">さつまいも</th><th class="r">目安（週目標×週数）</th><th class="r">達成率</th><th class="r">加工品</th><th class="r">件数</th><th class="r">遅れ</th><th class="r">前年同月</th></tr>${months.slice().reverse().map((m,i)=>`<tr class="${i===0?'cur':''}"><td><b>${m.m0.getFullYear()}年${m.m0.getMonth()+1}月</b>${i===0?'<span class="dim">　進行中</span>':''}</td><td class="r"><b>${fmt(m.kg)}</b> kg</td><td class="r">${fmt(Math.round(T*m.weeks/100)*100)}</td><td class="r"><span class="ach ${m.kg>=T*m.weeks?'ok':'ng'}">${Math.round(m.kg/(T*m.weeks)*100)}%</span></td><td class="r">${fmt(m.kako)||'—'}</td><td class="r">${m.count}</td><td class="r">${m.late}</td><td class="r dim">（来年から比較可）</td></tr>`).join('')}</table></div>
   <p class="note">前年同月比は2年目のデータが溜まってから自動で出ます。</p>`;
+  $('hBody').onclick=e=>{const a=e.target.closest('a[data-no]');if(a){e.preventDefault();openOrder(a.dataset.no)}};
 }
 
 function exportCsv(){
