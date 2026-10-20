@@ -368,7 +368,9 @@ tr.sum td{background:var(--bg);font-weight:700;border-top:2px solid var(--line2)
 .wbc{border:1px solid var(--line);border-left:4px solid var(--c);border-radius:7px;padding:4px 7px;background:var(--paper);font-size:12px;line-height:1.35;text-align:left;width:100%}
 .wbc b{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-weight:700}
 .wbc .qq{color:var(--ink2);font-variant-numeric:tabular-nums}.wbc em{font-style:normal;color:var(--bad);font-weight:700}
-.wbc.done{opacity:.5}.wbc.done .qq::after{content:" ✓済";color:var(--ok);font-weight:700}
+.wbc{position:relative}.wbc{--dn:var(--ok);--ds:var(--ok-soft);--db:#cfe3c5}.l1c{--dn:#8a6a14;--ds:#fbf3dc;--db:#ecd9a6}.l2c{--dn:#2f5f99;--ds:#eaf2fb;--db:#c3d6ee}.l3c{--dn:#3d6a2f;--ds:#eaf3e5;--db:#cfe3c5}
+.wbc.done{background:var(--ds);border-color:var(--db);border-left-color:var(--c);padding-right:56px}.wbc.done b,.wbc.done .qq{color:var(--mute)}
+.wbc.done::after{content:"✓ 済";position:absolute;right:6px;top:50%;transform:translateY(-50%);background:var(--dn);color:#fff;font-weight:900;font-size:12px;border-radius:999px;padding:1px 8px;line-height:1.5}
 .wbc.late{border-color:#e7b8aa;border-left-color:var(--bad);background:#fff7f4}
 .wln.l4{background:var(--bad-soft);color:var(--bad)}.wln.l4 span{color:var(--bad)}.wln.l4 em{font-style:normal;background:var(--bad);color:#fff;border-radius:999px;padding:0 7px;font-size:11px;margin-top:3px}
 .wcl.l4c{background:#fcf8f6}
@@ -467,7 +469,7 @@ tr.sum td{background:var(--bg);font-weight:700;border-top:2px solid var(--line2)
   <div class="wkk" id="wkKpi"></div>
   <div id="tray"></div>
   <div class="wbw"><div class="wbd" id="wkBoard"></div>
-    <div class="wlg"><span><i class="sw" style="background:#d9a93a"></i>① 用意（倉庫で準備）</span><span><i class="sw" style="background:#4a7fbf"></i>② 発送手配</span><span><i class="sw" style="background:#5d8f4a"></i>③ 納品（客先着）</span><span>点線＝日程未定　薄い＝済　赤枠＝遅れ</span><span><i class="sw" style="background:#9a4a2e"></i>④ 前週比（先週あって今週ない。薄い＝曜日がずれただけ）</span><span>曜日の下＝その日の用意kg（上限を超えると赤）</span></div></div>
+    <div class="wlg"><span><i class="sw" style="background:#d9a93a"></i>① 用意（倉庫で準備）</span><span><i class="sw" style="background:#4a7fbf"></i>② 発送手配</span><span><i class="sw" style="background:#5d8f4a"></i>③ 納品（客先着）</span><span>点線＝日程未定　「✓ 済」＝済（レーンの色）　赤枠＝遅れ</span><span><i class="sw" style="background:#9a4a2e"></i>④ 前週比（先週あって今週ない。薄い＝曜日がずれただけ）</span><span>曜日の下＝その日の用意kg（上限を超えると赤）</span></div></div>
   <div id="baro"></div>
 </main>
 
