@@ -49,6 +49,15 @@ textarea{resize:vertical}
 .chip{padding:6px 12px;border-radius:999px;border:1px solid var(--line2);background:var(--paper);font-size:13px;font-weight:700;color:var(--ink2)}
 .chip.on{background:var(--head);color:#fff;border-color:var(--head)}
 .chip.late.on{background:var(--bad);border-color:var(--bad)}
+.t-unc{background:#fbf1df;color:#8a5a12;border:1px dashed #d9a64a}.t-conf{background:var(--ok-soft);color:var(--ok-ink);border:1px solid #cfe3c5}
+.wbc.uc{background:repeating-linear-gradient(135deg,var(--paper) 0 7px,#fdf6e8 7px 14px);border-style:dashed;border-left-style:solid}
+.ucb{display:inline-block;font-size:10px;font-weight:900;color:#8a5a12;border:1px dashed #d9a64a;background:#fff;border-radius:999px;padding:0 6px;margin-bottom:1px;line-height:1.5}
+.ucal{background:#fbf1df;border:1px dashed #d9a64a;border-radius:10px;padding:10px 12px;font-size:13px;margin:8px 0;line-height:1.6}.ucal .ucbtn{margin-top:8px;background:#fff;border-color:#d9a64a;color:#8a5a12;font-weight:800}
+.uck .btn{font-size:12px}
+.ucb,.cfb{cursor:pointer}.cfb{display:inline-block;font-size:10px;font-weight:900;color:var(--ok-ink);border:1px solid #b9d3ad;background:var(--ok-soft);border-radius:999px;padding:0 6px;margin-bottom:1px;line-height:1.5}
+.lnm .ucb,.lnm .cfb{font-size:11px;padding:1px 8px}
+.ucsel{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;border-radius:10px;padding:8px 12px;margin:8px 0}.ucsel.is-u{background:#fbf1df;border:1px dashed #d9a64a}.ucsel.is-c{background:var(--ok-soft);border:1px solid #cfe3c5}.ucsel .k{font-weight:800}.ucsel .seg button{font-weight:800}.ucsel.is-u .seg button.on{background:#8a5a12;color:#fff}.ucsel.is-c .seg button.on{background:var(--ok);color:#fff}.sb.unc b{color:#8a5a12}
+.ucl{max-height:52vh;overflow:auto;display:grid;gap:10px}.ucd{display:grid;gap:4px}.ucr{display:flex;gap:8px;align-items:center;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--paper)}.ucr input{width:auto}
 .tag{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11px;font-weight:700;white-space:nowrap}
 .t-定期{background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent-line)}.t-受注{background:#eee7dc;color:var(--ink2)}.t-準備中{background:var(--ready);color:#6b4d00}.t-用意完了{background:#e6d9a8;color:#5a4200}.t-発送手配済{background:var(--ship);color:#1f4a7a}.t-納品済{background:var(--ok-soft);color:var(--ok-ink)}.t-納品確認待ち{background:var(--warn-soft);color:#8a5a00;border:1px solid #e6c97a}.t-キャンセル{background:#e8e3dc;color:#999;text-decoration:line-through}
 .t-late{background:var(--bad-soft);color:var(--bad)}
@@ -336,7 +345,7 @@ tr.sum td{background:var(--bg);font-weight:700;border-top:2px solid var(--line2)
 .sg.plan{border:1px dashed var(--line2);background:transparent}.sg .w{display:block;font-size:11px}
 .lmore{display:block;width:100%;padding:8px 14px;font-size:12.5px;color:var(--accent);font-weight:700;border:0;background:none;text-align:left}
 /* ---- 週間（1枚表） ---- */
-.wkk{display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;margin-bottom:12px}
+.wkk{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:10px;margin-bottom:12px}
 .wkp{padding:10px 14px;display:grid;gap:4px}.wkp small{font-size:11.5px;color:var(--mute);font-weight:700}
 .wkp .big{font-size:22px;font-weight:900;line-height:1.15;font-variant-numeric:tabular-nums}.wkp .big span{font-size:12.5px;font-weight:700;color:var(--mute)}
 .km{position:relative;height:9px;border-radius:5px;background:#ece6dc;overflow:hidden}.km i{position:absolute;left:0;top:0;bottom:0;background:var(--ok)}
@@ -724,7 +733,7 @@ function build(d){RAW=d;d.recurring=d.recurring||[];d.formInbox=d.formInbox||[];
     const lines=(linesBy[r.NO]||[]).sort((a,b)=>(Number(a['行'])||0)-(Number(b['行'])||0)).map(l=>({item:String(l['品目']||''),size:String(l['規格']||''),pack:String(l['荷姿']||''),qty:Number(l['数量'])||0,unit:l['単位']||'kg',per:l['入数']===''||l['入数']===undefined?'':Number(l['入数']),boxes:Number(l['箱数'])||''}));
     const deliver=pdt(r['納品日'])||new Date();const lead=Number(c.lead)||1;const it=ITEMS.find(i=>i.name===(lines[0]||{}).item);
     return {no:String(r.NO),date:pdt(r['受注日時'])||new Date(),cust:c.code,cat:r['カテゴリ']||(it&&it.cat)||'青果',lines,kg:lines.reduce((s,l)=>s+lineKg(l),0),boxes:lines.reduce((s,l)=>s+(l.boxes||0),0),deliver,lead,
-      shipFix:pdt(r['発送手配日']),readyFix:pdt(r['用意期限']),shipSug:addD(deliver,-lead),readySug:addD(deliver,-lead-1),kind:r['注文区分']||'',status:r['状態']||'受注',sales:r['営業担当']||'',note:r['申し送り']||'',method:r['配送方法']||'宅配便',carrier:r['運送会社']||'',addrAlt:r['送り先別']||'',schedBy:r['日程決定者']||'',
+      shipFix:pdt(r['発送手配日']),readyFix:pdt(r['用意期限']),shipSug:addD(deliver,-lead),readySug:addD(deliver,-lead-1),kind:r['注文区分']||'',confAt:pdt(r['確定日時']),confBy:r['確定者']||'',status:r['状態']||'受注',sales:r['営業担当']||'',note:r['申し送り']||'',method:r['配送方法']||'宅配便',carrier:r['運送会社']||'',addrAlt:r['送り先別']||'',schedBy:r['日程決定者']||'',
       act:{readyAt:pdt(r['用意完了日時']),readyBy:r['用意担当']||'',readyReason:r['用意理由']||'',readyNote:r['用意メモ']||'',readyBoxes:r['実箱数']!==''&&r['実箱数']!==undefined?Number(r['実箱数']):undefined,shipAt:pdt(r['発送手配日時']),shipBy:r['手配担当']||'',carrier:r['運送会社']||'',waybill:r['伝票No']||'',pieces:Number(r['個口数'])||undefined,shipNote:r['手配メモ']||'',deliverAt:pdt(r['納品確認日時']),deliverBy:r['納品担当']||'',deliverNote:r['納品メモ']||''},
       events:(evBy[r.NO]||[]).map(e=>({t:e['種別']||'',at:pdt(e['日時'])||new Date(),by:e['担当']||'',m:e['内容']||'',late:Number(e['遅れ日数'])||0,plan:pdt(e['予定日'])})).sort((a,b)=>a.at-b.at)};
   });
@@ -744,6 +753,12 @@ $('reloadBtn').onclick=()=>reload();
 
 /* ===== 集計ヘルパ ===== */
 const active=o=>!['納品済','キャンセル'].includes(o.status);
+/* 定期で事前に作った注文は、発注を受けて「確定」にするまで未確定 */
+const unconf=o=>o.kind==='定期'&&!o.confAt&&active(o);
+const teikiLive=o=>o.kind==='定期'&&active(o);
+/* 定期だけに出す 確定／未確定 の札。押すと切り替わる（data-uc） */
+const ucTag=o=>!teikiLive(o)?'':unconf(o)?`<span class="ucb" data-uc="${o.no}" title="押すと確定にする">未確定</span>`:`<span class="cfb" data-uc="${o.no}" title="押すと未確定に戻す">✓ 確定</span>`;
+let UC_MODE='warn';// 未確定のまま用意・発送に進めようとしたとき：warn＝注意して進められる／block＝確定するまで進めない
 // 発送手配済で納品予定日を過ぎた（当日含む）ものは「納品確認待ち」として表示。納品済にすると自然に消える
 const remDays=d=>{const n=diffD(d,TODAY);return n>0?`あと${n}日`:n===0?'今日':`${-n}日超過`};
 const dispStatus=o=>o.status==='発送手配済'&&d0(TODAY)>=d0(o.deliver)?'納品確認待ち':o.status;
@@ -796,6 +811,7 @@ const LST_F=[
   ['today','今日やること','today',o=>ymd(stepDate(o))===ymd(TODAY)],
   ['late','遅れ・要確認','bad',lateOf],
   ['un','日程未定','warn',o=>o.status==='受注'],
+  ['unc','未確定（定期）','unc',unconf],
   ['wait','納品確認待ち','',o=>dispStatus(o)==='納品確認待ち'],
 ];
 function stepSeg(o,k){
@@ -815,7 +831,7 @@ function lstAct(o){const s=stepOf(o);
   return `<button class="btn sm" data-go="納品済" data-no="${o.no}">納品済にする</button>`}
 function lstRow(o){const c=custOf(o.cust);const ds=dispStatus(o);
   return `<div class="lr ${lateOf(o)?'late':soonOf(o)?'soon':''}" data-no="${o.no}"><div class="lst"></div>
-   <div class="lnm"><div class="nm">${esc(c.name)} ${o.kind==='定期'?'<span class="tag t-定期">定期</span> ':''}${o.cat!=='青果'?`<span class="tag t-cat ${o.cat}">${o.cat}</span>`:''}</div><div class="dim">${o.no}　${esc(itemsTxt(o))}　${o.method}${o.sales?'　営業 '+esc(o.sales):''}${o.note?'　📝'+esc(o.note.slice(0,20)):''}</div></div>
+   <div class="lnm"><div class="nm">${esc(c.name)} ${o.kind==='定期'?'<span class="tag t-定期">定期</span> ':''}${ucTag(o)}${o.cat!=='青果'?`<span class="tag t-cat ${o.cat}">${o.cat}</span>`:''}</div><div class="dim">${o.no}　${esc(itemsTxt(o))}　${o.method}${o.sales?'　営業 '+esc(o.sales):''}${o.note?'　📝'+esc(o.note.slice(0,20)):''}</div></div>
    <div class="lq">${qtyMain(o)}<small>${qtySub(o)}</small></div>
    <div class="stp">${stepSeg(o,'ready')}${stepSeg(o,'ship')}${stepSeg(o,'deliver')}</div>
    <div class="lact"><span class="tag t-${ds}">${ds==='受注'?'日程未定':ds}</span>${lstAct(o)}</div></div>`}
@@ -840,6 +856,7 @@ $('lstGrp').onclick=e=>{const b=e.target.closest('[data-g]');if(!b)return;lstG=b
 $('lstQ').oninput=renderList;
 $('olist').onclick=e=>{const g=e.target.closest('[data-go]');if(g){e.stopPropagation();const o=ORDERS.find(x=>x.no===g.dataset.no);if(g.dataset.go==='sched')openSched(o);else openStage(o,g.dataset.go);return}
   const m=e.target.closest('[data-open]');if(m){lstOpen.add(m.dataset.open);renderList();return}
+  const u=e.target.closest('[data-uc]');if(u){e.stopPropagation();toggleConf(u.dataset.uc);return}
   const r=e.target.closest('.lr');if(r)openOrder(r.dataset.no)};
 const lineSummary=o=>o.lines.map(l=>`${l.item} ${l.size} ${fmt(l.qty)}${l.unit}${l.boxes?`（${l.boxes}箱）`:''}`).join('／');
 
@@ -860,6 +877,7 @@ function openOrder(no){
   const o=ORDERS.find(x=>x.no===no);const c=custOf(o.cust);
   const next={'受注':null,'準備中':'用意完了','用意完了':'発送手配済','発送手配済':'納品済'}[o.status];
   const acts=[];
+  if(teikiLive(o))acts.push(`<div class="ucsel ${unconf(o)?'is-u':'is-c'}"><span class="k">発注</span><div class="seg"><button class="${unconf(o)?'on':''}" data-a="unconf">未確定</button><button class="${unconf(o)?'':'on'}" data-a="conf">✓ 確定</button></div><span class="dim">${unconf(o)?'定期の事前登録。まだ発注を受けていない':`発注を受けた（${md(o.confAt)} ${esc(o.confBy)}）`}</span></div>`);
   if(o.status==='受注')acts.push(`<button class="btn acc blk" data-a="sched">日程を決める（②発送手配日・①用意期限）</button>`);
   if(o.status==='発送手配済'){const u=trackUrl(o);acts.push(u?`<a class="btn blk" style="display:block;text-align:center;text-decoration:none;margin-bottom:8px" href="${u}" target="_blank" rel="noopener">🚚 配送状況を確認（${esc(o.act.carrier||o.carrier)}　伝票 ${esc(o.act.waybill)}）</a>`:`<div class="alert" style="margin-bottom:8px">追跡には運送会社と伝票No.が必要です${o.act.waybill?'（この運送会社の追跡は未対応）':'。「内容を編集」ではなく「発送手配済」の記録に伝票No.を入れてください'}</div>`)}
   if(next)acts.push(`<button class="btn pri blk" data-a="next">「${next}」にする${next==='納品済'&&dispStatus(o)==='納品確認待ち'?'（確認できたら）':''}</button>`);
@@ -874,7 +892,39 @@ function openOrder(no){
   ${o.act.waybill?`<div class="kv"><span class="k">配送</span><span>${o.act.carrier}　伝票 ${o.act.waybill}　${o.act.pieces}個口</span></div>`:''}
   ${timeline(o)}`);
   $('modal').querySelector('.mbox').onclick=e=>{const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a;
-    if(a==='close')closeModal();else if(a==='sched')openSched(o);else if(a==='next')openStage(o,next);else if(a==='cancel')openCancel(o);else if(a==='edit'){closeModal();loadForm(o);switchTab('new')}};
+    if(a==='close')closeModal();else if(a==='conf'){if(unconf(o))confirmOrders([o],()=>openOrder(o.no))}else if(a==='unconf'){if(!unconf(o))unconfirmOrder(o,true)}else if(a==='sched')openSched(o);else if(a==='next')openStage(o,next);else if(a==='cancel')openCancel(o);else if(a==='edit'){closeModal();loadForm(o);switchTab('new')}};
+}
+/* ===== 確定（定期の事前登録 → 発注を受けた） ===== */
+async function confirmOrders(os,after){const at=dts(new Date());
+  os.forEach(o=>{o.confAt=new Date();o.confBy=ME;o.events.push({t:'確定',at:new Date(),by:ME,m:'発注を受けた'})});closeModal();render();
+  try{if(os.length===1)await save('updateOrderFields',{no:os[0].no,fields:{'確定日時':at,'確定者':ME},event:{'種別':'確定','日時':at,'担当':ME,'内容':'発注を受けた'}},`${os[0].no} を確定にしました`);
+    else{const r=await save('updateOrdersFields',{items:os.map(o=>({no:o.no,fields:{'確定日時':at,'確定者':ME},event:{'種別':'確定','日時':at,'担当':ME,'内容':'発注を受けた（まとめて確定）'}}))},`${os.length}件を確定にしました`);
+      if(r&&r.skipped&&r.skipped.length){errBar(`${r.skipped.length}件は確定できませんでした。読み直します`);reload();return}}
+    build(RAW);render();if(after)after()}catch(e){}}
+function toggleConf(no){const o=ORDERS.find(x=>x.no===no);if(!o||!teikiLive(o))return;if(unconf(o))confirmOrders([o]);else unconfirmOrder(o,false)}
+async function unconfirmOrder(o,reopen){o.confAt=null;o.confBy='';o.events.push({t:'未確定に戻す',at:new Date(),by:ME,m:''});closeModal();render();
+  try{await save('updateOrderFields',{no:o.no,fields:{'確定日時':'','確定者':''},event:{'種別':'未確定に戻す','担当':ME,'内容':''}},`${o.no} を未確定に戻しました`);build(RAW);render();if(reopen)openOrder(o.no)}catch(e){}}
+function openConfBulk(os){
+  const by={};os.forEach(o=>(by[ymd(o.deliver)]=by[ymd(o.deliver)]||[]).push(o));
+  modal(`<h2>まとめて確定</h2><p class="dim" style="margin-bottom:8px">発注を受けた注文にチェックを入れて「確定にする」。チェックを外した分は未確定のまま残ります。</p>
+  <div class="ucl">${Object.keys(by).sort().map(k=>`<div class="ucd"><b>③納品 ${mdw(new Date(k+'T00:00:00'))}</b>${by[k].map(o=>`<label class="ucr"><input type="checkbox" data-no="${o.no}"><span><b>${esc(custOf(o.cust).name)}</b>　${qtyMain(o)}<span class="dim">　${o.no}</span></span></label>`).join('')}</div>`).join('')}</div>
+  <div class="row" style="gap:8px;margin:10px 0"><button class="btn sm" id="ucAll">すべてチェック</button><span class="dim" id="ucN">0件を選択</span></div>
+  <button class="btn pri blk" id="ucOk" disabled>確定にする</button><div class="acts"><button class="btn" id="ucNo">やめる</button></div>`);
+  const box=$('modal');const sel=()=>[...box.querySelectorAll('.ucr input:checked')].map(x=>ORDERS.find(o=>o.no===x.dataset.no));
+  const upd=()=>{const n=sel().length;$('ucN').textContent=n+'件を選択';$('ucOk').disabled=!n;$('ucOk').textContent=n?`${n}件を確定にする`:'確定にする'};
+  box.querySelectorAll('.ucr input').forEach(x=>x.onchange=upd);
+  $('ucAll').onclick=()=>{box.querySelectorAll('.ucr input').forEach(x=>x.checked=true);upd()};
+  $('ucNo').onclick=closeModal;$('ucOk').onclick=()=>confirmOrders(sel());
+}
+function ucGuard(o,stage){const c=custOf(o.cust);
+  const head=`<h2>まだ未確定です</h2><div class="meta"><span>${o.no}</span><span>${esc(c.name)}</span><span>③納品 ${mdw(o.deliver)}</span><span class="tag t-unc">未確定</span></div>`;
+  if(UC_MODE==='block')modal(`${head}<div class="ucal"><b>確定するまで「${stage}」にはできません。</b><br>定期の事前登録で、まだ発注を受けていない注文です。営業に発注が来ているか確かめてください。</div>
+    <button class="btn pri blk" id="ugConf">発注を受けたので確定して「${stage}」へ進む</button><div class="acts"><button class="btn" id="ugNo">やめる</button></div>`);
+  else modal(`${head}<div class="ucal">定期の事前登録で、<b>まだ発注を受けていない</b>注文です。このまま「${stage}」にしてよいか確かめてください。</div>
+    <button class="btn pri blk" id="ugConf">発注を受けたので確定して進む</button><button class="btn blk" id="ugGo" style="margin-top:8px">未確定のまま「${stage}」にする</button><div class="acts"><button class="btn" id="ugNo">やめる</button></div>`);
+  $('ugNo').onclick=closeModal;
+  $('ugConf').onclick=()=>confirmOrders([o],()=>openStage(ORDERS.find(x=>x.no===o.no)||o,stage,true));
+  if($('ugGo'))$('ugGo').onclick=()=>openStage(o,stage,true);
 }
 function openSched(o){
   const c=custOf(o.cust);
@@ -892,7 +942,8 @@ function openSched(o){
     await save('updateOrderFields',{no:o.no,expect,fields:{'発送手配日':ymd(o.shipFix),'用意期限':ymd(o.readyFix),'状態':o.status,'日程決定者':ME,'日程決定日時':dts(new Date())},event:{'種別':ev.t,'日時':dts(ev.at),'担当':ME,'内容':ev.m}},`${o.no} 日程を確定しました`)};
 }
 function dtLocal(d){return `${ymd(d)}T${hm(d)}`}
-function openStage(o,stage){
+function openStage(o,stage,ucOk){
+  if(unconf(o)&&!ucOk)return ucGuard(o,stage);
   const c=custOf(o.cust);const now=new Date();
   const plan=stage==='用意完了'?o.readyFix:stage==='発送手配済'?o.shipFix:o.deliver;
   const lab=stage==='用意完了'?['用意期限 ①','完了日時']:stage==='発送手配済'?['発送手配日 ②','手配日時']:['納品予定 ③','納品確認日時'];
@@ -1065,10 +1116,13 @@ function renderWeek(){
   const pend=ORDERS.filter(o=>o.status==='受注').sort((a,b)=>a.deliver-b.deliver);
   const lateN=ORDERS.filter(lateOf).length;
   const p1=Math.min(100,W.kg/T*100),p2=Math.min(100,(W.kg+W.plan)/T*100);
-  $('wkKpi').innerHTML=`<div class="card wkp"><small>この週の出荷（さつまいも・納品日ベース）</small><div class="big">${(W.kg/1000).toFixed(2)}<span> t 実績</span>　${((W.kg+W.plan)/1000).toFixed(2)}<span> t 予定込み ／ 目標 ${(T/1000).toFixed(1)} t</span></div><div class="km"><i style="width:${p1}%"></i><u style="left:${p1}%;width:${Math.max(0,p2-p1)}%"></u></div><div class="dim">達成 ${Math.round(W.kg/T*100)}%（予定込み ${Math.round((W.kg+W.plan)/T*100)}%）　発送手配済にした分が実績。詳しい内訳は一番下</div></div>
+  const ucs=ORDERS.filter(o=>unconf(o)&&d0(o.deliver)>=mon&&d0(o.deliver)<=sun).sort((a,b)=>a.deliver-b.deliver||a.no.localeCompare(b.no));const ucKg=ucs.reduce((s,o)=>s+imoKg(o),0);
+  $('wkKpi').innerHTML=`<div class="card wkp"><small>この週の出荷（さつまいも・納品日ベース）</small><div class="big">${(W.kg/1000).toFixed(2)}<span> t 実績</span>　${((W.kg+W.plan)/1000).toFixed(2)}<span> t 予定込み ／ 目標 ${(T/1000).toFixed(1)} t</span></div><div class="km"><i style="width:${p1}%"></i><u style="left:${p1}%;width:${Math.max(0,p2-p1)}%"></u></div><div class="dim">達成 ${Math.round(W.kg/T*100)}%（予定込み ${Math.round((W.kg+W.plan)/T*100)}%${ucKg?`、うち未確定 ${(ucKg/1000).toFixed(2)} t`:''}）　発送手配済にした分が実績。詳しい内訳は一番下</div></div>
+    <div class="card wkp uck"><small>未確定（定期の事前登録）</small><div class="big" style="color:${ucs.length?'#8a5a12':'inherit'}">${ucs.length}<span> 件</span>${ucKg?`<span>　${fmt(Math.round(ucKg))} kg</span>`:''}</div><div class="dim">${ucs.length?'発注を受けたら確定にする':'この週はすべて確定済み'}</div>${ucs.length?'<button class="btn sm" id="ucBulk" style="margin-top:6px">まとめて確定…</button>':''}</div>
     <div class="card wkp"><small>日程未定</small><div class="big" style="color:${pend.length?'#8a5a00':'inherit'}">${pend.length}<span> 件</span></div><div class="dim">下の黄色い欄で日程を決める</div></div>
     <div class="card wkp"><small>遅れ・要確認</small><div class="big" style="color:${lateN?'var(--bad)':'inherit'}">${lateN}<span> 件</span></div><div class="dim">赤い枠のカード</div></div>`;
   renderTray(pend);
+  if($('ucBulk'))$('ucBulk').onclick=()=>openConfBulk(ucs);
   const days=[0,1,2,3,4,5,6].map(i=>addD(mon,i));const isCur=wkOff===0;
   const lanes=[
     ['l1','① 用意','倉庫で準備',o=>o.act.readyAt||o.readyFix,o=>!!o.act.readyAt],
@@ -1084,7 +1138,7 @@ function renderWeek(){
       if(isCur&&di===0)os=os.concat(live.filter(o=>{const x=dateOf(o);return x&&d0(x)<mon&&!isDone(o)&&active(o)&&(cls!=='l3'||o.act.shipAt)}));
       os.sort((a,b)=>isDone(a)-isDone(b)||a.no.localeCompare(b.no));
       h+=`<div class="wcl ${ymd(d)===ymd(TODAY)?'today':''}">${os.map(o=>{const dn=isDone(o);const x=dateOf(o);const late=!dn&&active(o)&&d0(x)<d0(TODAY);const un=cls==='l3'&&o.status==='受注';
-        return `<button class="wbc ${cls}c ${dn?'done':''} ${late?'late':''} ${un?'un':''}" data-no="${o.no}"><b>${esc(custOf(o.cust).name)}</b><span class="qq">${qtyMain(o)}${late?`　<em>${md(x)}予定</em>`:''}</span></button>`}).join('')}</div>`})});
+        return `<button class="wbc ${cls}c ${dn?'done':''} ${late?'late':''} ${un?'un':''} ${cls==='l3'&&unconf(o)?'uc':''}" data-no="${o.no}">${cls==='l3'?ucTag(o):''}<b>${esc(custOf(o.cust).name)}</b><span class="qq">${qtyMain(o)}${late?`　<em>${md(x)}予定</em>`:''}</span></button>`}).join('')}</div>`})});
   // ④ 前週比：先週あって今週ない注文（同じ顧客・同じ曜日で照合。曜日がずれただけの分は薄く表示）
   const gp=weekGaps(mon);
   h+=`<div class="wln l4">④ 前週比<span>先週あって<br>今週ない</span>${gp.n?`<em>${gp.n}件</em><b class="gpk">計 ${fmt(Math.round(gp.kg))} kg</b>${gp.kako?`<b class="gpk">＋加工品 ${fmt(gp.kako)}</b>`:''}`:''}<button class="gpt" id="gpAll">${GAP_ALL?'定期・常連だけ':'スポットも表示'}</button>${!GAP_ALL&&gp.hid?`<span class="gph">スポットのみの${gp.hid}社は非表示</span>`:''}</div>`;
@@ -1093,7 +1147,7 @@ function renderWeek(){
     if(g.k==='cancel')return `<button class="wbc gx" data-no="${g.o.no}"><b>${nm}</b><span class="qq">${q}</span><em>今週はキャンセル${g.why?'（'+esc(g.why)+'）':''}</em></button>`;
     return `<button class="wbc gm" data-no="${g.o.no}"><b>${nm}</b><span class="qq">${q}</span><em>→ ${mdw(g.o.deliver)}にあり</em></button>`}).join('')}</div>`});
   $('wkBoard').innerHTML=h;
-  $('wkBoard').onclick=e=>{if(e.target.closest('#gpAll')){GAP_ALL=!GAP_ALL;renderWeek();return}const b=e.target.closest('[data-no]');if(b)openOrder(b.dataset.no)};
+  $('wkBoard').onclick=e=>{const u=e.target.closest('[data-uc]');if(u){e.stopPropagation();toggleConf(u.dataset.uc);return}if(e.target.closest('#gpAll')){GAP_ALL=!GAP_ALL;renderWeek();return}const b=e.target.closest('[data-no]');if(b)openOrder(b.dataset.no)};
   renderBaro();
 }
 
@@ -1173,7 +1227,7 @@ $('fSave').onclick=async()=>{
       build(RAW);render()}
     else if(F.kind==='定期'){const res=await saveRec([$('fDeliver').value,...recList.filter(x=>x!==$('fDeliver').value)],F.cust||'',newCustomer,sales,alt,lrows);build(RAW);render();
       toast(`定期 ${res.created.length}件を登録しました（${md(new Date($('fDeliver').value+'T00:00:00'))}〜${md(new Date($('fRecTo').value+'T00:00:00'))}）${res.skipped.length?`　${res.skipped.length}件はすでにあるので作らず`:''}`)}
-    else{const r=await save('saveOrder',{order:{'顧客コード':F.cust||'','カテゴリ':F.cat,'納品日':$('fDeliver').value,'配送方法':$('fMethod').value,'運送会社':$('fCarrier').value,'営業担当':sales,'申し送り':$('fNote').value,'送り先別':alt,'状態':'受注','注文区分':F.kind},lines:lrows,newCustomer,recurring,event:{'種別':'受注','担当':sales+'（営業）','内容':`新規登録　③納品 ${$('fDeliver').value.slice(5).replace('-','/')}${$('fNote').value?`　申し送り「${$('fNote').value}」`:''}`}},null);
+    else{const r=await save('saveOrder',{order:{'顧客コード':F.cust||'','カテゴリ':F.cat,'納品日':$('fDeliver').value,'配送方法':$('fMethod').value,'運送会社':$('fCarrier').value,'営業担当':sales,'申し送り':$('fNote').value,'送り先別':alt,'状態':'受注','注文区分':F.kind,'確定日時':dts(new Date()),'確定者':sales},lines:lrows,newCustomer,recurring,event:{'種別':'受注','担当':sales+'（営業）','内容':`新規登録　③納品 ${$('fDeliver').value.slice(5).replace('-','/')}${$('fNote').value?`　申し送り「${$('fNote').value}」`:''}`}},null);
       mergeSaved(r);toast(`${r.no} を登録しました${r.recurring&&r.recurring.length?'（定期にも追加）':''} → 流通の「週間」に日程未定として出ます`)}
     resetForm();
     switchTab('list');
