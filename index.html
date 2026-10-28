@@ -2117,7 +2117,7 @@ function ivRenderSheet(){const c=CUST.find(x=>x.code===IV.sel);if(!c){$('ivSheet
   const fd=IV.FIN[c.code];if(fd&&fd.a)body.push(`<tr><td></td><td><b>${esc(fd.t||'お値引き')}</b>${fd.r===10?'':'　※'}</td><td></td><td></td><td class="n"><b>−${fmt(fd.a)}</b></td></tr>`);
   $('ivSheet').innerHTML=`<div class="iv-h1">請求書</div><div class="iv-top"><div><div class="iv-to">${esc(c.name)}　御中</div>${c.zip||c.addr?`<div style="font-size:9pt">${c.zip?'〒'+esc(c.zip)+'　':''}${esc(c.addr)}</div>`:''}
     <div class="iv-meta"><span>請求書番号</span><span>${ivNo(c.code)}</span><span>発行日</span><span>${jd(last)}</span><span>対象期間</span><span>${m}月1日〜${m}月${last.getDate()}日 納品分</span><span>お支払期限</span><span>${jd(due)}</span></div></div>
-    <div class="iv-from"><b>株式会社 オオサカポテト</b><br>〒581-0010<br>大阪府八尾市都塚北2-12<br>登録番号　T8122001038883<div class="dim" style="font-size:8pt;margin-top:2mm">（角印はPDFで重なります）</div></div></div>
+    <div class="iv-from"><b>株式会社 オオサカポテト</b><br>〒581-0010<br>大阪府八尾市都塚北2-12<br>登録番号　T8122001038883</div></div>
    <p style="margin:6mm 0 0">下記のとおりご請求申し上げます。</p><div class="iv-amount"><span>ご請求金額（税込）</span><b>${ivYen(v.total)}</b></div>
    <table class="iv-lines"><thead><tr><th style="width:15mm">納品日</th><th>品名</th><th style="width:24mm">数量</th><th style="width:22mm">単価</th><th style="width:26mm">金額（税抜）</th></tr></thead><tbody>${body.join('')}</tbody></table>
    <div class="iv-ssum"><div style="font-size:8.5pt">※印は軽減税率（8%）対象です。<br>送料は標準税率（10%）です。<br>値引きは各税率の小計から差し引いています。</div>
