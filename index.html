@@ -435,7 +435,8 @@ table.iv-in{width:100%;border-collapse:collapse;min-width:680px}table.iv-in th{f
 table.iv-in select{width:auto;padding:4px 6px;font-size:13px}
 .iv-pin{width:100px!important;text-align:right;padding:5px 8px!important}.iv-pin.miss{border-color:#c98a2a;background:#fbf1df}.iv-pin.pre{background:#f3f7ef}
 .iv-tx{font-size:10.5px;font-weight:800;border-radius:4px;padding:0 5px}.iv-tx.t8{color:var(--ok);border:1px solid var(--ok)}.iv-tx.t10{color:#2f5f99;border:1px solid #2f5f99}
-.iv-fee td{background:#eef4fb}.iv-disc td{background:#fbf6ea}.iv-memo td{background:var(--paper2)}
+.iv-fee td{background:#eef4fb}.iv-hand{font-size:12px;font-weight:800;border-radius:999px;padding:1px 9px;border:1px solid var(--line2);background:var(--paper)}.iv-hand.k{border-color:var(--ok);color:var(--ok-ink);background:var(--ok-soft)}.iv-hand.x{border-color:var(--bad);color:var(--bad);background:#f6e2dc}
+.iv-fix{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:8px 10px;background:#f6e2dc;border-bottom:1px solid var(--line);font-size:13px;color:var(--bad)}.iv-fix select{width:auto;padding:4px 8px;font-size:13px}.iv-disc td{background:#fbf6ea}.iv-memo td{background:var(--paper2)}
 .iv-sum{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-top:12px}@media(max-width:700px){.iv-sum{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .iv-sb{border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--paper2)}.iv-sb small{display:block;font-size:11px;color:var(--mute)}.iv-sb b{font-size:17px;font-variant-numeric:tabular-nums}.iv-sb.tot{background:var(--accent-soft);border-color:var(--accent-line)}.iv-sb.tot b{color:var(--accent)}
 .iv-warn{background:#fbf1df;border:1px dashed #e3c78e;border-radius:8px;padding:7px 10px;font-size:13px;color:#8a5a12}.iv-ok{background:var(--ok-soft);border:1px solid var(--ok);border-radius:8px;padding:7px 10px;font-size:13px;color:var(--ok-ink);margin-top:8px}
@@ -745,7 +746,7 @@ function build(d){RAW=d;d.recurring=d.recurring||[];d.formInbox=d.formInbox||[];
   WAGES=splitPipe(sget('最低賃金')).map(x=>{const [f,y]=x.split(':');return {from:f.trim(),yen:Number(y)}}).filter(w=>w.from&&w.yen);if(!WAGES.length)WAGES=[{from:'2025-10-01',yen:1177}];
   HOLIDAYS={};d.holidays.forEach(r=>{if(r['日付'])HOLIDAYS[String(r['日付']).slice(0,10)]=r['名前']||'祝日'});
   OPT={};d.options.forEach(r=>{if(r['項目']!==undefined&&r['値']!==''&&r['値']!==undefined)(OPT[r['項目']]=OPT[r['項目']]||[]).push(String(r['値']))});
-  CARRIERS=OPT['運送会社']||['ヤマト運輸','佐川急便','西濃運輸'];REASONS=OPT['遅れ理由']||['天候','人手不足','その他'];CANCEL_REASONS=OPT['キャンセル理由']||['先方都合'];DELIVER_HOW=OPT['納品確認']||['追跡で着確認'];STAFF_NAMES=OPT['担当者']||[];
+  CARRIERS=OPT['運送会社']||['福山通運','佐川急便','自社配送（2tトラック）','自社配送（軽トラック）','引取り','ヤマト運輸','西濃運輸','日本郵便','チャーター'];REASONS=OPT['遅れ理由']||['天候','人手不足','その他'];CANCEL_REASONS=OPT['キャンセル理由']||['先方都合'];DELIVER_HOW=OPT['納品確認']||['追跡で着確認'];STAFF_NAMES=OPT['担当者']||[];
   ITEMS=d.items.filter(r=>r['有効']!==false&&r['品目名']).sort((a,b)=>(Number(a['表示順'])||99)-(Number(b['表示順'])||99)).map(r=>({cat:r['カテゴリ']||'青果',name:String(r['品目名']),sizes:splitPipe(r['規格候補']),bagSizes:splitPipe(r['袋詰本数候補']),
     packs:splitPipe(r['荷姿候補']).map(x=>{const p=x.split(':').map(v=>v.trim());const per=p[2]!==undefined&&p[2]!==''?Number(p[2]):'';return {n:p[0],u:p[1]||'kg',per,bag:/袋詰/.test(p[0]),adj:/袋詰|野菜コンテナ/.test(p[0])}})}));
   ITEMS.forEach(it=>{if(!it.sizes.length)it.sizes=['—'];if(!it.packs.length)it.packs=[{n:'バラ',u:'kg',per:''}]});
@@ -785,6 +786,13 @@ const active=o=>!['納品済','キャンセル'].includes(o.status);
 /* 定期で事前に作った注文は、発注を受けて「確定」にするまで未確定 */
 const unconf=o=>o.kind==='定期'&&!o.confAt&&active(o);
 const teikiLive=o=>o.kind==='定期'&&active(o);
+/* 受け渡し（運送会社）：運送会社／自社／引取り。選択肢は「よく使う5つ」と「たまに」に分けて出す */
+const carKind=c=>!c?'':c==='引取り'?'引取り':/^自社/.test(c)||c==='チャーター'?'自社':'運送会社';
+const methodOf=c=>({'引取り':'引取り','自社':'自社便','運送会社':'宅配便'})[carKind(c)]||'';
+const hasWay=o=>{const w=String(o.act.waybill||'').trim();return !!w&&w!=='（未入力）'};
+function carOpts(sel,head){const all=CARRIERS.slice();if(sel&&!all.includes(sel))all.push(sel);const top=all.slice(0,5),rest=all.slice(5);
+  return (head!==null?`<option value="">${head}</option>`:'')+`<optgroup label="よく使う">${top.map(x=>`<option ${x===sel?'selected':''}>${esc(x)}</option>`).join('')}</optgroup>`+(rest.length?`<optgroup label="たまに">${rest.map(x=>`<option ${x===sel?'selected':''}>${esc(x)}</option>`).join('')}</optgroup>`:'')}
+function shipTxt(o){const c=o.act.carrier||o.carrier;if(!c)return '<b style="color:#8a5a12">未定</b>（流通が決める）';if(c==='引取り')return '引取り';if(!o.act.shipAt)return esc(c);return `${esc(c)}　伝票 ${hasWay(o)?esc(o.act.waybill):'（未入力）'}　${o.act.pieces||o.boxes||''}個口`}
 /* 定期だけに出す 確定／未確定 の札。押すと切り替わる（data-uc） */
 const ucTag=o=>!teikiLive(o)?'':unconf(o)?`<span class="ucb" data-uc="${o.no}" title="押すと確定にする">未確定</span>`:`<span class="cfb" data-uc="${o.no}" title="押すと未確定に戻す">✓ 確定</span>`;
 let UC_MODE='warn';// 未確定のまま用意・発送に進めようとしたとき：warn＝注意して進められる／block＝確定するまで進めない
@@ -908,7 +916,11 @@ function openOrder(no){
   const acts=[];
   if(teikiLive(o))acts.push(`<div class="ucsel ${unconf(o)?'is-u':'is-c'}"><span class="k">発注</span><div class="seg"><button class="${unconf(o)?'on':''}" data-a="unconf">未確定</button><button class="${unconf(o)?'':'on'}" data-a="conf">✓ 確定</button></div><span class="dim">${unconf(o)?'定期の事前登録。まだ発注を受けていない':`発注を受けた（${md(o.confAt)} ${esc(o.confBy)}）`}</span></div>`);
   if(o.status==='受注')acts.push(`<button class="btn acc blk" data-a="sched">日程を決める（②発送手配日・①用意期限）</button>`);
-  if(o.status==='発送手配済'){const u=trackUrl(o);acts.push(u?`<a class="btn blk" style="display:block;text-align:center;text-decoration:none;margin-bottom:8px" href="${u}" target="_blank" rel="noopener">🚚 配送状況を確認（${esc(o.act.carrier||o.carrier)}　伝票 ${esc(o.act.waybill)}）</a>`:`<div class="alert" style="margin-bottom:8px">追跡には運送会社と伝票No.が必要です${o.act.waybill?'（この運送会社の追跡は未対応）':'。「内容を編集」ではなく「発送手配済」の記録に伝票No.を入れてください'}</div>`)}
+  if(active(o)&&!(o.act.carrier||o.carrier))acts.push(`<div class="alert" style="margin-bottom:8px;background:#fbf1df;border-color:#e3c78e">受け渡し（運送会社）がまだ決まっていません。<button class="btn sm" data-a="ship">受け渡しを決める</button></div>`);
+  if(o.status==='発送手配済'){const u=trackUrl(o);const k=carKind(o.act.carrier||o.carrier);
+    if(u)acts.push(`<a class="btn blk" style="display:block;text-align:center;text-decoration:none;margin-bottom:8px" href="${u}" target="_blank" rel="noopener">🚚 配送状況を確認（${esc(o.act.carrier||o.carrier)}　伝票 ${esc(o.act.waybill)}）</a>`);
+    else if(k==='運送会社'&&!hasWay(o))acts.push(`<div class="alert" style="margin-bottom:8px">伝票No.が入っていないので、配送状況を追えません。<button class="btn sm" data-a="ship">伝票No.を入れる</button></div>`);
+    else if(k==='引取り')acts.push(`<div class="alert ok" style="margin-bottom:8px">引取りの注文です。請求書の送料は0円になります。</div>`);}
   if(next)acts.push(`<button class="btn pri blk" data-a="next">「${next}」にする${next==='納品済'&&dispStatus(o)==='納品確認待ち'?'（確認できたら）':''}</button>`);
   const sub=[];if(active(o)){sub.push(`<button class="btn" data-a="edit">内容を編集</button>`);if(o.readyFix)sub.push(`<button class="btn" data-a="sched">日程を変える</button>`);sub.push(`<button class="btn warn" data-a="cancel">キャンセル</button>`)}
   sub.push(`<button class="btn" data-a="close">閉じる</button>`);
@@ -918,10 +930,10 @@ function openOrder(no){
   <div class="kv"><span class="k">明細</span><span>${o.lines.map(l=>`${l.item} ${l.size}　<b>${fmt(l.qty)} ${l.unit}</b>　${l.pack}${l.boxes?`　${l.boxes}箱`:''}`).join('<br>')}${o.kg?`<br><b>計 ${fmt(o.kg)} kg${o.boxes?'・'+o.boxes+'箱':''}</b>`:''}</span></div>
   <div class="kv"><span class="k">送り先</span><span>〒${c.zip} ${esc(c.addr)}　${esc(c.attn)}　${c.tel}${((RAW.customers.find(x=>String(x['コード'])===c.code)||{})['お客様番号'])?`　<span class="dim">お客様番号 ${esc(RAW.customers.find(x=>String(x['コード'])===c.code)['お客様番号'])}</span>`:''}<br><span class="dim">受入 ${c.hours||'—'}　不可 ${c.closed||'—'}　${esc(c.note)}</span></span></div>
   ${o.note?`<div class="kv"><span class="k">申し送り</span><span>${esc(o.note)}</span></div>`:''}
-  ${o.act.waybill?`<div class="kv"><span class="k">配送</span><span>${o.act.carrier}　伝票 ${o.act.waybill}　${o.act.pieces}個口</span></div>`:''}
+  <div class="kv"><span class="k">配送</span><span><span class="row" style="gap:10px">${shipTxt(o)}${o.status!=='キャンセル'?`<button class="btn sm" data-a="ship">${(o.act.carrier||o.carrier)?'直す':'決める'}</button>`:''}</span><div id="shipEd"></div></span></div>
   ${timeline(o)}`);
   $('modal').querySelector('.mbox').onclick=e=>{const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a;
-    if(a==='close')closeModal();else if(a==='conf'){if(unconf(o))confirmOrders([o],()=>openOrder(o.no))}else if(a==='unconf'){if(!unconf(o))unconfirmOrder(o,true)}else if(a==='sched')openSched(o);else if(a==='next')openStage(o,next);else if(a==='cancel')openCancel(o);else if(a==='edit'){closeModal();loadForm(o);switchTab('new')}};
+    if(a==='close')closeModal();else if(a==='ship')openShipEdit(o);else if(a==='conf'){if(unconf(o))confirmOrders([o],()=>openOrder(o.no))}else if(a==='unconf'){if(!unconf(o))unconfirmOrder(o,true)}else if(a==='sched')openSched(o);else if(a==='next')openStage(o,next);else if(a==='cancel')openCancel(o);else if(a==='edit'){closeModal();loadForm(o);switchTab('new')}};
 }
 /* ===== 確定（定期の事前登録 → 発注を受けた） ===== */
 async function confirmOrders(os,after){const at=dts(new Date());
@@ -955,20 +967,39 @@ function ucGuard(o,stage){const c=custOf(o.cust);
   $('ugConf').onclick=()=>confirmOrders([o],()=>openStage(ORDERS.find(x=>x.no===o.no)||o,stage,true));
   if($('ugGo'))$('ugGo').onclick=()=>openStage(o,stage,true);
 }
+/* 注文の詳細から、受け渡し（運送会社）を決める・直す。発送手配の後なら伝票No.・個口数も */
+function openShipEdit(o){const box=$('shipEd');if(!box)return;const shipped=!!o.act.shipAt;const cur=o.act.carrier||o.carrier||'';
+  box.innerHTML=`<div style="margin-top:8px;border:1px solid var(--accent);border-radius:10px;padding:10px 12px;background:var(--paper2);display:grid;gap:8px">
+   <div class="frm" style="margin:0"><label>運送会社</label><select id="seCar">${carOpts(cur,cur?null:'選んでください')}</select>
+   ${shipped?`<label>伝票No.</label><input id="seWay" value="${esc(hasWay(o)?o.act.waybill:'')}" placeholder="追跡用"><label>個口数</label><input type="number" id="sePcs" value="${o.act.pieces||o.boxes||''}" style="width:90px">`:''}</div>
+   <div id="seMsg"></div><div class="row" style="gap:8px"><button class="btn pri" id="seOk">${cur?'この内容で直す':'この受け渡しで登録'}</button><button class="btn" id="seNo">やめる</button></div>
+   <div class="dim">${shipped?'':'ここで決めた運送会社は、「発送手配済」にするときに最初から入ります。'}登録・直した内容はタイムラインに残ります。</div></div>`;
+  const chk=()=>{const c=$('seCar').value,k=carKind(c);if($('seWay')){$('seWay').disabled=$('sePcs').disabled=k==='引取り'}
+    $('seMsg').innerHTML=!c?'<div class="alert" style="margin:0">運送会社を選んでください</div>':k==='引取り'?'<div class="alert ok" style="margin:0">引取り：請求書の送料は0円になります</div>':shipped&&k==='運送会社'&&!($('seWay').value.trim())?`<div class="alert" style="margin:0">${esc(c)}なら、伝票No.を入れると配送状況を追えます（なしでも直せます）</div>`:'';$('seOk').disabled=!c};
+  $('seCar').onchange=chk;if($('seWay'))$('seWay').oninput=chk;chk();($('seWay')||$('seCar')).focus();
+  $('seNo').onclick=()=>{box.innerHTML=''};
+  $('seOk').onclick=async()=>{const c=$('seCar').value;if(!c)return;const pick=carKind(c)==='引取り';const before=cur?shipTxt(o).replace(/<[^>]+>/g,''):'';
+    const fields={'運送会社':c,'配送方法':methodOf(c)};o.method=fields['配送方法'];if(shipped){fields['伝票No']=pick?'':$('seWay').value.trim();fields['個口数']=pick?'':(Number($('sePcs').value)||'')}
+    o.carrier=c;o.act.carrier=c;if(shipped){o.act.waybill=fields['伝票No'];o.act.pieces=fields['個口数']}
+    const t=cur?'配送を直す':'受け渡しを決める';const m=cur?`${before} → ${shipTxt(o).replace(/<[^>]+>/g,'')}`:shipTxt(o).replace(/<[^>]+>/g,'');
+    o.events.push({t,at:new Date(),by:ME,m});render();openOrder(o.no);
+    await save('updateOrderFields',{no:o.no,fields,event:{'種別':t,'担当':ME,'内容':m}},cur?`${o.no} の配送を直しました`:`${o.no} の受け渡しを登録しました`)};
+}
 function openSched(o){
   const c=custOf(o.cust);
   modal(`<h2>日程を決める</h2><div class="meta"><span>${esc(c.name)}</span><span>${o.no}</span><span>${lineSummary(o)}</span></div>
   <div class="frm"><label>③ 納品日</label><div><b>${mdw(o.deliver)}</b>　<span class="dim">配送日数 ${o.lead}日（${c.kind}）</span></div>
   <label>② 発送手配日</label><input type="date" id="sShip" value="${ymd(o.shipFix||o.shipSug)}">
   <label>① 用意期限</label><input type="date" id="sReady" value="${ymd(o.readyFix||o.readySug)}">
+  <label>受け渡し</label><select id="sCar">${carOpts(o.carrier,'あとで決める')}</select>
   <label>その日の用意</label><div id="sCap"></div>
   <label>メモ</label><input id="sMemo" placeholder="例：発送を1日前倒し"></div>
   <button class="btn acc blk" id="sOk">この日程で確定 → 準備中にする</button><div class="acts"><button class="btn" id="sNo">やめる</button></div>`);
   const cap=()=>{const d=new Date($('sReady').value);const k=readyKgOn(d)+(o.readyFix&&ymd(o.readyFix)===ymd(d)?0:o.kg);$('sCap').innerHTML=`${mdw(d)} に用意 <b>${fmt(k)} kg</b>（この受注含む）${k>CAP?`<span class="tag t-late">上限 ${CAP}kg 超</span>`:'<span class="tag t-納品済">余裕あり</span>'}`};
   $('sReady').onchange=cap;$('sShip').onchange=()=>{$('sReady').value=ymd(addD(new Date($('sShip').value),-1));cap()};cap();
   $('sNo').onclick=()=>openOrder(o.no);
-  $('sOk').onclick=async()=>{if(!$('sShip').value||!$('sReady').value){toast('② 発送手配日と ① 用意期限を入れてください');return}const expect=o.status;const first=!o.readyFix;o.shipFix=new Date($('sShip').value);o.readyFix=new Date($('sReady').value);if(o.status==='受注')o.status='準備中';const ev={t:first?'日程決定':'日程変更',at:new Date(),by:ME,m:`② 発送 ${md(o.shipFix)}　① 用意 ${md(o.readyFix)}${$('sMemo').value?'　'+$('sMemo').value:''}`};o.events.push(ev);o.schedBy=ME;openOrder(o.no);render();
-    await save('updateOrderFields',{no:o.no,expect,fields:{'発送手配日':ymd(o.shipFix),'用意期限':ymd(o.readyFix),'状態':o.status,'日程決定者':ME,'日程決定日時':dts(new Date())},event:{'種別':ev.t,'日時':dts(ev.at),'担当':ME,'内容':ev.m}},`${o.no} 日程を確定しました`)};
+  $('sOk').onclick=async()=>{if(!$('sShip').value||!$('sReady').value){toast('② 発送手配日と ① 用意期限を入れてください');return}const expect=o.status;const first=!o.readyFix;const carNew=$('sCar').value;const carCh=carNew&&carNew!==o.carrier;if(carCh){o.carrier=carNew;o.act.carrier=carNew}o.shipFix=new Date($('sShip').value);o.readyFix=new Date($('sReady').value);if(o.status==='受注')o.status='準備中';const ev={t:first?'日程決定':'日程変更',at:new Date(),by:ME,m:`② 発送 ${md(o.shipFix)}　① 用意 ${md(o.readyFix)}${carCh?'　受け渡し '+carNew:''}${$('sMemo').value?'　'+$('sMemo').value:''}`};o.events.push(ev);o.schedBy=ME;openOrder(o.no);render();
+    await save('updateOrderFields',{no:o.no,expect,fields:Object.assign({'発送手配日':ymd(o.shipFix),'用意期限':ymd(o.readyFix),'状態':o.status,'日程決定者':ME,'日程決定日時':dts(new Date())},carCh?{'運送会社':carNew}:{}),event:{'種別':ev.t,'日時':dts(ev.at),'担当':ME,'内容':ev.m}},`${o.no} 日程を確定しました`)};
 }
 function dtLocal(d){return `${ymd(d)}T${hm(d)}`}
 function openStage(o,stage,ucOk){
@@ -977,7 +1008,7 @@ function openStage(o,stage,ucOk){
   const plan=stage==='用意完了'?o.readyFix:stage==='発送手配済'?o.shipFix:o.deliver;
   const lab=stage==='用意完了'?['用意期限 ①','完了日時']:stage==='発送手配済'?['発送手配日 ②','手配日時']:['納品予定 ③','納品確認日時'];
   const extra=stage==='用意完了'?`<label>実際の箱数</label><div class="s"><input type="number" id="gBoxes" value="${o.boxes||''}" style="width:90px"> 箱 <span class="dim">予定 ${o.boxes||'—'}箱。違えば直す</span></div>`
-    :stage==='発送手配済'?`<label>運送会社</label><select id="gCarrier">${CARRIERS.map(x=>`<option ${x===o.carrier?'selected':''}>${x}</option>`).join('')}</select><label>伝票No.</label><input id="gWaybill" placeholder="追跡用"><label>個口数</label><div class="s"><input type="number" id="gPieces" value="${o.act.readyBoxes||o.boxes||''}" style="width:90px"> 箱</div>`
+    :stage==='発送手配済'?`<label>運送会社</label><select id="gCarrier">${carOpts(o.carrier,'選んでください')}</select><label>伝票No.</label><input id="gWaybill" placeholder="追跡用"><label>個口数</label><div class="s"><input type="number" id="gPieces" value="${o.act.readyBoxes||o.boxes||''}" style="width:90px"> 箱</div><span></span><div id="gCarMsg"></div>`
     :`<label>確認方法</label><select id="gHow">${DELIVER_HOW.map(x=>`<option>${esc(x)}</option>`).join('')}</select>`;
   modal(`<h2>「${stage}」にする</h2><div class="meta"><span>${esc(c.name)}</span><span>${o.no}</span><span>${lineSummary(o)}</span></div>
   <div class="frm"><label>${lab[0]}</label><div><b>${mdw(plan)}</b></div>
@@ -991,10 +1022,15 @@ function openStage(o,stage,ucOk){
   const late=()=>{const at=new Date($('gAt').value);const n=diffD(at,plan);$('gLate').innerHTML=n>0?`<div class="alert">${lab[0].slice(0,-2)} ${md(plan)} より <b>${n}日遅れ</b> です。理由を選ぶかメモに残してください（履歴に出ます）</div><div class="chips" style="margin-bottom:8px">${REASONS.map(r=>`<button class="chip late ${reason===r?'on':''}" data-r="${r}">${r}</button>`).join('')}</div>`:`<div class="alert ok">予定どおり（${md(plan)}）${n<0?`　${-n}日早い`:''}</div>`;
     $('gLate').querySelectorAll('.chip').forEach(b=>b.onclick=()=>{reason=b.dataset.r;late()})};
   $('gAt').onchange=late;late();
+  if(stage==='発送手配済'){const chk=()=>{const c=$('gCarrier').value,w=$('gWaybill').value.trim(),k=carKind(c);$('gWaybill').disabled=$('gPieces').disabled=k==='引取り';
+      const keep=$('gNoWay')&&$('gNoWay').checked;
+      $('gCarMsg').innerHTML=!c?'<div class="alert" style="margin:0">運送会社を選んでください（引取り・自社配送もここで選びます）</div>':k==='運送会社'&&!w?`<div class="alert" style="margin:0">${esc(c)}なのに伝票No.が空です。<label style="display:block;margin-top:4px"><input type="checkbox" id="gNoWay" style="width:auto" ${keep?'checked':''}> 伝票なしで記録する</label></div>`:k==='引取り'?'<div class="alert ok" style="margin:0">引取り：請求書の送料は0円になります</div>':'';
+      const ok=!!c&&!(k==='運送会社'&&!w&&!($('gNoWay')&&$('gNoWay').checked));$('gOk').disabled=!ok;if($('gNoWay'))$('gNoWay').onchange=chk};
+    $('gCarrier').onchange=chk;$('gWaybill').oninput=chk;chk()}
   $('gNo').onclick=()=>openOrder(o.no);
   $('gOk').onclick=async()=>{const expect=o.status;const at=new Date($('gAt').value);const by=$('gBy').value;const n=Math.max(0,diffD(at,plan));const memo=$('gMemo').value;let fields={},ev;
     if(stage==='用意完了'){Object.assign(o.act,{readyAt:at,readyBy:by,readyReason:reason,readyNote:memo,readyBoxes:Number($('gBoxes').value)||o.boxes});ev={t:'用意完了',at,by,late:n,plan,m:(reason?reason+(memo?'：'+memo:''):memo)+(o.act.readyBoxes!==o.boxes?`　実際 ${o.act.readyBoxes}箱（予定 ${o.boxes}）`:'')};fields={'用意完了日時':dts(at),'用意担当':by,'用意理由':reason,'用意メモ':memo,'実箱数':o.act.readyBoxes}}
-    if(stage==='発送手配済'){Object.assign(o.act,{shipAt:at,shipBy:by,carrier:$('gCarrier').value,waybill:$('gWaybill').value||'（未入力）',pieces:Number($('gPieces').value)||o.boxes,shipNote:memo});o.carrier=o.act.carrier;ev={t:'発送手配',at,by,late:n,plan,m:`${o.act.carrier}　伝票 ${o.act.waybill}　${o.act.pieces}個口${reason?'　'+reason:''}${memo?'　'+memo:''}`};fields={'発送手配日時':dts(at),'手配担当':by,'運送会社':o.act.carrier,'伝票No':o.act.waybill,'個口数':o.act.pieces,'手配メモ':memo}}
+    if(stage==='発送手配済'){if(!$('gCarrier').value){toast('運送会社を選んでください');return}const pick=carKind($('gCarrier').value)==='引取り';Object.assign(o.act,{shipAt:at,shipBy:by,carrier:$('gCarrier').value,waybill:pick?'':$('gWaybill').value.trim(),pieces:pick?'':(Number($('gPieces').value)||o.boxes),shipNote:memo});o.carrier=o.act.carrier;ev={t:'発送手配',at,by,late:n,plan,m:`${o.act.carrier}${pick?'':`　伝票 ${o.act.waybill||'（未入力）'}　${o.act.pieces}個口`}${reason?'　'+reason:''}${memo?'　'+memo:''}`};fields={'発送手配日時':dts(at),'手配担当':by,'運送会社':o.act.carrier,'伝票No':o.act.waybill,'個口数':o.act.pieces,'手配メモ':memo}}
     if(stage==='納品済'){Object.assign(o.act,{deliverAt:at,deliverBy:by,deliverNote:$('gHow').value+(memo?'　'+memo:'')});ev={t:'納品',at,by,late:n,plan,m:o.act.deliverNote+(reason?'　'+reason:'')};fields={'納品確認日時':dts(at),'納品担当':by,'納品メモ':o.act.deliverNote}}
     o.events.push(ev);o.status=stage;fields['状態']=stage;render();stage==='納品済'?closeModal():openOrder(o.no);
     await save('updateOrderFields',{no:o.no,expect,fields,event:{'種別':ev.t,'日時':dts(at),'担当':by,'内容':ev.m,'遅れ日数':n,'予定日':plan?ymd(plan):''}},`${o.no} を ${stage} にしました`)};
@@ -1938,7 +1974,7 @@ $('gearBtn').onclick=()=>{
 };
 
 /* ===== 請求（2026/10/27〜）：出荷の記録から顧客ごとに請求書。明細ごとに単価（税抜）、注文ごとに送料・値引き・文言、全体に最終値引き ===== */
-const IV={ym:'',sel:null,data:null,P:{},FEE:{},DISC:{},MEMO:{},FIN:{},heads:{},timer:{},dirty:{}};
+const IV={ym:'',sel:null,data:null,P:{},FEE:{},FEEPRE:{},DISC:{},MEMO:{},FIN:{},ACK:{},heads:{},timer:{},dirty:{}};
 const ivAllowed=()=>{const r=(RAW&&RAW.settings||[]).find(x=>String(x['キー'])==='請求タブ_使える人');return String(r?r['値']:'成冨|渡邊').split('|').map(s=>s.trim()).includes(ME)};
 const ivName=l=>[l.item,l.size].filter(Boolean).join(' ')+(l.pack?'　'+l.pack:'');
 const ivBagKg=l=>/350/.test(l.size)?0.35:0.55;
@@ -1949,28 +1985,34 @@ const ivDefRate=l=>['焼酎','苗'].includes(l.item)?10:8;
 const ivK=(no,g)=>no+'|'+g;
 const ivYen=n=>(n<0?'−¥':'¥')+fmt(Math.abs(Math.round(n)));
 const ivNo=c=>IV.ym.replace('-','')+'-'+String(c).replace(/-/g,'');
+const ivCar=o=>o.act.carrier||o.carrier||'';
+function ivFlag(o){if(IV.ACK[o.no])return '';const c=ivCar(o),k=carKind(c);if(!c)return '受け渡し（運送会社）が記録されていません';
+  if(k==='運送会社'&&!hasWay(o))return `${c}なのに伝票No.がありません`;
+  const pk={'宅配便':'運送会社','自社便':'自社','チャーター':'自社','引取り':'引取り'}[o.method];if(pk&&pk!==k)return `予定は「${o.method}」、発送手配では「${c}」`;return ''}
+function ivFeeOf(o){if(carKind(ivCar(o))==='引取り')return 0;if(IV.FEE[o.no]===undefined){const lp=(IV.data&&IV.data.last)||{};const x=lp['FEE|'+o.cust+'|'+ivCar(o)];if(x){IV.FEE[o.no]=x.price;IV.FEEPRE[o.no]=1}}return IV.FEE[o.no]}
 function ivOrders(){return ORDERS.filter(o=>o.status!=='キャンセル'&&o.act.shipAt&&ymd(o.deliver).slice(0,7)===IV.ym)}
 function ivOrdersOf(c){return ivOrders().filter(o=>o.cust===c).sort((a,b)=>a.deliver-b.deliver||a.no.localeCompare(b.no))}
 function ivCusts(){const s=new Set(ivOrders().map(o=>o.cust));return CUST.filter(c=>s.has(c.code)).sort((a,b)=>a.name.localeCompare(b.name,'ja'))}
 function ivSt(o,l){const k=ivK(o.no,l.gyo);if(!IV.P[k]){const u0=ivDefUnit(l);const lp=(IV.data&&IV.data.last)||{};let hit=null;
     for(const u of [u0,...ivUnits(l)]){const x=lp[o.cust+'|'+ivName(l)+'|'+u];if(x){hit={u,p:String(x.price),r:x.rate||ivDefRate(l),pre:true};break}}
     IV.P[k]=hit||{u:u0,p:'',r:ivDefRate(l)}}return IV.P[k]}
-function ivCalc(c){let s8=0,s10=0,miss=0,n=0;const rows=[];
+function ivCalc(c){let s8=0,s10=0,miss=0,n=0,feeMiss=0,flags=0;const rows=[];
   ivOrdersOf(c).forEach(o=>{o.lines.forEach(l=>{const st=ivSt(o,l);const q=ivQty(l,st.u);n++;const p=st.p===''?null:Number(st.p);if(p===null)miss++;const a=p===null?0:Math.floor(q*p);if(st.r===10)s10+=a;else s8+=a;rows.push({o,l,st,q,p,a})});
-    const f=Number(IV.FEE[o.no]||0);s10+=f;const dc=IV.DISC[o.no];if(dc&&dc.a){if(dc.r===10)s10-=dc.a;else s8-=dc.a}});
+    const fv=ivFeeOf(o);if(fv===undefined)feeMiss++;const f=Number(fv||0);s10+=f;if(ivFlag(o))flags++;const dc=IV.DISC[o.no];if(dc&&dc.a){if(dc.r===10)s10-=dc.a;else s8-=dc.a}});
   const fd=IV.FIN[c];if(fd&&fd.a){if(fd.r===10)s10-=fd.a;else s8-=fd.a}
-  const t8=Math.floor(s8*0.08),t10=Math.floor(s10*0.10);return {rows,s8,s10,t8,t10,total:s8+t8+s10+t10,miss,n}}
-function ivStatus(c){const h=IV.heads[c];if(h&&h['状態']==='発行済')return ['i','発行済'];const v=ivCalc(c);if(v.miss===v.n&&!(h))return ['n','未入力'];if(v.miss)return ['p','入力中 残り'+v.miss];return ['d','入力済']}
+  const t8=Math.floor(s8*0.08),t10=Math.floor(s10*0.10);return {rows,s8,s10,t8,t10,total:s8+t8+s10+t10,miss,n,feeMiss,flags,todo:miss+feeMiss+flags}}
+function ivStatus(c){const h=IV.heads[c];if(h&&h['状態']==='発行済')return ['i','発行済'];const v=ivCalc(c);if(v.miss===v.n&&!(h))return ['n','未入力'];if(v.todo)return ['p','入力中 残り'+v.todo];return ['d','入力済']}
 function ivItems(c){const it=[];ivOrdersOf(c).forEach(o=>{o.lines.forEach(l=>{const st=ivSt(o,l);it.push({NO:o.no,'行':l.gyo,'種類':'明細','品名':ivName(l),'単位':st.u,'単価':st.p===''?'':Number(st.p),'税率':st.r})});
-    if(IV.FEE[o.no])it.push({NO:o.no,'種類':'送料','金額':Number(IV.FEE[o.no]),'税率':10});
+    if(carKind(ivCar(o))!=='引取り'&&IV.FEE[o.no]!==undefined)it.push({NO:o.no,'種類':'送料','品名':ivCar(o),'金額':Number(IV.FEE[o.no])||0,'税率':10});
+    if(IV.ACK[o.no])it.push({NO:o.no,'種類':'確認','文言':'受け渡しは記録どおり'});
     const dc=IV.DISC[o.no];if(dc&&dc.a)it.push({NO:o.no,'種類':'値引き','金額':dc.a,'税率':dc.r});
     if(IV.MEMO[o.no])it.push({NO:o.no,'種類':'文言','文言':IV.MEMO[o.no]})});return it}
 const ivFinal=c=>{const f=IV.FIN[c];return f&&f.a?{a:f.a,r:f.r,t:f.t||''}:{}};
 async function ivLoad(){busy(true);try{IV.data=await api('invoiceLoad',{ym:IV.ym});
-    IV.P={};IV.FEE={};IV.DISC={};IV.MEMO={};IV.FIN={};IV.heads={};
+    IV.P={};IV.FEE={};IV.FEEPRE={};IV.DISC={};IV.MEMO={};IV.FIN={};IV.ACK={};IV.heads={};
     IV.data.inputs.forEach(r=>{const k=String(r['種類']);const no=String(r.NO);
       if(k==='明細')IV.P[ivK(no,r['行'])]={u:String(r['単位']||'箱'),p:r['単価']===''||r['単価']==null?'':String(r['単価']),r:Number(r['税率'])===10?10:8};
-      else if(k==='送料')IV.FEE[no]=Number(r['金額'])||0;else if(k==='値引き')IV.DISC[no]={a:Number(r['金額'])||0,r:Number(r['税率'])===10?10:8};else if(k==='文言')IV.MEMO[no]=String(r['文言']||'')});
+      else if(k==='送料')IV.FEE[no]=Number(r['金額'])||0;else if(k==='値引き')IV.DISC[no]={a:Number(r['金額'])||0,r:Number(r['税率'])===10?10:8};else if(k==='文言')IV.MEMO[no]=String(r['文言']||'');else if(k==='確認')IV.ACK[no]=1});
     IV.data.heads.forEach(h=>{IV.heads[String(h['顧客コード'])]=h;if(Number(h['最終値引き']))IV.FIN[String(h['顧客コード'])]={a:Number(h['最終値引き']),r:Number(h['最終値引き税率'])===10?10:8,t:String(h['最終値引き文言']||'')}});
   }catch(e){errBar('請求の読み込みに失敗：'+e.message);IV.data=null}finally{busy(false)}renderInv()}
 function ivQueue(c){IV.dirty[c]=1;clearTimeout(IV.timer[c]);IV.timer[c]=setTimeout(()=>ivSave(c),1200);$('ivSaveSt')&&($('ivSaveSt').textContent='保存待ち…')}
@@ -1983,7 +2025,7 @@ function renderInv(){
   if(!IV.data||IV.data.ym!==IV.ym){if(!IV.loading){IV.loading=true;ivLoad().finally(()=>IV.loading=false)}$('ivMain').innerHTML='<div class="card"><span class="dim">読み込み中…</span></div>';return}
   const cs=ivCusts();if(!cs.some(c=>c.code===IV.sel))IV.sel=cs[0]?cs[0].code:null;
   const q=($('ivQ')&&$('ivQ').value||'').trim();
-  const iss=cs.filter(c=>(IV.heads[c.code]||{})['状態']==='発行済').length,ready=cs.filter(c=>(IV.heads[c.code]||{})['状態']!=='発行済'&&ivCalc(c.code).miss===0).length;
+  const iss=cs.filter(c=>(IV.heads[c.code]||{})['状態']==='発行済').length,ready=cs.filter(c=>(IV.heads[c.code]||{})['状態']!=='発行済'&&ivCalc(c.code).todo===0).length;
   $('ivProg').textContent=`対象 ${cs.length}社　発行済 ${iss}・入力済 ${ready}・未完了 ${cs.length-iss-ready}`;
   const listHtml=cs.filter(c=>!q||c.name.includes(q)).map(c=>{const [k,t]=ivStatus(c.code);return `<button class="iv-ci ${c.code===IV.sel?'on':''}" data-ivc="${c.code}"><span><b>${esc(c.name)}</b><small>${c.code}　${ivOrdersOf(c.code).length}回の納品</small></span><span class="iv-st ${k}">${t}</span></button>`}).join('')||'<span class="dim">この月の出荷はありません</span>';
   const keepQ=q;$('ivMain').innerHTML=`<div class="iv-main"><div class="card"><div class="row" style="gap:8px;margin-bottom:8px"><b>顧客</b><input id="ivQ" placeholder="名前で絞り込み" style="flex:1;min-width:0" value="${esc(keepQ)}"></div><div class="iv-clist">${listHtml}</div></div>
@@ -1996,19 +2038,22 @@ function ivRenderEdit(){const c=CUST.find(x=>x.code===IV.sel);if(!c){$('ivEdit')
   const v=ivCalc(c.code);const os=ivOrdersOf(c.code);const h=IV.heads[c.code]||{};const done=h['状態']==='発行済';const dis=done?'disabled':'';const fin=IV.FIN[c.code]||{};
   $('ivEdit').innerHTML=`<div class="row" style="gap:10px;flex-wrap:wrap"><b style="font-size:16px">${esc(c.name)}</b><span class="dim">${c.code}　請求書番号 ${ivNo(c.code)}</span><span class="dim" id="ivSaveSt"></span><span style="margin-left:auto" class="row" style="gap:6px"><span class="iv-tx t8">8%</span><span class="dim">食品</span><span class="iv-tx t10">10%</span><span class="dim">送料など</span></span></div>
   ${done?`<div class="iv-ok">発行済み（${esc(String(h['発行日時']||'').replace('T',' ').slice(0,16))} ${esc(h['発行者']||'')}）。直すときは「発行を取り消す」を押してから。${h['PDF']?`　<a href="${esc(h['PDF'])}" target="_blank" rel="noopener">PDFを開く</a>`:''}</div>`:''}
-  ${os.map(o=>`<div class="iv-ord"><div class="iv-oh"><b>③納品 ${mdw(o.deliver)}</b><span class="dim">${o.no}　${esc(o.status)}</span></div><div class="tw"><table class="iv-in"><tr><th>品名</th><th class="r">数量</th><th>単位</th><th class="r">単価（税抜）</th><th class="r">金額（税抜）</th><th>税率</th></tr>
+  ${os.map(o=>{const fl=ivFlag(o),ck=carKind(ivCar(o));return `<div class="iv-ord" ${fl?'style="border-color:var(--bad)"':''}><div class="iv-oh"><b>③納品 ${mdw(o.deliver)}</b><span class="dim">${o.no}　${esc(o.status)}</span><span class="dim">受け渡し</span><span class="iv-hand ${ck==='引取り'?'k':fl?'x':''}">${shipTxt(o)}</span>${IV.ACK[o.no]?'<span class="dim">（記録どおりと確認済み）</span>':''}</div>
+   ${fl&&!done?`<div class="iv-fix">⚠ ${esc(fl)}。実際の受け渡しを選んでください：<select data-ivfix="${o.no}">${carOpts('','選ぶ')}</select><button class="btn sm" data-ivack="${o.no}">記録どおりで正しい</button></div>`:''}
+   <div class="tw"><table class="iv-in"><tr><th>品名</th><th class="r">数量</th><th>単位</th><th class="r">単価（税抜）</th><th class="r">金額（税抜）</th><th>税率</th></tr>
    ${o.lines.map(l=>{const st=ivSt(o,l);const q=ivQty(l,st.u);const us=ivUnits(l);const k=ivK(o.no,l.gyo);const a=st.p===''?'':ivYen(Math.floor(q*Number(st.p)));
      return `<tr><td>${esc(ivName(l))}<div class="dim">${fmt(l.qty)} ${esc(l.unit)}${l.boxes?'・'+l.boxes+'箱':''}</div></td><td class="r"><b>${fmt(q)}</b> ${st.u}</td>
      <td><select data-ivu="${k}" ${dis}>${(us.length?us:['箱','袋','kg']).map(u=>`<option ${u===st.u?'selected':''}>${u}</option>`).join('')}</select></td>
      <td class="r">¥ <input class="iv-pin ${st.p===''?'miss':st.pre?'pre':''}" inputmode="numeric" data-ivp="${k}" value="${esc(st.p)}" placeholder="未入力" ${dis}> /${st.u}${st.pre&&st.p!==''?'<div class="dim">前回の単価</div>':''}</td><td class="r">${a||'—'}</td>
      <td><select data-ivr="${k}" ${dis}><option value="8" ${st.r!==10?'selected':''}>8%</option><option value="10" ${st.r===10?'selected':''}>10%</option></select></td></tr>`}).join('')}
-   <tr class="iv-fee"><td>送料<div class="dim">この注文1回分</div></td><td></td><td></td><td class="r">¥ <input class="iv-pin" inputmode="numeric" data-ivf="${o.no}" value="${IV.FEE[o.no]||''}" placeholder="0" ${dis}></td><td class="r">${IV.FEE[o.no]?ivYen(IV.FEE[o.no]):'—'}</td><td><span class="iv-tx t10">10%</span></td></tr>
+   ${ck==='引取り'?`<tr class="iv-fee" style="opacity:.75"><td>送料</td><td colspan="4" class="r">引取りのため送料なし（0円）</td><td><span class="iv-tx t10">10%</span></td></tr>`
+    :(()=>{const fv=ivFeeOf(o);const none=fv===0&&!IV.FEEPRE[o.no];return `<tr class="iv-fee" ${fv===undefined?'style="outline:2px solid #e3c78e;outline-offset:-2px"':''}><td>送料<div class="dim">${ck==='自社'?'自社配送':'運送会社'}の注文。入れるか「送料なし」に</div></td><td class="r"><label style="font-size:12px;white-space:nowrap"><input type="checkbox" data-ivnone="${o.no}" ${fv===0?'checked':''} ${dis} style="width:auto"> 送料なし</label></td><td></td><td class="r">¥ <input class="iv-pin ${fv===undefined?'miss':IV.FEEPRE[o.no]?'pre':''}" inputmode="numeric" data-ivf="${o.no}" value="${fv?fv:''}" placeholder="未入力" ${dis||fv===0?'disabled':''}>${IV.FEEPRE[o.no]&&fv?'<div class="dim">前回の送料</div>':''}</td><td class="r">${fv?ivYen(fv):fv===0?'0':'—'}</td><td><span class="iv-tx t10">10%</span></td></tr>`})()}
    <tr class="iv-disc"><td>値引き<div class="dim">あるときだけ・税抜</div></td><td></td><td><select data-ivdr="${o.no}" ${dis}><option value="8" ${(IV.DISC[o.no]||{}).r!==10?'selected':''}>8%分</option><option value="10" ${(IV.DISC[o.no]||{}).r===10?'selected':''}>10%分</option></select></td><td class="r">−¥ <input class="iv-pin" inputmode="numeric" data-ivd="${o.no}" value="${(IV.DISC[o.no]||{}).a||''}" placeholder="0" ${dis}></td><td class="r">${(IV.DISC[o.no]||{}).a?ivYen(-IV.DISC[o.no].a):'—'}</td><td></td></tr>
    <tr class="iv-memo"><td>文言<div class="dim">空欄なら載せない</div></td><td colspan="5"><input data-ivm="${o.no}" value="${esc(IV.MEMO[o.no]||'')}" placeholder="例：店舗名、発注番号、イベント分 など" style="width:100%" ${dis}></td></tr>
-   </table></div></div>`).join('')}
+   </table></div></div>`}).join('')}
   <div class="iv-ord" style="border-color:var(--accent-line)"><div class="iv-oh" style="background:var(--accent-soft)"><b>最終値引き（請求書全体）</b><span class="dim">あるときだけ。明細の最後に1行で載る</span></div><div class="tw"><table class="iv-in"><tr class="iv-disc"><td><input data-ivft value="${esc(fin.t||'')}" placeholder="文言（例：端数値引き）" style="width:100%" ${dis}></td><td><select data-ivfr ${dis}><option value="8" ${fin.r!==10?'selected':''}>8%分</option><option value="10" ${fin.r===10?'selected':''}>10%分</option></select></td><td class="r">−¥ <input class="iv-pin" inputmode="numeric" data-ivfa value="${fin.a||''}" placeholder="0" ${dis}></td><td class="r">${fin.a?ivYen(-fin.a):'—'}</td></tr></table></div></div>
   <div class="iv-sum"><div class="iv-sb"><small>8%対象（税抜）</small><b>${ivYen(v.s8)}</b></div><div class="iv-sb"><small>消費税 8%</small><b>${ivYen(v.t8)}</b></div><div class="iv-sb"><small>10%対象（税抜）</small><b>${ivYen(v.s10)}</b></div><div class="iv-sb"><small>消費税 10%</small><b>${ivYen(v.t10)}</b></div><div class="iv-sb tot"><small>ご請求額（税込）</small><b>${ivYen(v.total)}</b></div></div>
-  <div id="ivAct" style="margin-top:10px">${done?`<button class="btn" id="ivUn">発行を取り消す</button>`:v.miss?`<div class="iv-warn">単価が未入力の明細が <b>${v.miss}件</b> あります。すべて入れると PDF を発行できます。</div>`:`<div class="row" style="gap:10px"><button class="btn pri" id="ivIssue">PDFを発行（${ivYen(v.total)}）</button><span class="dim">発行すると Google ドライブ「受発注管理_請求書/${IV.ym}」に保存されます</span></div>`}</div>`;
+  <div id="ivAct" style="margin-top:10px">${done?`<button class="btn" id="ivUn">発行を取り消す</button>`:v.todo?`<div class="iv-warn">発行の前に：${[v.miss?`単価の未入力 <b>${v.miss}件</b>`:'',v.feeMiss?`送料の未入力 <b>${v.feeMiss}件</b>`:'',v.flags?`受け渡しの確認 <b>${v.flags}件</b>`:''].filter(Boolean).join('・')}</div>`:`<div class="row" style="gap:10px"><button class="btn pri" id="ivIssue">PDFを発行（${ivYen(v.total)}）</button><span class="dim">発行すると Google ドライブ「受発注管理_請求書/${IV.ym}」に保存されます</span></div>`}</div>`;
   ivBind(c.code);
 }
 function ivBind(c){const E=$('ivEdit');const upd=()=>{ivQueue(c);ivRenderEdit();ivRenderSheet();ivRenderListOnly()};
@@ -2018,7 +2063,13 @@ function ivBind(c){const E=$('ivEdit');const upd=()=>{ivQueue(c);ivRenderEdit();
     if(v!==''){const [no]=k.split('|');const o=ORDERS.find(x=>x.no===no);const l=o.lines.find(x=>ivK(no,x.gyo)===k);const nm=ivName(l);
       ivOrdersOf(c).forEach(o2=>o2.lines.forEach(l2=>{const s2=ivSt(o2,l2);if(s2.p===''&&ivName(l2)===nm&&s2.u===st.u)s2.p=v}))}
     upd();const all=[...$('ivEdit').querySelectorAll('[data-ivp]')];const i=all.findIndex(x=>x.dataset.ivp===k);const nx=all.slice(i+1).find(x=>x.value==='');if(nx)nx.focus()});
-  E.querySelectorAll('[data-ivf]').forEach(inp=>inp.onchange=()=>{const v=inp.value.replace(/[^\d]/g,'');if(!v||v==='0')delete IV.FEE[inp.dataset.ivf];else IV.FEE[inp.dataset.ivf]=Number(v);upd()});
+  E.querySelectorAll('[data-ivf]').forEach(inp=>inp.onchange=()=>{const no=inp.dataset.ivf;const v=inp.value.replace(/[^\d]/g,'');delete IV.FEEPRE[no];if(v==='')delete IV.FEE[no];else IV.FEE[no]=Number(v);upd()});
+  E.querySelectorAll('[data-ivnone]').forEach(x=>x.onchange=()=>{const no=x.dataset.ivnone;delete IV.FEEPRE[no];if(x.checked)IV.FEE[no]=0;else delete IV.FEE[no];upd()});
+  E.querySelectorAll('[data-ivack]').forEach(b=>b.onclick=()=>{IV.ACK[b.dataset.ivack]=1;upd()});
+  E.querySelectorAll('[data-ivfix]').forEach(sl=>sl.onchange=async()=>{const c2=sl.value;if(!c2)return;const o=ORDERS.find(x=>x.no===sl.dataset.ivfix);const before=shipTxt(o).replace(/<[^>]+>/g,'');const pick=carKind(c2)==='引取り';
+    const fields={'運送会社':c2,'配送方法':methodOf(c2)};if(o.act.shipAt&&pick){fields['伝票No']='';fields['個口数']=''}o.carrier=c2;o.act.carrier=c2;o.method=fields['配送方法'];if(pick){o.act.waybill='';o.act.pieces=''}
+    const m=`${before} → ${shipTxt(o).replace(/<[^>]+>/g,'')}（請求タブで直した）`;o.events.push({t:'配送を直す',at:new Date(),by:ME,m});if(pick){delete IV.FEE[o.no];delete IV.FEEPRE[o.no]}if(carKind(c2)==='運送会社'&&!hasWay(o))delete IV.ACK[o.no];else IV.ACK[o.no]=1;
+    upd();try{await api('updateOrderFields',{no:o.no,fields,event:{'種別':'配送を直す','担当':ME,'内容':m}});syncRaw('updateOrderFields',{no:o.no,fields,event:{'種別':'配送を直す','内容':m}},{});toast(`${o.no} の受け渡しを直しました`)}catch(e){errBar('受け渡しを直せませんでした：'+e.message)}});
   E.querySelectorAll('[data-ivd]').forEach(inp=>inp.onchange=()=>{const no=inp.dataset.ivd;const v=inp.value.replace(/[^\d]/g,'');const r=(IV.DISC[no]||{}).r||8;if(!v||v==='0')delete IV.DISC[no];else IV.DISC[no]={a:Number(v),r};upd()});
   E.querySelectorAll('[data-ivdr]').forEach(s=>s.onchange=()=>{const no=s.dataset.ivdr;IV.DISC[no]=Object.assign({a:0},IV.DISC[no]||{},{r:Number(s.value)});upd()});
   E.querySelectorAll('[data-ivm]').forEach(inp=>inp.onchange=()=>{const v=inp.value.trim();if(v)IV.MEMO[inp.dataset.ivm]=v;else delete IV.MEMO[inp.dataset.ivm];upd()});
