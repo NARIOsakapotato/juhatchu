@@ -761,7 +761,7 @@ function build(d){RAW=d;d.recurring=d.recurring||[];d.formInbox=d.formInbox||[];
   WAGES=splitPipe(sget('最低賃金')).map(x=>{const [f,y]=x.split(':');return {from:f.trim(),yen:Number(y)}}).filter(w=>w.from&&w.yen);if(!WAGES.length)WAGES=[{from:'2025-10-01',yen:1177}];
   HOLIDAYS={};d.holidays.forEach(r=>{if(r['日付'])HOLIDAYS[String(r['日付']).slice(0,10)]=r['名前']||'祝日'});
   OPT={};d.options.forEach(r=>{if(r['項目']!==undefined&&r['値']!==''&&r['値']!==undefined)(OPT[r['項目']]=OPT[r['項目']]||[]).push(String(r['値']))});
-  CARRIERS=OPT['運送会社']||['福山通運','佐川急便','自社配送（2tトラック）','自社配送（軽トラック）','引取り','ヤマト運輸','西濃運輸','日本郵便','チャーター'];REASONS=OPT['遅れ理由']||['天候','人手不足','その他'];CANCEL_REASONS=OPT['キャンセル理由']||['先方都合'];DELIVER_HOW=OPT['納品確認']||['追跡で着確認'];STAFF_NAMES=OPT['担当者']||[];
+  CARRIERS=OPT['運送会社']||['福山通運','間口運輸','佐川急便','自社配送（2tトラック）','自社配送（軽トラック）','引取り','ヤマト運輸','西濃運輸','日本郵便','チャーター'];REASONS=OPT['遅れ理由']||['天候','人手不足','その他'];CANCEL_REASONS=OPT['キャンセル理由']||['先方都合'];DELIVER_HOW=OPT['納品確認']||['追跡で着確認'];STAFF_NAMES=OPT['担当者']||[];
   ITEMS=d.items.filter(r=>r['有効']!==false&&r['品目名']).sort((a,b)=>(Number(a['表示順'])||99)-(Number(b['表示順'])||99)).map(r=>({cat:r['カテゴリ']||'青果',name:String(r['品目名']),sizes:splitPipe(r['規格候補']),bagSizes:splitPipe(r['袋詰本数候補']),
     packs:splitPipe(r['荷姿候補']).map(x=>{const p=x.split(':').map(v=>v.trim());const per=p[2]!==undefined&&p[2]!==''?Number(p[2]):'';return {n:p[0],u:p[1]||'kg',per,bag:/袋詰/.test(p[0]),adj:/袋詰|野菜コンテナ/.test(p[0])}})}));
   ITEMS.forEach(it=>{if(!it.sizes.length)it.sizes=['—'];if(!it.packs.length)it.packs=[{n:'バラ',u:'kg',per:''}]});
@@ -802,10 +802,12 @@ const active=o=>!['納品済','キャンセル'].includes(o.status);
 const unconf=o=>o.kind==='定期'&&!o.confAt&&active(o);
 const teikiLive=o=>o.kind==='定期'&&active(o);
 /* 受け渡し（運送会社）：運送会社／自社／引取り。選択肢は「よく使う5つ」と「たまに」に分けて出す */
-const carKind=c=>!c?'':c==='引取り'?'引取り':/^自社/.test(c)||c==='チャーター'?'自社':'運送会社';
-const methodOf=c=>({'引取り':'引取り','自社':'自社便','運送会社':'宅配便'})[carKind(c)]||'';
+const CAR_CHARTER=['チャーター','間口運輸'];// 伝票のないチャーター便（間口運輸もこの扱い）
+const carKind=c=>!c?'':c==='引取り'?'引取り':/^自社/.test(c)||CAR_CHARTER.includes(c)?'自社':'運送会社';
+const methodOf=c=>CAR_CHARTER.includes(c)?'チャーター':({'引取り':'引取り','自社':'自社便','運送会社':'宅配便'})[carKind(c)]||'';
 const hasWay=o=>{const w=String(o.act.waybill||'').trim();return !!w&&w!=='（未入力）'};
-function carOpts(sel,head){const all=CARRIERS.slice();if(sel&&!all.includes(sel))all.push(sel);const top=all.slice(0,5),rest=all.slice(5);
+const CAR_RARE=['ヤマト運輸','西濃運輸','日本郵便','チャーター'];// 「たまに」の欄に出すもの。ほかは「よく使う」
+function carOpts(sel,head){const all=CARRIERS.slice();if(sel&&!all.includes(sel))all.push(sel);const top=all.filter(x=>!CAR_RARE.includes(x)),rest=all.filter(x=>CAR_RARE.includes(x));
   return (head!==null?`<option value="">${head}</option>`:'')+`<optgroup label="よく使う">${top.map(x=>`<option ${x===sel?'selected':''}>${esc(x)}</option>`).join('')}</optgroup>`+(rest.length?`<optgroup label="たまに">${rest.map(x=>`<option ${x===sel?'selected':''}>${esc(x)}</option>`).join('')}</optgroup>`:'')}
 function shipTxt(o){const c=o.act.carrier||o.carrier;if(!c)return '<b style="color:#8a5a12">未定</b>（流通が決める）';if(c==='引取り')return '引取り';if(!o.act.shipAt)return esc(c);return `${esc(c)}　伝票 ${hasWay(o)?esc(o.act.waybill):'（未入力）'}　${o.act.pieces||o.boxes||''}個口`}
 /* 定期だけに出す 確定／未確定 の札。押すと切り替わる（data-uc） */
@@ -2066,7 +2068,7 @@ function ivRenderEdit(){const c=CUST.find(x=>x.code===IV.sel);if(!c){$('ivEdit')
      <td class="r">¥ <input class="iv-pin ${st.p===''?'miss':st.pre?'pre':''}" inputmode="numeric" data-ivp="${k}" value="${esc(st.p)}" placeholder="未入力" ${dis}> /${st.u}${st.pre&&st.p!==''?'<div class="dim">前回の単価</div>':''}</td><td class="r">${a||'—'}</td>
      <td><select data-ivr="${k}" ${dis}><option value="8" ${st.r!==10?'selected':''}>8%</option><option value="10" ${st.r===10?'selected':''}>10%</option></select></td></tr>`}).join('')}
    ${ck==='引取り'?`<tr class="iv-fee" style="opacity:.75"><td>送料</td><td colspan="4" class="r">引取りのため送料なし（0円）</td><td><span class="iv-tx t10">10%</span></td></tr>`
-    :(()=>{const fv=ivFeeOf(o);const none=fv===0&&!IV.FEEPRE[o.no];return `<tr class="iv-fee" ${fv===undefined?'style="outline:2px solid #e3c78e;outline-offset:-2px"':''}><td>送料<div class="dim">${ck==='自社'?'自社配送':'運送会社'}の注文。入れるか「送料なし」に</div></td><td class="r"><label style="font-size:12px;white-space:nowrap"><input type="checkbox" data-ivnone="${o.no}" ${fv===0?'checked':''} ${dis} style="width:auto"> 送料なし</label></td><td></td><td class="r">¥ <input class="iv-pin ${fv===undefined?'miss':IV.FEEPRE[o.no]?'pre':''}" inputmode="numeric" data-ivf="${o.no}" value="${fv?fv:''}" placeholder="未入力" ${dis||fv===0?'disabled':''}>${IV.FEEPRE[o.no]&&fv?'<div class="dim">前回の送料</div>':''}</td><td class="r">${fv?ivYen(fv):fv===0?'0':'—'}</td><td><span class="iv-tx t10">10%</span></td></tr>`})()}
+    :(()=>{const fv=ivFeeOf(o);const none=fv===0&&!IV.FEEPRE[o.no];return `<tr class="iv-fee" ${fv===undefined?'style="outline:2px solid #e3c78e;outline-offset:-2px"':''}><td>送料<div class="dim">${ck==='自社'?'自社配送・チャーター':'運送会社'}の注文。入れるか「送料なし」に</div></td><td class="r"><label style="font-size:12px;white-space:nowrap"><input type="checkbox" data-ivnone="${o.no}" ${fv===0?'checked':''} ${dis} style="width:auto"> 送料なし</label></td><td></td><td class="r">¥ <input class="iv-pin ${fv===undefined?'miss':IV.FEEPRE[o.no]?'pre':''}" inputmode="numeric" data-ivf="${o.no}" value="${fv?fv:''}" placeholder="未入力" ${dis||fv===0?'disabled':''}>${IV.FEEPRE[o.no]&&fv?'<div class="dim">前回の送料</div>':''}</td><td class="r">${fv?ivYen(fv):fv===0?'0':'—'}</td><td><span class="iv-tx t10">10%</span></td></tr>`})()}
    <tr class="iv-disc"><td>値引き<div class="dim">あるときだけ・税抜</div></td><td></td><td><select data-ivdr="${o.no}" ${dis}><option value="8" ${(IV.DISC[o.no]||{}).r!==10?'selected':''}>8%分</option><option value="10" ${(IV.DISC[o.no]||{}).r===10?'selected':''}>10%分</option></select></td><td class="r">−¥ <input class="iv-pin" inputmode="numeric" data-ivd="${o.no}" value="${(IV.DISC[o.no]||{}).a||''}" placeholder="0" ${dis}></td><td class="r">${(IV.DISC[o.no]||{}).a?ivYen(-IV.DISC[o.no].a):'—'}</td><td></td></tr>
    <tr class="iv-memo"><td>文言<div class="dim">空欄なら載せない</div></td><td colspan="5"><input data-ivm="${o.no}" value="${esc(IV.MEMO[o.no]||'')}" placeholder="例：店舗名、発注番号、イベント分 など" style="width:100%" ${dis}></td></tr>
    </table></div></div>`}).join('')}
