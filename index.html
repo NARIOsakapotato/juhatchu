@@ -254,6 +254,10 @@ tr.sum td{background:var(--bg);font-weight:700;border-top:2px solid var(--line2)
 .sugg{display:flex;flex-direction:column;gap:4px;margin:6px 0}
 .sugg button{text-align:left;padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:var(--paper2);font-size:13px}
 .sugg button.on{border-color:var(--accent);background:var(--accent-soft)}
+.sggrid{display:grid;grid-template-columns:1fr 1fr;gap:4px}.sggrid.sgscroll{max-height:320px;overflow:auto;padding-right:2px}@media(max-width:620px){.sggrid{grid-template-columns:1fr}}
+.sghd{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:2px 0 4px;flex-wrap:wrap}
+.sugg button.sgchg{background:none;border:none;color:var(--accent);font-weight:700;padding:4px 2px;font-size:12.5px;text-decoration:underline}
+.sgsel{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.sgsel>button:first-child{flex:1;min-width:0}
 .lbl{display:block;font-size:12px;font-weight:700;color:#666;margin:8px 0 4px}
 .sumbox{background:var(--paper2);border-radius:10px;padding:10px 12px;font-size:13px;margin:10px 0;line-height:1.7}
 /* customers */
@@ -1271,12 +1275,20 @@ function renderForm(){
   if(F.cust&&custOf(F.cust)&&custOf(F.cust).name!==q)F.cust=null;
   const nq=custNorm(q);
   // カテゴリが違う顧客・スポット顧客も、名前を入れれば候補に出す（カテゴリが合う継続顧客を先頭に）
-  const cands=CUST.filter(c=>c.active!==false&&(q?custNorm(c.name).includes(nq):(c.reg==='継続'&&c.cats.includes(F.cat))))
-    .sort((a,b)=>(b.cats.includes(F.cat)-a.cats.includes(F.cat))||((a.reg==='継続'?0:1)-(b.reg==='継続'?0:1))).slice(0,40);
-  $('fSugg').innerHTML=cands.map(c=>`<button class="${F.cust===c.code?'on':''}" data-c="${c.code}"><b>${esc(c.name)}</b> <span class="dim">${c.kind}　配送${c.lead}日　${c.hours}</span>${!c.cats.includes(F.cat)?` <span class="tag t-cat">${esc(c.cats.join('・')||'カテゴリなし')}</span>`:''}${c.reg!=='継続'?' <span class="tag t-cat">スポット</span>':''}</button>`).join('')
-    +(q&&!cands.length?`<div class="dim" style="padding:6px 2px">「${esc(q)}」に当たる顧客はいません。はじめての顧客なら上の「新規」から登録</div>`:'')
-    +(!F.cust&&q&&cands.length?'<div class="dim" style="padding:4px 2px">候補を押して選んでください（まだ選ばれていません）</div>':'');
-  $('fSugg').onclick=e=>{const b=e.target.closest('[data-c]');if(b){F.cust=b.dataset.c;$('fCustQ').value=custOf(F.cust).name;renderForm()}};
+  // 候補は短く：選んだ後はその1社だけ／入力なし＝最近取引の多い顧客8社（この人が営業の注文で直近60日に多い順）／入力あり＝当たる顧客を8件まで
+  const item=c=>`<button class="${F.cust===c.code?'on':''}" data-c="${c.code}"><b>${esc(c.name)}</b> <span class="dim">${c.kind}　配送${c.lead}日${c.hours?'　'+esc(c.hours):''}</span>${!c.cats.includes(F.cat)?` <span class="tag t-cat">${esc(c.cats.join('・')||'カテゴリなし')}</span>`:''}${c.reg!=='継続'?' <span class="tag t-cat">スポット</span>':''}</button>`;
+  const LIM=8;let html='';
+  if(F.cust&&custOf(F.cust)&&custOf(F.cust).name===q){html=`<div class="sgsel">${item(custOf(F.cust))}<button class="sgchg" data-chg="1">別の顧客にする</button></div>`}
+  else if(!q){const since=addD(TODAY,-60);const cnt={},cntMe={};ORDERS.forEach(o=>{if(o.date>=since){cnt[o.cust]=(cnt[o.cust]||0)+1;if(o.sales===ME)cntMe[o.cust]=(cntMe[o.cust]||0)+1}});
+    const pool=CUST.filter(c=>c.active!==false);const score=c=>(cntMe[c.code]||0)*100+(cnt[c.code]||0);
+    const all=F.sgAll;const list=all?pool.slice().sort((a,b)=>a.name.localeCompare(b.name,'ja')):pool.filter(c=>score(c)>0).sort((a,b)=>score(b)-score(a)).slice(0,LIM);
+    html=`<div class="sghd"><span class="dim">${all?`すべての顧客（${pool.length}社・名前順）`:'最近取引の多い顧客（直近60日・自分の担当分が多い順）'}</span><button class="sgchg" data-all="1">${all?'最近取引の多い顧客に戻す':`すべて表示（${pool.length}社）`}</button></div><div class="sggrid ${all?'sgscroll':''}">${list.map(item).join('')}</div>`}
+  else{const cands=CUST.filter(c=>c.active!==false&&custNorm(c.name).includes(nq)).sort((a,b)=>(b.cats.includes(F.cat)-a.cats.includes(F.cat))||((a.reg==='継続'?0:1)-(b.reg==='継続'?0:1)));
+    html=`<div class="sggrid">${cands.slice(0,LIM).map(item).join('')}</div>`+(cands.length>LIM?`<div class="dim" style="padding:4px 2px">ほか ${cands.length-LIM}件。もう少し入力すると絞り込めます</div>`:'')
+      +(!cands.length?`<div class="dim" style="padding:6px 2px">「${esc(q)}」に当たる顧客はいません。はじめての顧客なら上の「新規」から登録</div>`:'')
+      +(!F.cust&&cands.length?'<div class="dim" style="padding:4px 2px">候補を押して選んでください（まだ選ばれていません）</div>':'')}
+  $('fSugg').innerHTML=html;
+  $('fSugg').onclick=e=>{if(e.target.closest('[data-all]')){F.sgAll=!F.sgAll;renderForm();return}if(e.target.closest('[data-chg]')){F.cust=null;$('fCustQ').value='';renderForm();$('fCustQ').focus();return}const b=e.target.closest('[data-c]');if(b){F.cust=b.dataset.c;F.sgAll=false;$('fCustQ').value=custOf(F.cust).name;renderForm()}};
   $('fMode').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.m===F.mode));$('fReg').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.r===F.reg));
   const isNew=F.mode==='new';$('fPick').hidden=isNew;$('fNew').hidden=!isNew;$('fAddrPick').hidden=isNew;$('fAddrNew').hidden=!isNew;
   $('fRegNote').textContent=F.reg==='継続'?'次回から候補に出ます。送り先・配送条件も保存されます':'受注の記録には残りますが、顧客候補には出ません（スポット）';
