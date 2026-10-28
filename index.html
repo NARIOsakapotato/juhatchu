@@ -26,7 +26,15 @@ textarea{resize:vertical}
 .hd .sp{flex:1}
 .hd select{width:auto;background:#3a312b;color:#f4f1ea;border-color:#4a403a;font-size:13px;padding:5px 8px}
 .hd .gear{background:none;border:1px solid #5a4f48;color:#e8e0d4;border-radius:8px;padding:5px 10px;font-size:13px}
-.tabs{display:flex;background:var(--paper);border-bottom:2px solid var(--line);position:sticky;top:calc(env(safe-area-inset-top,0px) + 48px);z-index:19}
+.navw{position:sticky;top:calc(env(safe-area-inset-top,0px) + 48px);z-index:19;background:var(--paper);border-bottom:2px solid var(--line)}
+.grps{display:flex;gap:6px;padding:8px 12px 0;background:var(--paper2);border-bottom:1px solid var(--line)}
+.grp{border:1px solid transparent;border-bottom:none;background:none;border-radius:10px 10px 0 0;padding:8px 16px;font-size:14px;font-weight:800;color:var(--mute);position:relative;top:1px}
+.grp .gi{font-size:9px;margin-right:6px;vertical-align:2px}.grp[data-g="sales"] .gi{color:#c4652f}.grp[data-g="ops"] .gi{color:#3d4fd6}.grp[data-g="hist"] .gi{color:var(--mute)}
+.grp.on{background:var(--paper);border-color:var(--line);color:var(--ink)}
+.grp .bd{display:inline-block;margin-left:6px;min-width:18px;padding:0 6px;border-radius:999px;background:var(--warn);color:#fff;font-size:11px;font-weight:700;line-height:18px}
+.tabs{display:flex;background:var(--paper);overflow-x:auto;scrollbar-width:none}.tabs::-webkit-scrollbar{display:none}
+.tabs[data-one]{display:none}
+@media(max-width:620px){.grps{padding:6px 8px 0;gap:4px}.grp{flex:1;padding:7px 4px;font-size:12.5px}.grp .gi{display:none}.tab{flex:0 0 auto;padding:10px 14px;font-size:14px}}
 .tab{flex:1;padding:11px 0;border:none;background:none;font-size:15px;font-weight:700;color:#999;position:relative}
 .tab.on{color:var(--accent);box-shadow:inset 0 -3px 0 var(--accent)}
 .tab .bd{display:inline-block;margin-left:5px;min-width:18px;padding:0 6px;border-radius:999px;background:var(--warn);color:#fff;font-size:11px;font-weight:700;line-height:18px}
@@ -465,17 +473,24 @@ table.iv-in select{width:auto;padding:4px 6px;font-size:13px}
   <button class="gear" id="gearBtn">⚙ 設定</button>
   <button class="gear" id="logoutBtn">ログアウト</button>
 </header>
-<nav class="tabs" id="tabs">
-  <button class="tab on" data-t="list">一覧</button>
-  <button class="tab" data-t="week">週間<span class="bd" id="bdWeek" hidden></span></button>
-  <button class="tab" data-t="new">登録</button>
-  <button class="tab" data-t="form">フォーム受付<span class="bd" id="bdForm" hidden></span></button>
-  <button class="tab" data-t="cust">顧客</button>
-  <button class="tab" data-t="inv" id="tabInv" hidden>請求</button>
-  <button class="tab" data-t="shift">シフト</button>
-  <button class="tab" data-t="bag">袋詰</button>
-  <button class="tab" data-t="wash">洗浄</button>
-  <button class="tab" data-t="hist">履歴</button>
+<nav class="navw" id="navw">
+  <div class="grps" id="grps">
+    <button class="grp on" data-g="sales"><span class="gi">●</span>営業・受注<span class="bd" id="bdGsales" hidden></span></button>
+    <button class="grp" data-g="ops"><span class="gi">●</span>流通・出荷作業<span class="bd" id="bdGops" hidden></span></button>
+    <button class="grp" data-g="hist"><span class="gi">●</span>履歴・集計</button>
+  </div>
+  <div class="tabs" id="tabs">
+  <button class="tab on" data-t="list" data-g="sales">一覧</button>
+  <button class="tab" data-t="week" data-g="sales">週間<span class="bd" id="bdWeek" hidden></span></button>
+  <button class="tab" data-t="new" data-g="sales">登録</button>
+  <button class="tab" data-t="form" data-g="sales">フォーム受付<span class="bd" id="bdForm" hidden></span></button>
+  <button class="tab" data-t="cust" data-g="sales">顧客</button>
+  <button class="tab" data-t="inv" data-g="sales" id="tabInv" hidden>請求</button>
+  <button class="tab" data-t="shift" data-g="ops">シフト</button>
+  <button class="tab" data-t="bag" data-g="ops">袋詰</button>
+  <button class="tab" data-t="wash" data-g="ops">洗浄</button>
+  <button class="tab" data-t="hist" data-g="hist">履歴</button>
+  </div>
 </nav>
 
 <div class="ak-ov" id="akOv" hidden><div class="ak-sh" role="dialog" aria-labelledby="akTitle">
@@ -768,7 +783,7 @@ function build(d){RAW=d;d.recurring=d.recurring||[];d.formInbox=d.formInbox||[];
       events:(evBy[r.NO]||[]).map(e=>({t:e['種別']||'',at:pdt(e['日時'])||new Date(),by:e['担当']||'',m:e['内容']||'',late:Number(e['遅れ日数'])||0,plan:pdt(e['予定日'])})).sort((a,b)=>a.at-b.at)};
   });
   REC=d.recurring.filter(r=>r.ID).map(r=>({id:String(r.ID),cust:String(r['顧客コード']),dow:splitPipe(r['曜日']).map(x=>'日月火水木金土'.indexOf(x)).filter(x=>x>=0),item:String(r['品目']||''),size:String(r['規格']||''),pack:PACK_ALIAS[r['荷姿']]||String(r['荷姿']||''),qty:Number(r['数量'])||0,unit:r['単位']||'kg',per:r['入数']===''||r['入数']===undefined?'':Number(r['入数']),method:r['配送方法']||'',carrier:r['運送会社']||'',note:r['申し送り']||'',from:String(r['開始']||'').slice(0,10),to:String(r['終了']||'').slice(0,10),on:r['有効']!==false&&String(r['有効']).toUpperCase()!=='FALSE',by:r['作成者']||''}));
-  $('userName').textContent=ME;if($('tabInv'))$('tabInv').hidden=!ivAllowed();
+  $('userName').textContent=ME;if($('tabInv'))$('tabInv').hidden=!ivAllowed();if(typeof TAB!=='undefined'&&TAB)showGroup(tabGroup(TAB));
 }
 
 /* ===== ログイン ===== */
@@ -825,10 +840,14 @@ function weekStats(mon){
 
 /* ===== ナビ ===== */
 let TAB='list';
-function switchTab(t){TAB=t;document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t===t));['list','week','new','form','cust','shift','bag','wash','hist','inv'].forEach(v=>$('v-'+v).hidden=v!==t);render()}
+const GRP_LAST={sales:'list',ops:'shift',hist:'hist'};
+function tabGroup(t){const b=document.querySelector(`.tab[data-t="${t}"]`);return b?b.dataset.g:'sales'}
+function showGroup(g){document.querySelectorAll('.grp').forEach(b=>b.classList.toggle('on',b.dataset.g===g));let n=0;document.querySelectorAll('.tab').forEach(b=>{const vis=b.dataset.g===g&&!(b.id==='tabInv'&&!ivAllowed());b.style.display=vis?'':'none';if(vis)n++});if(n<=1)$('tabs').setAttribute('data-one','');else $('tabs').removeAttribute('data-one')}
+function switchTab(t){TAB=t;const g=tabGroup(t);GRP_LAST[g]=t;showGroup(g);try{localStorage.setItem('juhatchu_tab',t)}catch(e){}document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t===t));['list','week','new','form','cust','shift','bag','wash','hist','inv'].forEach(v=>$('v-'+v).hidden=v!==t);render()}
 $('tabs').addEventListener('click',e=>{const b=e.target.closest('.tab');if(b)switchTab(b.dataset.t)});
+$('grps').addEventListener('click',e=>{const b=e.target.closest('.grp');if(b)switchTab(GRP_LAST[b.dataset.g])});
 function render(){renderBadge();({list:renderList,week:renderWeek,new:renderForm,form:renderInbox,cust:renderCust,shift:renderShift,bag:renderBag,wash:renderWash,hist:renderHist,inv:renderInv})[TAB]()}
-function renderBadge(){const n=ORDERS.filter(o=>o.status==='受注').length;$('bdWeek').hidden=!n;$('bdWeek').textContent=n;const f=fiOpenN();$('bdForm').hidden=!f;$('bdForm').textContent=f}
+function renderBadge(){const n=ORDERS.filter(o=>o.status==='受注').length;$('bdWeek').hidden=!n;$('bdWeek').textContent=n;const f=fiOpenN();$('bdForm').hidden=!f;$('bdForm').textContent=f;const gs=n+f;$('bdGsales').hidden=!gs||tabGroup(TAB)==='sales';$('bdGsales').textContent=gs}
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('on'),2200)}
 
 /* ===== 一覧 ===== */
@@ -2113,7 +2132,7 @@ $('v-hist').hidden=true;
   ME=localStorage.getItem('juhatchu_user')||'';KEY=localStorage.getItem('juhatchu_key')||'';
   if(!ME||!KEY){showLogin('');return}
   busy(true);
-  try{const d=await api('init',{});build(d);switchTab(location.hash==='#week'?'week':location.hash==='#hist'?'hist':'list');LAST_LOAD=Date.now();$('lastLoad').textContent=new Date().toTimeString().slice(0,5)+' 更新'}
+  try{const d=await api('init',{});build(d);switchTab(location.hash==='#week'?'week':location.hash==='#hist'?'hist':(()=>{try{const t=localStorage.getItem('juhatchu_tab');return t&&document.querySelector(`.tab[data-t="${t}"]`)&&(t!=='inv'||ivAllowed())?t:'list'}catch(e){return 'list'}})());LAST_LOAD=Date.now();$('lastLoad').textContent=new Date().toTimeString().slice(0,5)+' 更新'}
   catch(e){if(!$('login').hidden)return;showLogin('読み込みに失敗しました：'+e.message)}
   finally{busy(false)}
 })();
