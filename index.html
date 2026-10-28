@@ -423,6 +423,29 @@ tr.sum td{background:var(--bg);font-weight:700;border-top:2px solid var(--line2)
 .fipick{display:grid;gap:6px;border:1px dashed var(--line2);border-radius:8px;padding:8px 10px;font-size:13px}.ficand{display:flex;flex-wrap:wrap;gap:6px}
 .fiwarn{font-size:12px;color:var(--ink2);background:var(--warn-soft);border-radius:6px;padding:6px 9px;margin:8px 0}
 .btn[disabled]{opacity:.45;cursor:not-allowed}
+
+/* 請求タブ */
+.iv-main{display:grid;grid-template-columns:250px minmax(0,1fr);gap:12px;align-items:start}@media(max-width:860px){.iv-main{grid-template-columns:1fr}}
+.iv-clist{display:grid;gap:4px;max-height:640px;overflow:auto}
+.iv-ci{display:flex;justify-content:space-between;gap:8px;align-items:center;border:1px solid var(--line);background:var(--paper);border-radius:8px;padding:6px 9px;text-align:left;width:100%}
+.iv-ci.on{border-color:var(--accent);background:var(--accent-soft)}.iv-ci b{font-size:13px}.iv-ci small{display:block;color:var(--mute);font-size:11px}
+.iv-st{font-size:10.5px;font-weight:800;border-radius:999px;padding:1px 7px;white-space:nowrap}.iv-st.n{background:var(--paper2);color:var(--mute);border:1px solid var(--line)}.iv-st.p{background:#fbf1df;color:#8a5a12;border:1px solid #e3c78e}.iv-st.d{background:var(--ok-soft);color:var(--ok-ink);border:1px solid var(--ok)}.iv-st.i{background:var(--accent);color:#fff}
+.iv-ord{border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-top:10px}.iv-oh{background:var(--paper2);padding:6px 10px;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;border-bottom:1px solid var(--line)}
+table.iv-in{width:100%;border-collapse:collapse;min-width:680px}table.iv-in th{font-size:11px;color:var(--mute);text-align:left;padding:5px 8px;border-bottom:1px solid var(--line)}table.iv-in td{padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:middle;font-variant-numeric:tabular-nums}table.iv-in tr:last-child td{border-bottom:0}table.iv-in .r{text-align:right}
+table.iv-in select{width:auto;padding:4px 6px;font-size:13px}
+.iv-pin{width:100px!important;text-align:right;padding:5px 8px!important}.iv-pin.miss{border-color:#c98a2a;background:#fbf1df}.iv-pin.pre{background:#f3f7ef}
+.iv-tx{font-size:10.5px;font-weight:800;border-radius:4px;padding:0 5px}.iv-tx.t8{color:var(--ok);border:1px solid var(--ok)}.iv-tx.t10{color:#2f5f99;border:1px solid #2f5f99}
+.iv-fee td{background:#eef4fb}.iv-disc td{background:#fbf6ea}.iv-memo td{background:var(--paper2)}
+.iv-sum{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-top:12px}@media(max-width:700px){.iv-sum{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.iv-sb{border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--paper2)}.iv-sb small{display:block;font-size:11px;color:var(--mute)}.iv-sb b{font-size:17px;font-variant-numeric:tabular-nums}.iv-sb.tot{background:var(--accent-soft);border-color:var(--accent-line)}.iv-sb.tot b{color:var(--accent)}
+.iv-warn{background:#fbf1df;border:1px dashed #e3c78e;border-radius:8px;padding:7px 10px;font-size:13px;color:#8a5a12}.iv-ok{background:var(--ok-soft);border:1px solid var(--ok);border-radius:8px;padding:7px 10px;font-size:13px;color:var(--ok-ink);margin-top:8px}
+.iv-sheetw{overflow-x:auto;padding:4px 0}.iv-sheet{width:210mm;min-height:297mm;margin:0 auto;background:#fff;color:#1a1a1a;padding:15mm 14mm;box-shadow:0 4px 18px rgba(0,0,0,.12);font-family:"Hiragino Mincho ProN","Yu Mincho",serif;font-size:9.5pt;line-height:1.55}
+.iv-h1{font-size:20pt;letter-spacing:.6em;text-align:center;margin:0 0 7mm;font-weight:700}.iv-top{display:grid;grid-template-columns:1fr 1fr;gap:8mm}.iv-to{font-size:13pt;border-bottom:1px solid #1a1a1a;padding-bottom:2mm;margin-bottom:3mm}
+.iv-meta{display:grid;grid-template-columns:auto 1fr;gap:1mm 4mm;font-size:9pt;margin-top:2mm}.iv-from{font-size:9pt;justify-self:end}.iv-from b{font-size:11pt}
+.iv-amount{margin:6mm 0 5mm;display:flex;align-items:baseline;gap:6mm;border:1.5px solid #1a1a1a;padding:3mm 5mm;width:max-content}.iv-amount b{font-size:18pt}
+.iv-lines{width:100%;border-collapse:collapse;font-size:9pt}.iv-lines th{background:#f4f1ec;border:1px solid #bdb6ab;padding:1.3mm 2mm}.iv-lines td{border:1px solid #bdb6ab;padding:1.3mm 2mm;font-variant-numeric:tabular-nums}.iv-lines td.n{text-align:right}.iv-lines tr.mm td{font-size:8.5pt;color:#444;padding-left:5mm}
+.iv-ssum{display:grid;grid-template-columns:1fr 78mm;gap:6mm;margin-top:4mm}.iv-sumt{width:100%;border-collapse:collapse;font-size:9pt}.iv-sumt td{border:1px solid #bdb6ab;padding:1.3mm 2mm}.iv-sumt td.n{text-align:right}.iv-sumt tr.tot td{font-weight:700;background:#f4f1ec}
+.iv-bank{border:1px solid #bdb6ab;padding:3mm 4mm;font-size:9pt;margin-top:6mm}
 </style>
 </head>
 <body>
@@ -451,6 +474,7 @@ tr.sum td{background:var(--bg);font-weight:700;border-top:2px solid var(--line2)
   <button class="tab" data-t="bag">袋詰</button>
   <button class="tab" data-t="wash">洗浄</button>
   <button class="tab" data-t="hist">履歴</button>
+  <button class="tab" data-t="inv" id="tabInv" hidden>請求</button>
 </nav>
 
 <div class="ak-ov" id="akOv" hidden><div class="ak-sh" role="dialog" aria-labelledby="akTitle">
@@ -598,6 +622,11 @@ tr.sum td{background:var(--bg);font-weight:700;border-top:2px solid var(--line2)
   </div>
   <section class="card sec"><h3>日別の記録<span>タップで修正</span></h3><div class="tw" id="bTable"></div></section>
 </main>
+<main class="wrap" id="v-inv" hidden>
+  <section class="card" style="margin-bottom:12px"><div class="row" style="gap:10px;flex-wrap:wrap"><label for="ivYm" style="font-weight:700">請求月</label><select id="ivYm" style="width:auto"></select><span class="dim">対象：その月に納品日があり、発送手配済・納品済になった注文（キャンセルは除く）</span><span class="dim" id="ivProg" style="margin-left:auto"></span></div></section>
+  <div id="ivMain"></div>
+</main>
+
 <main class="wrap" id="v-wash" hidden>
   <section class="card" style="margin-bottom:12px"><div class="ws-bar">
     <button class="btn sm" id="wsPrev">◀ 前の週</button><b id="wsWk" style="font-size:15px"></b><button class="btn sm" id="wsNext">次の週 ▶</button><button class="btn sm" id="wsToday">今週</button>
@@ -730,7 +759,7 @@ function build(d){RAW=d;d.recurring=d.recurring||[];d.formInbox=d.formInbox||[];
   const evBy={};d.events.forEach(r=>{if(r.NO)(evBy[r.NO]=evBy[r.NO]||[]).push(r)});
   ORDERS=d.orders.filter(r=>r.NO).map(r=>{
     let c=custOf(String(r['顧客コード']));if(!c){c={code:String(r['顧客コード']||''),name:'（未登録 '+(r['顧客コード']||'')+'）',kind:'',cats:[],zip:'',addr:'',addr1:'',addr2:'',attn:'',tel:'',method:'宅配便',carrier:'',lead:1,hours:'',closed:'',active:true,reg:'スポット',since:'',note:''};CUST.push(c)}
-    const lines=(linesBy[r.NO]||[]).sort((a,b)=>(Number(a['行'])||0)-(Number(b['行'])||0)).map(l=>({item:String(l['品目']||''),size:String(l['規格']||''),pack:String(l['荷姿']||''),qty:Number(l['数量'])||0,unit:l['単位']||'kg',per:l['入数']===''||l['入数']===undefined?'':Number(l['入数']),boxes:Number(l['箱数'])||''}));
+    const lines=(linesBy[r.NO]||[]).sort((a,b)=>(Number(a['行'])||0)-(Number(b['行'])||0)).map(l=>({gyo:l['行']===undefined?'':l['行'],item:String(l['品目']||''),size:String(l['規格']||''),pack:String(l['荷姿']||''),qty:Number(l['数量'])||0,unit:l['単位']||'kg',per:l['入数']===''||l['入数']===undefined?'':Number(l['入数']),boxes:Number(l['箱数'])||''}));
     const deliver=pdt(r['納品日'])||new Date();const lead=Number(c.lead)||1;const it=ITEMS.find(i=>i.name===(lines[0]||{}).item);
     return {no:String(r.NO),date:pdt(r['受注日時'])||new Date(),cust:c.code,cat:r['カテゴリ']||(it&&it.cat)||'青果',lines,kg:lines.reduce((s,l)=>s+lineKg(l),0),boxes:lines.reduce((s,l)=>s+(l.boxes||0),0),deliver,lead,
       shipFix:pdt(r['発送手配日']),readyFix:pdt(r['用意期限']),shipSug:addD(deliver,-lead),readySug:addD(deliver,-lead-1),kind:r['注文区分']||'',confAt:pdt(r['確定日時']),confBy:r['確定者']||'',status:r['状態']||'受注',sales:r['営業担当']||'',note:r['申し送り']||'',method:r['配送方法']||'宅配便',carrier:r['運送会社']||'',addrAlt:r['送り先別']||'',schedBy:r['日程決定者']||'',
@@ -738,7 +767,7 @@ function build(d){RAW=d;d.recurring=d.recurring||[];d.formInbox=d.formInbox||[];
       events:(evBy[r.NO]||[]).map(e=>({t:e['種別']||'',at:pdt(e['日時'])||new Date(),by:e['担当']||'',m:e['内容']||'',late:Number(e['遅れ日数'])||0,plan:pdt(e['予定日'])})).sort((a,b)=>a.at-b.at)};
   });
   REC=d.recurring.filter(r=>r.ID).map(r=>({id:String(r.ID),cust:String(r['顧客コード']),dow:splitPipe(r['曜日']).map(x=>'日月火水木金土'.indexOf(x)).filter(x=>x>=0),item:String(r['品目']||''),size:String(r['規格']||''),pack:PACK_ALIAS[r['荷姿']]||String(r['荷姿']||''),qty:Number(r['数量'])||0,unit:r['単位']||'kg',per:r['入数']===''||r['入数']===undefined?'':Number(r['入数']),method:r['配送方法']||'',carrier:r['運送会社']||'',note:r['申し送り']||'',from:String(r['開始']||'').slice(0,10),to:String(r['終了']||'').slice(0,10),on:r['有効']!==false&&String(r['有効']).toUpperCase()!=='FALSE',by:r['作成者']||''}));
-  $('userName').textContent=ME;
+  $('userName').textContent=ME;if($('tabInv'))$('tabInv').hidden=!ivAllowed();
 }
 
 /* ===== ログイン ===== */
@@ -788,9 +817,9 @@ function weekStats(mon){
 
 /* ===== ナビ ===== */
 let TAB='list';
-function switchTab(t){TAB=t;document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t===t));['list','week','new','form','cust','shift','bag','wash','hist'].forEach(v=>$('v-'+v).hidden=v!==t);render()}
+function switchTab(t){TAB=t;document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t===t));['list','week','new','form','cust','shift','bag','wash','hist','inv'].forEach(v=>$('v-'+v).hidden=v!==t);render()}
 $('tabs').addEventListener('click',e=>{const b=e.target.closest('.tab');if(b)switchTab(b.dataset.t)});
-function render(){renderBadge();({list:renderList,week:renderWeek,new:renderForm,form:renderInbox,cust:renderCust,shift:renderShift,bag:renderBag,wash:renderWash,hist:renderHist})[TAB]()}
+function render(){renderBadge();({list:renderList,week:renderWeek,new:renderForm,form:renderInbox,cust:renderCust,shift:renderShift,bag:renderBag,wash:renderWash,hist:renderHist,inv:renderInv})[TAB]()}
 function renderBadge(){const n=ORDERS.filter(o=>o.status==='受注').length;$('bdWeek').hidden=!n;$('bdWeek').textContent=n;const f=fiOpenN();$('bdForm').hidden=!f;$('bdForm').textContent=f}
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('on'),2200)}
 
@@ -1907,6 +1936,125 @@ $('gearBtn').onclick=()=>{
     WAGES=splitPipe(vals['最低賃金']).map(x=>{const [f,y]=x.split(':');return {from:f.trim(),yen:Number(y)}}).filter(w=>w.from&&w.yen);
     closeModal();render();await save('saveSettings',{rows},'設定を保存しました')};
 };
+
+/* ===== 請求（2026/10/27〜）：出荷の記録から顧客ごとに請求書。明細ごとに単価（税抜）、注文ごとに送料・値引き・文言、全体に最終値引き ===== */
+const IV={ym:'',sel:null,data:null,P:{},FEE:{},DISC:{},MEMO:{},FIN:{},heads:{},timer:{},dirty:{}};
+const ivAllowed=()=>{const r=(RAW&&RAW.settings||[]).find(x=>String(x['キー'])==='請求タブ_使える人');return String(r?r['値']:'成冨|渡邊').split('|').map(s=>s.trim()).includes(ME)};
+const ivName=l=>[l.item,l.size].filter(Boolean).join(' ')+(l.pack?'　'+l.pack:'');
+const ivBagKg=l=>/350/.test(l.size)?0.35:0.55;
+const ivQty=(l,u)=>u==='箱'?Number(l.boxes)||0:u==='袋'?(l.unit==='袋'?l.qty:0):u==='kg'?(l.unit==='kg'?l.qty:l.unit==='袋'?Math.round(l.qty*ivBagKg(l)*10)/10:0):0;
+const ivUnits=l=>['箱','袋','kg'].filter(u=>ivQty(l,u)>0);
+const ivDefUnit=l=>l.unit==='袋'?'袋':(Number(l.boxes)?'箱':'kg');
+const ivDefRate=l=>['焼酎','苗'].includes(l.item)?10:8;
+const ivK=(no,g)=>no+'|'+g;
+const ivYen=n=>(n<0?'−¥':'¥')+fmt(Math.abs(Math.round(n)));
+const ivNo=c=>IV.ym.replace('-','')+'-'+String(c).replace(/-/g,'');
+function ivOrders(){return ORDERS.filter(o=>o.status!=='キャンセル'&&o.act.shipAt&&ymd(o.deliver).slice(0,7)===IV.ym)}
+function ivOrdersOf(c){return ivOrders().filter(o=>o.cust===c).sort((a,b)=>a.deliver-b.deliver||a.no.localeCompare(b.no))}
+function ivCusts(){const s=new Set(ivOrders().map(o=>o.cust));return CUST.filter(c=>s.has(c.code)).sort((a,b)=>a.name.localeCompare(b.name,'ja'))}
+function ivSt(o,l){const k=ivK(o.no,l.gyo);if(!IV.P[k]){const u0=ivDefUnit(l);const lp=(IV.data&&IV.data.last)||{};let hit=null;
+    for(const u of [u0,...ivUnits(l)]){const x=lp[o.cust+'|'+ivName(l)+'|'+u];if(x){hit={u,p:String(x.price),r:x.rate||ivDefRate(l),pre:true};break}}
+    IV.P[k]=hit||{u:u0,p:'',r:ivDefRate(l)}}return IV.P[k]}
+function ivCalc(c){let s8=0,s10=0,miss=0,n=0;const rows=[];
+  ivOrdersOf(c).forEach(o=>{o.lines.forEach(l=>{const st=ivSt(o,l);const q=ivQty(l,st.u);n++;const p=st.p===''?null:Number(st.p);if(p===null)miss++;const a=p===null?0:Math.floor(q*p);if(st.r===10)s10+=a;else s8+=a;rows.push({o,l,st,q,p,a})});
+    const f=Number(IV.FEE[o.no]||0);s10+=f;const dc=IV.DISC[o.no];if(dc&&dc.a){if(dc.r===10)s10-=dc.a;else s8-=dc.a}});
+  const fd=IV.FIN[c];if(fd&&fd.a){if(fd.r===10)s10-=fd.a;else s8-=fd.a}
+  const t8=Math.floor(s8*0.08),t10=Math.floor(s10*0.10);return {rows,s8,s10,t8,t10,total:s8+t8+s10+t10,miss,n}}
+function ivStatus(c){const h=IV.heads[c];if(h&&h['状態']==='発行済')return ['i','発行済'];const v=ivCalc(c);if(v.miss===v.n&&!(h))return ['n','未入力'];if(v.miss)return ['p','入力中 残り'+v.miss];return ['d','入力済']}
+function ivItems(c){const it=[];ivOrdersOf(c).forEach(o=>{o.lines.forEach(l=>{const st=ivSt(o,l);it.push({NO:o.no,'行':l.gyo,'種類':'明細','品名':ivName(l),'単位':st.u,'単価':st.p===''?'':Number(st.p),'税率':st.r})});
+    if(IV.FEE[o.no])it.push({NO:o.no,'種類':'送料','金額':Number(IV.FEE[o.no]),'税率':10});
+    const dc=IV.DISC[o.no];if(dc&&dc.a)it.push({NO:o.no,'種類':'値引き','金額':dc.a,'税率':dc.r});
+    if(IV.MEMO[o.no])it.push({NO:o.no,'種類':'文言','文言':IV.MEMO[o.no]})});return it}
+const ivFinal=c=>{const f=IV.FIN[c];return f&&f.a?{a:f.a,r:f.r,t:f.t||''}:{}};
+async function ivLoad(){busy(true);try{IV.data=await api('invoiceLoad',{ym:IV.ym});
+    IV.P={};IV.FEE={};IV.DISC={};IV.MEMO={};IV.FIN={};IV.heads={};
+    IV.data.inputs.forEach(r=>{const k=String(r['種類']);const no=String(r.NO);
+      if(k==='明細')IV.P[ivK(no,r['行'])]={u:String(r['単位']||'箱'),p:r['単価']===''||r['単価']==null?'':String(r['単価']),r:Number(r['税率'])===10?10:8};
+      else if(k==='送料')IV.FEE[no]=Number(r['金額'])||0;else if(k==='値引き')IV.DISC[no]={a:Number(r['金額'])||0,r:Number(r['税率'])===10?10:8};else if(k==='文言')IV.MEMO[no]=String(r['文言']||'')});
+    IV.data.heads.forEach(h=>{IV.heads[String(h['顧客コード'])]=h;if(Number(h['最終値引き']))IV.FIN[String(h['顧客コード'])]={a:Number(h['最終値引き']),r:Number(h['最終値引き税率'])===10?10:8,t:String(h['最終値引き文言']||'')}});
+  }catch(e){errBar('請求の読み込みに失敗：'+e.message);IV.data=null}finally{busy(false)}renderInv()}
+function ivQueue(c){IV.dirty[c]=1;clearTimeout(IV.timer[c]);IV.timer[c]=setTimeout(()=>ivSave(c),1200);$('ivSaveSt')&&($('ivSaveSt').textContent='保存待ち…')}
+async function ivSave(c){if(!IV.dirty[c])return;delete IV.dirty[c];const el=$('ivSaveSt');if(el)el.textContent='保存中…';
+  try{await api('invoiceSave',{ym:IV.ym,cust:c,items:ivItems(c),final:ivFinal(c)});if(!IV.heads[c])IV.heads[c]={'状態':'下書き'};if($('ivSaveSt')&&IV.sel===c)$('ivSaveSt').textContent='保存しました '+new Date().toTimeString().slice(0,5)}
+  catch(e){IV.dirty[c]=1;errBar('請求の下書きを保存できませんでした：'+e.message);if($('ivSaveSt'))$('ivSaveSt').textContent='保存できていません'}}
+function renderInv(){
+  if(!ivAllowed()){$('ivMain').innerHTML='<div class="card"><span class="dim">請求は設定「請求タブ_使える人」に入っている人だけが使えます。</span></div>';return}
+  const sel=$('ivYm');if(!sel.options.length){const t=new Date(TODAY.getFullYear(),TODAY.getMonth(),1);sel.innerHTML=[0,1,2].map(i=>{const d=new Date(t.getFullYear(),t.getMonth()-i,1);const v=`${d.getFullYear()}-${pad(d.getMonth()+1)}`;return `<option value="${v}">${d.getFullYear()}年${d.getMonth()+1}月分</option>`}).join('');IV.ym=sel.value}
+  if(!IV.data||IV.data.ym!==IV.ym){if(!IV.loading){IV.loading=true;ivLoad().finally(()=>IV.loading=false)}$('ivMain').innerHTML='<div class="card"><span class="dim">読み込み中…</span></div>';return}
+  const cs=ivCusts();if(!cs.some(c=>c.code===IV.sel))IV.sel=cs[0]?cs[0].code:null;
+  const q=($('ivQ')&&$('ivQ').value||'').trim();
+  const iss=cs.filter(c=>(IV.heads[c.code]||{})['状態']==='発行済').length,ready=cs.filter(c=>(IV.heads[c.code]||{})['状態']!=='発行済'&&ivCalc(c.code).miss===0).length;
+  $('ivProg').textContent=`対象 ${cs.length}社　発行済 ${iss}・入力済 ${ready}・未完了 ${cs.length-iss-ready}`;
+  const listHtml=cs.filter(c=>!q||c.name.includes(q)).map(c=>{const [k,t]=ivStatus(c.code);return `<button class="iv-ci ${c.code===IV.sel?'on':''}" data-ivc="${c.code}"><span><b>${esc(c.name)}</b><small>${c.code}　${ivOrdersOf(c.code).length}回の納品</small></span><span class="iv-st ${k}">${t}</span></button>`}).join('')||'<span class="dim">この月の出荷はありません</span>';
+  const keepQ=q;$('ivMain').innerHTML=`<div class="iv-main"><div class="card"><div class="row" style="gap:8px;margin-bottom:8px"><b>顧客</b><input id="ivQ" placeholder="名前で絞り込み" style="flex:1;min-width:0" value="${esc(keepQ)}"></div><div class="iv-clist">${listHtml}</div></div>
+    <div style="display:grid;gap:12px;min-width:0"><div class="card" id="ivEdit"></div><div class="iv-sheetw"><div class="iv-sheet" id="ivSheet"></div></div></div></div>`;
+  $('ivQ').oninput=()=>{const p=$('ivQ').selectionStart;renderInv();const x=$('ivQ');x.focus();x.setSelectionRange(p,p)};
+  $('ivMain').querySelector('.iv-clist').onclick=e=>{const b=e.target.closest('[data-ivc]');if(b){if(IV.sel&&IV.dirty[IV.sel])ivSave(IV.sel);IV.sel=b.dataset.ivc;renderInv()}};
+  ivRenderEdit();ivRenderSheet();
+}
+function ivRenderEdit(){const c=CUST.find(x=>x.code===IV.sel);if(!c){$('ivEdit').innerHTML='<span class="dim">左から顧客を選んでください</span>';return}
+  const v=ivCalc(c.code);const os=ivOrdersOf(c.code);const h=IV.heads[c.code]||{};const done=h['状態']==='発行済';const dis=done?'disabled':'';const fin=IV.FIN[c.code]||{};
+  $('ivEdit').innerHTML=`<div class="row" style="gap:10px;flex-wrap:wrap"><b style="font-size:16px">${esc(c.name)}</b><span class="dim">${c.code}　請求書番号 ${ivNo(c.code)}</span><span class="dim" id="ivSaveSt"></span><span style="margin-left:auto" class="row" style="gap:6px"><span class="iv-tx t8">8%</span><span class="dim">食品</span><span class="iv-tx t10">10%</span><span class="dim">送料など</span></span></div>
+  ${done?`<div class="iv-ok">発行済み（${esc(String(h['発行日時']||'').replace('T',' ').slice(0,16))} ${esc(h['発行者']||'')}）。直すときは「発行を取り消す」を押してから。${h['PDF']?`　<a href="${esc(h['PDF'])}" target="_blank" rel="noopener">PDFを開く</a>`:''}</div>`:''}
+  ${os.map(o=>`<div class="iv-ord"><div class="iv-oh"><b>③納品 ${mdw(o.deliver)}</b><span class="dim">${o.no}　${esc(o.status)}</span></div><div class="tw"><table class="iv-in"><tr><th>品名</th><th class="r">数量</th><th>単位</th><th class="r">単価（税抜）</th><th class="r">金額（税抜）</th><th>税率</th></tr>
+   ${o.lines.map(l=>{const st=ivSt(o,l);const q=ivQty(l,st.u);const us=ivUnits(l);const k=ivK(o.no,l.gyo);const a=st.p===''?'':ivYen(Math.floor(q*Number(st.p)));
+     return `<tr><td>${esc(ivName(l))}<div class="dim">${fmt(l.qty)} ${esc(l.unit)}${l.boxes?'・'+l.boxes+'箱':''}</div></td><td class="r"><b>${fmt(q)}</b> ${st.u}</td>
+     <td><select data-ivu="${k}" ${dis}>${(us.length?us:['箱','袋','kg']).map(u=>`<option ${u===st.u?'selected':''}>${u}</option>`).join('')}</select></td>
+     <td class="r">¥ <input class="iv-pin ${st.p===''?'miss':st.pre?'pre':''}" inputmode="numeric" data-ivp="${k}" value="${esc(st.p)}" placeholder="未入力" ${dis}> /${st.u}${st.pre&&st.p!==''?'<div class="dim">前回の単価</div>':''}</td><td class="r">${a||'—'}</td>
+     <td><select data-ivr="${k}" ${dis}><option value="8" ${st.r!==10?'selected':''}>8%</option><option value="10" ${st.r===10?'selected':''}>10%</option></select></td></tr>`}).join('')}
+   <tr class="iv-fee"><td>送料<div class="dim">この注文1回分</div></td><td></td><td></td><td class="r">¥ <input class="iv-pin" inputmode="numeric" data-ivf="${o.no}" value="${IV.FEE[o.no]||''}" placeholder="0" ${dis}></td><td class="r">${IV.FEE[o.no]?ivYen(IV.FEE[o.no]):'—'}</td><td><span class="iv-tx t10">10%</span></td></tr>
+   <tr class="iv-disc"><td>値引き<div class="dim">あるときだけ・税抜</div></td><td></td><td><select data-ivdr="${o.no}" ${dis}><option value="8" ${(IV.DISC[o.no]||{}).r!==10?'selected':''}>8%分</option><option value="10" ${(IV.DISC[o.no]||{}).r===10?'selected':''}>10%分</option></select></td><td class="r">−¥ <input class="iv-pin" inputmode="numeric" data-ivd="${o.no}" value="${(IV.DISC[o.no]||{}).a||''}" placeholder="0" ${dis}></td><td class="r">${(IV.DISC[o.no]||{}).a?ivYen(-IV.DISC[o.no].a):'—'}</td><td></td></tr>
+   <tr class="iv-memo"><td>文言<div class="dim">空欄なら載せない</div></td><td colspan="5"><input data-ivm="${o.no}" value="${esc(IV.MEMO[o.no]||'')}" placeholder="例：店舗名、発注番号、イベント分 など" style="width:100%" ${dis}></td></tr>
+   </table></div></div>`).join('')}
+  <div class="iv-ord" style="border-color:var(--accent-line)"><div class="iv-oh" style="background:var(--accent-soft)"><b>最終値引き（請求書全体）</b><span class="dim">あるときだけ。明細の最後に1行で載る</span></div><div class="tw"><table class="iv-in"><tr class="iv-disc"><td><input data-ivft value="${esc(fin.t||'')}" placeholder="文言（例：端数値引き）" style="width:100%" ${dis}></td><td><select data-ivfr ${dis}><option value="8" ${fin.r!==10?'selected':''}>8%分</option><option value="10" ${fin.r===10?'selected':''}>10%分</option></select></td><td class="r">−¥ <input class="iv-pin" inputmode="numeric" data-ivfa value="${fin.a||''}" placeholder="0" ${dis}></td><td class="r">${fin.a?ivYen(-fin.a):'—'}</td></tr></table></div></div>
+  <div class="iv-sum"><div class="iv-sb"><small>8%対象（税抜）</small><b>${ivYen(v.s8)}</b></div><div class="iv-sb"><small>消費税 8%</small><b>${ivYen(v.t8)}</b></div><div class="iv-sb"><small>10%対象（税抜）</small><b>${ivYen(v.s10)}</b></div><div class="iv-sb"><small>消費税 10%</small><b>${ivYen(v.t10)}</b></div><div class="iv-sb tot"><small>ご請求額（税込）</small><b>${ivYen(v.total)}</b></div></div>
+  <div id="ivAct" style="margin-top:10px">${done?`<button class="btn" id="ivUn">発行を取り消す</button>`:v.miss?`<div class="iv-warn">単価が未入力の明細が <b>${v.miss}件</b> あります。すべて入れると PDF を発行できます。</div>`:`<div class="row" style="gap:10px"><button class="btn pri" id="ivIssue">PDFを発行（${ivYen(v.total)}）</button><span class="dim">発行すると Google ドライブ「受発注管理_請求書/${IV.ym}」に保存されます</span></div>`}</div>`;
+  ivBind(c.code);
+}
+function ivBind(c){const E=$('ivEdit');const upd=()=>{ivQueue(c);ivRenderEdit();ivRenderSheet();ivRenderListOnly()};
+  E.querySelectorAll('[data-ivu]').forEach(s=>s.onchange=()=>{const st=IV.P[s.dataset.ivu];st.u=s.value;st.pre=false;upd()});
+  E.querySelectorAll('[data-ivr]').forEach(s=>s.onchange=()=>{IV.P[s.dataset.ivr].r=Number(s.value);upd()});
+  E.querySelectorAll('[data-ivp]').forEach(inp=>inp.onchange=()=>{const k=inp.dataset.ivp;const v=inp.value.replace(/[^\d.]/g,'');const st=IV.P[k];st.p=v;st.pre=false;
+    if(v!==''){const [no]=k.split('|');const o=ORDERS.find(x=>x.no===no);const l=o.lines.find(x=>ivK(no,x.gyo)===k);const nm=ivName(l);
+      ivOrdersOf(c).forEach(o2=>o2.lines.forEach(l2=>{const s2=ivSt(o2,l2);if(s2.p===''&&ivName(l2)===nm&&s2.u===st.u)s2.p=v}))}
+    upd();const all=[...$('ivEdit').querySelectorAll('[data-ivp]')];const i=all.findIndex(x=>x.dataset.ivp===k);const nx=all.slice(i+1).find(x=>x.value==='');if(nx)nx.focus()});
+  E.querySelectorAll('[data-ivf]').forEach(inp=>inp.onchange=()=>{const v=inp.value.replace(/[^\d]/g,'');if(!v||v==='0')delete IV.FEE[inp.dataset.ivf];else IV.FEE[inp.dataset.ivf]=Number(v);upd()});
+  E.querySelectorAll('[data-ivd]').forEach(inp=>inp.onchange=()=>{const no=inp.dataset.ivd;const v=inp.value.replace(/[^\d]/g,'');const r=(IV.DISC[no]||{}).r||8;if(!v||v==='0')delete IV.DISC[no];else IV.DISC[no]={a:Number(v),r};upd()});
+  E.querySelectorAll('[data-ivdr]').forEach(s=>s.onchange=()=>{const no=s.dataset.ivdr;IV.DISC[no]=Object.assign({a:0},IV.DISC[no]||{},{r:Number(s.value)});upd()});
+  E.querySelectorAll('[data-ivm]').forEach(inp=>inp.onchange=()=>{const v=inp.value.trim();if(v)IV.MEMO[inp.dataset.ivm]=v;else delete IV.MEMO[inp.dataset.ivm];upd()});
+  const fo=()=>IV.FIN[c]=IV.FIN[c]||{a:0,r:8,t:''};
+  const fa=E.querySelector('[data-ivfa]'),fr=E.querySelector('[data-ivfr]'),ft=E.querySelector('[data-ivft]');
+  if(fa)fa.onchange=()=>{fo().a=Number(fa.value.replace(/[^\d]/g,''))||0;upd()};if(fr)fr.onchange=()=>{fo().r=Number(fr.value);upd()};if(ft)ft.onchange=()=>{fo().t=ft.value.trim();upd()};
+  if($('ivIssue'))$('ivIssue').onclick=()=>ivConfirmIssue(c);
+  if($('ivUn'))$('ivUn').onclick=async()=>{busy(true);try{await api('invoiceUnissue',{ym:IV.ym,cust:c});IV.heads[c]=Object.assign({},IV.heads[c],{'状態':'下書き'});toast('発行を取り消しました（作ったPDFはドライブに残っています）')}catch(e){errBar('取り消せませんでした：'+e.message)}finally{busy(false)}renderInv()};
+}
+function ivConfirmIssue(c){const v=ivCalc(c);const cu=CUST.find(x=>x.code===c);
+  $('ivAct').innerHTML=`<div class="iv-warn" style="color:var(--ink)"><b>${esc(cu.name)}</b> の ${IV.ym.replace('-','年')}月分の請求書を発行します。ご請求額 <b>${ivYen(v.total)}</b>（8%対象 ${ivYen(v.s8)}・10%対象 ${ivYen(v.s10)}）。発行したあとは、取り消すまで直せません。</div>
+  <div class="row" style="gap:8px;margin-top:8px"><button class="btn pri" id="ivGo">発行する</button><button class="btn" id="ivBack">やめる</button></div>`;
+  $('ivBack').onclick=()=>ivRenderEdit();
+  $('ivGo').onclick=async()=>{clearTimeout(IV.timer[c]);delete IV.dirty[c];busy(true);
+    try{const r=await api('invoiceIssue',{ym:IV.ym,cust:c,items:ivItems(c),final:ivFinal(c)});
+      if(r.total!==v.total)errBar(`画面の合計（${ivYen(v.total)}）とサーバーの計算（${ivYen(r.total)}）が違います。PDFを確かめてください`);
+      IV.heads[c]=Object.assign({},IV.heads[c],{'状態':'発行済','PDF':r.url,'発行日時':r.issuedAt,'発行者':ME});toast('発行しました');}
+    catch(e){errBar('発行できませんでした：'+e.message)}finally{busy(false)}renderInv()}}
+function ivRenderListOnly(){const box=$('ivMain').querySelector('.iv-clist');if(!box)return;box.querySelectorAll('[data-ivc]').forEach(b=>{const [k,t]=ivStatus(b.dataset.ivc);const s=b.querySelector('.iv-st');s.className='iv-st '+k;s.textContent=t})}
+function ivRenderSheet(){const c=CUST.find(x=>x.code===IV.sel);if(!c){$('ivSheet').innerHTML='';return}const v=ivCalc(c.code);
+  const [y,m]=IV.ym.split('-').map(Number);const last=new Date(y,m,0),due=new Date(y,m+1,0);const jd=d=>`${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`;
+  const body=[];ivOrdersOf(c.code).forEach(o=>{v.rows.filter(r=>r.o===o).forEach(r=>body.push(`<tr><td>${md(o.deliver)}</td><td>${esc(ivName(r.l))}${r.st.r===8?'　※':''}</td><td class="n">${fmt(r.q)} ${r.st.u}</td><td class="n">${r.p===null?'':fmt(r.p)}</td><td class="n">${r.p===null?'':fmt(r.a)}</td></tr>`));
+    const f=Number(IV.FEE[o.no]||0);if(f)body.push(`<tr><td>${md(o.deliver)}</td><td>送料（${md(o.deliver)}納品分）</td><td class="n">1 回</td><td class="n">${fmt(f)}</td><td class="n">${fmt(f)}</td></tr>`);
+    const dc=IV.DISC[o.no];if(dc&&dc.a)body.push(`<tr><td>${md(o.deliver)}</td><td>値引き（${md(o.deliver)}納品分）${dc.r===10?'':'　※'}</td><td></td><td></td><td class="n">−${fmt(dc.a)}</td></tr>`);
+    if(IV.MEMO[o.no])body.push(`<tr class="mm"><td></td><td colspan="4">${esc(IV.MEMO[o.no])}</td></tr>`)});
+  const fd=IV.FIN[c.code];if(fd&&fd.a)body.push(`<tr><td></td><td><b>${esc(fd.t||'お値引き')}</b>${fd.r===10?'':'　※'}</td><td></td><td></td><td class="n"><b>−${fmt(fd.a)}</b></td></tr>`);
+  $('ivSheet').innerHTML=`<div class="iv-h1">請求書</div><div class="iv-top"><div><div class="iv-to">${esc(c.name)}　御中</div>${c.zip||c.addr?`<div style="font-size:9pt">${c.zip?'〒'+esc(c.zip)+'　':''}${esc(c.addr)}</div>`:''}
+    <div class="iv-meta"><span>請求書番号</span><span>${ivNo(c.code)}</span><span>発行日</span><span>${jd(last)}</span><span>対象期間</span><span>${m}月1日〜${m}月${last.getDate()}日 納品分</span><span>お支払期限</span><span>${jd(due)}</span></div></div>
+    <div class="iv-from"><b>株式会社 オオサカポテト</b><br>〒581-0010<br>大阪府八尾市都塚北2-12<br>登録番号　T8122001038883<div class="dim" style="font-size:8pt;margin-top:2mm">（角印はPDFで重なります）</div></div></div>
+   <p style="margin:6mm 0 0">下記のとおりご請求申し上げます。</p><div class="iv-amount"><span>ご請求金額（税込）</span><b>${ivYen(v.total)}</b></div>
+   <table class="iv-lines"><thead><tr><th style="width:15mm">納品日</th><th>品名</th><th style="width:24mm">数量</th><th style="width:22mm">単価</th><th style="width:26mm">金額（税抜）</th></tr></thead><tbody>${body.join('')}</tbody></table>
+   <div class="iv-ssum"><div style="font-size:8.5pt">※印は軽減税率（8%）対象です。<br>送料は標準税率（10%）です。<br>値引きは各税率の小計から差し引いています。</div>
+    <table class="iv-sumt"><tr><td>8%対象 小計（税抜）</td><td class="n">${ivYen(v.s8)}</td></tr><tr><td>消費税（8%）</td><td class="n">${ivYen(v.t8)}</td></tr><tr><td>10%対象 小計（税抜）</td><td class="n">${ivYen(v.s10)}</td></tr><tr><td>消費税（10%）</td><td class="n">${ivYen(v.t10)}</td></tr><tr class="tot"><td>ご請求金額（税込）</td><td class="n">${ivYen(v.total)}</td></tr></table></div>
+   <div class="iv-bank"><b>お振込先</b><br><span class="dim">（PDFでは、設定シートの「請求_振込先」の内容が入ります）</span></div>`}
+$('ivYm').onchange=()=>{if(IV.sel&&IV.dirty[IV.sel])ivSave(IV.sel);IV.ym=$('ivYm').value;IV.data=null;renderInv()};
+window.addEventListener('beforeunload',e=>{if(Object.keys(IV.dirty).length){e.preventDefault();e.returnValue=''}});
 
 /* ===== 起動 ===== */
 $('v-hist').hidden=true;
