@@ -459,6 +459,84 @@ table.iv-in select{width:auto;padding:4px 6px;font-size:13px}
 .iv-lines{width:100%;border-collapse:collapse;font-size:9pt}.iv-lines th{background:#f4f1ec;border:1px solid #bdb6ab;padding:1.3mm 2mm}.iv-lines td{border:1px solid #bdb6ab;padding:1.3mm 2mm;font-variant-numeric:tabular-nums}.iv-lines td.n{text-align:right}.iv-lines tr.mm td{font-size:8.5pt;color:#444;padding-left:5mm}
 .iv-ssum{display:grid;grid-template-columns:1fr 78mm;gap:6mm;margin-top:4mm}.iv-sumt{width:100%;border-collapse:collapse;font-size:9pt}.iv-sumt td{border:1px solid #bdb6ab;padding:1.3mm 2mm}.iv-sumt td.n{text-align:right}.iv-sumt tr.tot td{font-weight:700;background:#f4f1ec}
 .iv-bank{border:1px solid #bdb6ab;padding:3mm 4mm;font-size:9pt;margin-top:6mm}
+
+/* ペースト・ダイスカット（2026/11/1〜） */
+.ksw{display:none;align-items:center;gap:10px;padding:7px 14px;background:var(--paper);border-bottom:1px solid var(--line);flex-wrap:wrap}
+.ksw.show{display:flex}
+.ksw .lb{font-size:12px;color:var(--mute);font-weight:700}
+.ksw .seg button{padding:6px 14px}
+.ksw .seg button.on[data-m="imo"]{background:#c4652f}.ksw .seg button.on[data-m="paste"]{background:#2f6f8f}
+.ksw .hint{font-size:12px;color:var(--mute)}
+body.pm .tab.on{color:#2f6f8f;box-shadow:inset 0 -3px 0 #2f6f8f}
+body.pm #bdWeek,body.pm #bdForm{display:none!important}
+/* 前山さん（マグチフードプロセス）で入ったとき：ペーストのページだけ */
+body.mgonly #grps,body.mgonly #kSw,body.mgonly #askBtn,body.mgonly #gearBtn,body.mgonly .kshare,body.mgonly .mgin{display:none!important}
+.mgnew{display:inline-block;font-size:10.5px;font-weight:800;padding:1px 7px;border-radius:999px;background:#fde7e2;color:#9a4a2e;border:1px solid #f0bfb2;margin-left:4px;white-space:nowrap}
+.mgplan{font-size:11.5px;color:#1f4f7f;font-weight:700}
+.mgflag{background:#fdf1ee;border:1px solid #f0bfb2;color:#7a3a22;border-radius:10px;padding:8px 10px;font-size:12.5px;margin-bottom:8px}
+body:not(.mgonly) .tab[data-t="mghist"]{display:none!important}
+.mgonlytag{display:none;font-size:11px;background:#2f6f8f;color:#fff;border-radius:999px;padding:2px 9px;margin-left:8px;vertical-align:2px}body.mgonly .mgonlytag{display:inline-block}
+.kshare{display:none;font-size:10px;font-weight:800;margin-left:4px;padding:1px 6px;border-radius:999px;background:#e6eef3;color:#2f6f8f;vertical-align:1px}
+body.pm .kshare{display:inline-block}
+.grp[data-g="bill"] .gi{color:#2f6f8f}
+.mgband{background:#e6eef3;border:1px solid #bcd3e0;color:#1f4f66;border-radius:10px;padding:8px 12px;font-size:13px;font-weight:700;margin-bottom:12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.mgband .fz{background:#2f6f8f;color:#fff;border-radius:999px;padding:1px 9px;font-size:11px}
+.mgtab{width:100%;border-collapse:collapse;font-size:13px;background:#fff}
+.mgtab th{font-size:11.5px;color:var(--mute);text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);background:var(--paper2);white-space:nowrap}
+.mgtab td{padding:8px;border-bottom:1px solid var(--line);vertical-align:top}
+.mgtab td.r,.mgtab th.r{text-align:right;white-space:nowrap}
+.mgtab tr[data-mgo]{cursor:pointer}.mgtab tr[data-mgo]:hover td{background:#f7fafc}
+.mgst{display:inline-block;font-size:11px;font-weight:800;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.mgst.s0{background:var(--warn-soft);color:#8a5a12}.mgst.s1{background:var(--ready);color:#6b4d00}.mgst.s2{background:var(--ship);color:#1f4f7f}.mgst.s3{background:var(--deliver);color:var(--ok-ink)}.mgst.x{background:var(--bad-soft);color:var(--bad)}.mgst.pz{background:#e6eef3;color:#2f6f8f}
+.mgit{display:inline-block;font-size:12px;margin:1px 0}
+.mgit i{font-style:normal;font-size:10px;font-weight:800;padding:0 6px;border-radius:4px;margin-right:4px;color:#fff;background:#a0662a}.mgit i.d{background:#6b8f2a}
+.mgkpi{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.mgkpi div{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 12px}
+.mgkpi small{display:block;font-size:11px;color:var(--mute);font-weight:700}.mgkpi b{font-size:20px}.mgkpi span{font-size:11px;color:var(--mute);margin-left:4px}
+.mgwk{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.mgday{background:#fff;border:1px solid var(--line);border-radius:10px;min-height:140px;padding:6px}
+.mgday.today{border-color:#2f6f8f}
+.mgday h5{font-size:12px;margin-bottom:4px;display:flex;justify-content:space-between;gap:4px}
+.mgday .tot{font-size:10.5px;color:var(--mute);font-weight:700}
+.mgcard{border:1px solid #bcd3e0;border-left:4px solid #2f6f8f;border-radius:8px;padding:5px 6px;margin-bottom:5px;font-size:11.5px;background:#f7fafc;cursor:pointer}
+.mgp{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mgpc{border:2px solid var(--line);border-radius:12px;padding:12px;background:var(--paper)}
+.mgpc.on{border-color:#2f6f8f;background:#f3f8fb}
+.mgpc h4{font-size:15px;margin-bottom:2px}
+.mgq{display:grid;grid-template-columns:auto 1fr;gap:8px 12px;align-items:center;margin-top:10px}
+.mgq label{font-size:12px;font-weight:700;color:var(--ink2);white-space:nowrap}
+.mgstp{display:inline-flex;align-items:center;border:1px solid var(--line2);border-radius:10px;overflow:hidden;background:#fff;width:max-content}
+.mgstp button{border:none;background:var(--paper2);width:34px;height:34px;font-size:18px;font-weight:700}
+.mgstp input{width:52px;border:none;border-radius:0;text-align:center;font-size:16px;font-weight:700;padding:4px}
+.mgbara{display:inline-flex;gap:4px;flex-wrap:wrap}
+.mgbara button{white-space:nowrap;border:1px solid var(--line2);background:#fff;border-radius:8px;padding:5px 11px;font-weight:700;font-size:13px;color:#666}
+.mgbara button.on{background:#2f6f8f;border-color:#2f6f8f;color:#fff}
+.mgcalc{margin-top:8px;font-size:12.5px;color:var(--ink2);background:var(--paper2);border-radius:8px;padding:6px 10px}
+.mgfee{display:flex;justify-content:space-between;align-items:center;gap:8px;border-top:1px dashed var(--line2);margin-top:10px;padding-top:8px;font-size:13px}
+.mgci{padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:#fff;cursor:pointer}
+.mgci.on{border-color:#2f6f8f;background:#f3f8fb}
+.mgdo{position:fixed;inset:0;background:rgba(30,25,20,.45);z-index:60;display:flex;justify-content:flex-end}
+.mgds{background:var(--bg);width:min(560px,100%);height:100%;overflow:auto;padding:16px;padding-bottom:40px;box-shadow:-4px 0 20px rgba(0,0,0,.2)}
+.mgdh{display:flex;gap:10px;align-items:center;margin-bottom:12px;font-size:16px;flex-wrap:wrap}
+.mgsteps{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:12px}
+.mgstp2{background:#fff;border:1px solid var(--line);border-radius:10px;padding:6px 4px;text-align:center;font-size:12px;font-weight:700;color:var(--mute)}
+.mgstp2 i{display:inline-block;width:20px;height:20px;border-radius:50%;background:var(--line);color:#fff;font-style:normal;line-height:20px;margin-bottom:2px}
+.mgstp2 span{display:block}.mgstp2 small{display:block;font-size:10px;font-weight:500;min-height:13px}
+.mgstp2.done{color:var(--ok-ink);border-color:#cfe3c5;background:var(--ok-soft)}.mgstp2.done i{background:var(--ok)}
+.mgstp2.cur{color:#2f6f8f;border:2px solid #2f6f8f}.mgstp2.cur i{background:#2f6f8f}
+.mgstp2.x{opacity:.45}
+.mggrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px}
+.mggrid div{background:#fff;border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:13px;font-weight:700}
+.mggrid small{display:block;font-size:11px;color:var(--mute);font-weight:700}
+.mgact{background:#fff;border:2px solid #bcd3e0;border-radius:12px;padding:12px;margin:10px 0}
+.mgact h4{font-size:14px;margin-bottom:6px;color:#1f4f66}
+.mglog{font-size:12px;background:var(--paper2);border-radius:8px;padding:8px 10px;margin-bottom:10px;line-height:1.8}
+.mgft{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.iv-sec{margin-top:14px;padding:6px 10px;border-radius:8px;background:var(--head);color:#fff;font-weight:800;font-size:13px}
+.iv-sec.pz{background:#2f6f8f}
+.iv-lines tr.sec td{background:#e9e4da;font-weight:700}
+.iv-lines tr.sub td{font-size:8.5pt;text-align:right}
+@media(max-width:760px){.mgp{grid-template-columns:1fr}.mgwk{grid-template-columns:repeat(2,1fr)}.mgkpi{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
@@ -470,7 +548,7 @@ table.iv-in select{width:auto;padding:4px 6px;font-size:13px}
   <button class="btn acc blk" id="lgOk" style="margin-top:8px">はじめる</button></div></div>
 
 <header class="hd">
-  <h1>🍠 受発注管理</h1>
+  <h1>🍠 受発注管理<span class="mgonlytag">マグチフードプロセス用</span></h1>
   <span class="sp"></span>
   <span class="me" id="userName"></span>
   <span class="dim" id="lastLoad" style="font-size:11px;color:#ddd;margin-right:4px"></span><button class="gear" id="askBtn" aria-haspopup="dialog">？ 質問</button><button class="gear" id="reloadBtn" title="最新のデータを読み直す">↻</button>
@@ -482,14 +560,17 @@ table.iv-in select{width:auto;padding:4px 6px;font-size:13px}
     <button class="grp on" data-g="sales"><span class="gi">●</span>営業・受注<span class="bd" id="bdGsales" hidden></span></button>
     <button class="grp" data-g="ops"><span class="gi">●</span>流通・出荷作業<span class="bd" id="bdGops" hidden></span></button>
     <button class="grp" data-g="hist"><span class="gi">●</span>履歴・集計</button>
+    <button class="grp" data-g="bill" id="grpBill" hidden><span class="gi">●</span>請求</button>
   </div>
+  <div class="ksw" id="kSw"><span class="lb">受注の種類</span><span class="seg"><button class="on" data-m="imo">さつまいも</button><button data-m="paste">ペースト・ダイスカット<span class="bd" id="bdMg" hidden></span></button></span><span class="hint">顧客は共通／請求は上の「請求」へ</span></div>
   <div class="tabs" id="tabs">
   <button class="tab on" data-t="list" data-g="sales">一覧</button>
   <button class="tab" data-t="week" data-g="sales">週間<span class="bd" id="bdWeek" hidden></span></button>
   <button class="tab" data-t="new" data-g="sales">登録</button>
   <button class="tab" data-t="form" data-g="sales">フォーム受付<span class="bd" id="bdForm" hidden></span></button>
-  <button class="tab" data-t="cust" data-g="sales">顧客</button>
-  <button class="tab" data-t="inv" data-g="sales" id="tabInv" hidden>請求</button>
+  <button class="tab" data-t="cust" data-g="sales">顧客<span class="kshare">共通</span></button>
+  <button class="tab" data-t="mghist" data-g="sales">履歴</button>
+  <button class="tab" data-t="inv" data-g="bill" id="tabInv" hidden>請求</button>
   <button class="tab" data-t="shift" data-g="ops">シフト</button>
   <button class="tab" data-t="bag" data-g="ops">袋詰</button>
   <button class="tab" data-t="wash" data-g="ops">洗浄</button>
@@ -609,6 +690,8 @@ table.iv-in select{width:auto;padding:4px 6px;font-size:13px}
   </div>
 </main>
 
+<main class="wrap" id="v-mg" hidden></main>
+
 <main class="wrap" id="v-shift" hidden>
   <section class="card sec" id="shToday"></section>
   <div class="wkhead">
@@ -661,6 +744,7 @@ table.iv-in select{width:auto;padding:4px 6px;font-size:13px}
   </section>
 </main>
 <main class="wrap" id="v-hist">
+  <div class="row mb" id="hPmRow"><span class="dim" style="font-weight:700">履歴</span><span class="seg" id="hPm"><button class="on" data-h="imo">さつまいも</button><button data-h="paste">ペースト・ダイスカット</button></span><span class="dim">（両方を同じ表には並べません）</span></div>
   <div class="kpis" id="hQuick"></div>
   <div class="row mb">
     <div class="seg" id="hMode"><button class="on" data-m="orders">受注ごと</button><button data-m="week">週集計</button><button data-m="month">月集計</button></div>
@@ -671,6 +755,7 @@ table.iv-in select{width:auto;padding:4px 6px;font-size:13px}
   </div>
   <div class="row mb" id="hFilterRow"><input type="search" id="hQ" placeholder="顧客名・No.・品目" style="width:220px"><div class="chips" id="hChips"></div></div>
   <div id="hBody"></div>
+  <div id="hMg" hidden></div>
 </main>
 
 <div id="modalHost"></div>
@@ -769,7 +854,7 @@ function build(d){RAW=d;d.recurring=d.recurring||[];d.formInbox=d.formInbox||[];
   ITEMS=d.items.filter(r=>r['有効']!==false&&r['品目名']).sort((a,b)=>(Number(a['表示順'])||99)-(Number(b['表示順'])||99)).map(r=>({cat:r['カテゴリ']||'青果',name:String(r['品目名']),sizes:splitPipe(r['規格候補']),bagSizes:splitPipe(r['袋詰本数候補']),
     packs:splitPipe(r['荷姿候補']).map(x=>{const p=x.split(':').map(v=>v.trim());const per=p[2]!==undefined&&p[2]!==''?Number(p[2]):'';return {n:p[0],u:p[1]||'kg',per,bag:/袋詰/.test(p[0]),adj:/袋詰|野菜コンテナ/.test(p[0])}})}));
   ITEMS.forEach(it=>{if(!it.sizes.length)it.sizes=['—'];if(!it.packs.length)it.packs=[{n:'バラ',u:'kg',per:''}]});
-  CUST=d.customers.filter(r=>r['コード']).map(r=>({code:String(r['コード']),name:String(r['顧客名']||''),kind:r['区分']||'',cats:splitPipe(r['カテゴリ']),zip:r['郵便番号']||'',addr1:r['住所1']||'',addr2:r['住所2']||'',addr:[r['住所1'],r['住所2']].filter(Boolean).join(' '),attn:r['宛名']||'',tel:r['電話']||'',mail:r['メール']||'',fax:r['FAX']||'',method:r['配送方法']||'宅配便',carrier:r['標準運送会社']||'',lead:Number(r['配送日数'])||1,hours:r['受入時間']||'',closed:r['受入不可日']||'',pack:r['標準荷姿']||'',active:r['有効']!==false,reg:r['登録区分']||'継続',since:String(r['取引開始']||'').slice(0,7),note:r['備考']||''}));
+  CUST=d.customers.filter(r=>r['コード']).map(r=>({code:String(r['コード']),name:String(r['顧客名']||''),kind:r['区分']||'',cats:splitPipe(r['カテゴリ']),zip:r['郵便番号']||'',addr1:r['住所1']||'',addr2:r['住所2']||'',addr:[r['住所1'],r['住所2']].filter(Boolean).join(' '),attn:r['宛名']||'',tel:r['電話']||'',mail:r['メール']||'',fax:r['FAX']||'',method:r['配送方法']||'宅配便',carrier:r['標準運送会社']||'',lead:Number(r['配送日数'])||1,hours:r['受入時間']||'',closed:r['受入不可日']||'',pack:r['標準荷姿']||'',active:r['有効']!==false,reg:r['登録区分']||'継続',since:String(r['取引開始']||'').slice(0,7),note:r['備考']||'',src:r['登録元']||'',conf:pdt(r['確認日時']),mgLead:r['ペースト配送日数']===''||r['ペースト配送日数']===undefined||r['ペースト配送日数']===null?'':Number(r['ペースト配送日数'])}));
   STAFF=d.staff.filter(r=>r['名前']&&r['有効']!==false).sort((a,b)=>(Number(a['表示順'])||99)-(Number(b['表示順'])||99)).map(r=>({n:String(r['名前']),role:r['区分']||'パート',dow:splitPipe(r['曜日']).map(Number),f:Number(r['開始'])||9,t:Number(r['終了'])||15,brk:Number(r['休憩分'])||0,cnt:Number(r['人数'])||1,wage:(r['時給']===''||r['時給']==='min'||r['時給']===undefined)?'min':Number(r['時給'])}));
   SHIFT={};SHIFT_CHANGED=new Set();d.shifts.forEach(r=>{if(!r['日付']||!r['名前'])return;const k=String(r['日付']).slice(0,10)+'|'+r['名前'];
     if(r['開始']===''||r['開始']===null||r['開始']===undefined)SHIFT[k]=null;else{const v=[Number(r['開始']),Number(r['終了']),Number(r['休憩分'])||0];if(r['人数']!==''&&r['人数']!==null&&r['人数']!==undefined)v.push(Number(r['人数']));SHIFT[k]=v}
@@ -787,6 +872,7 @@ function build(d){RAW=d;d.recurring=d.recurring||[];d.formInbox=d.formInbox||[];
       events:(evBy[r.NO]||[]).map(e=>({t:e['種別']||'',at:pdt(e['日時'])||new Date(),by:e['担当']||'',m:e['内容']||'',late:Number(e['遅れ日数'])||0,plan:pdt(e['予定日'])})).sort((a,b)=>a.at-b.at)};
   });
   REC=d.recurring.filter(r=>r.ID).map(r=>({id:String(r.ID),cust:String(r['顧客コード']),dow:splitPipe(r['曜日']).map(x=>'日月火水木金土'.indexOf(x)).filter(x=>x>=0),item:String(r['品目']||''),size:String(r['規格']||''),pack:PACK_ALIAS[r['荷姿']]||String(r['荷姿']||''),qty:Number(r['数量'])||0,unit:r['単位']||'kg',per:r['入数']===''||r['入数']===undefined?'':Number(r['入数']),method:r['配送方法']||'',carrier:r['運送会社']||'',note:r['申し送り']||'',from:String(r['開始']||'').slice(0,10),to:String(r['終了']||'').slice(0,10),on:r['有効']!==false&&String(r['有効']).toUpperCase()!=='FALSE',by:r['作成者']||''}));
+  buildMg(d);if(MGONLY()){PM='paste';document.body.classList.add('mgonly','pm')}
   $('userName').textContent=ME;if($('tabInv'))$('tabInv').hidden=!ivAllowed();if(typeof TAB!=='undefined'&&TAB)showGroup(tabGroup(TAB));
 }
 
@@ -846,14 +932,15 @@ function weekStats(mon){
 
 /* ===== ナビ ===== */
 let TAB='list';
-const GRP_LAST={sales:'list',ops:'shift',hist:'hist'};
+const GRP_LAST={sales:'list',ops:'shift',hist:'hist',bill:'inv'};
 function tabGroup(t){const b=document.querySelector(`.tab[data-t="${t}"]`);return b?b.dataset.g:'sales'}
-function showGroup(g){document.querySelectorAll('.grp').forEach(b=>b.classList.toggle('on',b.dataset.g===g));let n=0;document.querySelectorAll('.tab').forEach(b=>{const vis=b.dataset.g===g&&!(b.id==='tabInv'&&!ivAllowed());b.style.display=vis?'':'none';if(vis)n++});if(n<=1)$('tabs').setAttribute('data-one','');else $('tabs').removeAttribute('data-one')}
-function switchTab(t){TAB=t;const g=tabGroup(t);GRP_LAST[g]=t;showGroup(g);try{localStorage.setItem('juhatchu_tab',t)}catch(e){}document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t===t));['list','week','new','form','cust','shift','bag','wash','hist','inv'].forEach(v=>$('v-'+v).hidden=v!==t);render()}
+function showGroup(g){document.querySelectorAll('.grp').forEach(b=>b.classList.toggle('on',b.dataset.g===g));let n=0;document.querySelectorAll('.tab').forEach(b=>{let vis=b.dataset.g===g&&!(b.id==='tabInv'&&!ivAllowed());if(vis&&b.dataset.t==='form'&&PM==='paste')vis=false;if(vis&&b.dataset.t==='mghist'&&!MGONLY())vis=false;b.style.display=vis?'':'none';if(vis)n++});if(n<=1)$('tabs').setAttribute('data-one','');else $('tabs').removeAttribute('data-one');
+  $('grpBill').hidden=!ivAllowed();$('kSw').classList.toggle('show',g==='sales')}
+function switchTab(t){if(MGONLY()&&!['list','week','new','cust','mghist'].includes(t))t='list';if(!MGONLY()&&t==='mghist')t='list';TAB=t;const g=tabGroup(t);GRP_LAST[g]=t;showGroup(g);try{localStorage.setItem('juhatchu_tab',t)}catch(e){}document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t===t));['list','week','new','form','cust','shift','bag','wash','hist','inv','mg'].forEach(v=>$('v-'+v).hidden=v!==t);render()}
 $('tabs').addEventListener('click',e=>{const b=e.target.closest('.tab');if(b)switchTab(b.dataset.t)});
 $('grps').addEventListener('click',e=>{const b=e.target.closest('.grp');if(b)switchTab(GRP_LAST[b.dataset.g])});
-function render(){renderBadge();({list:renderList,week:renderWeek,new:renderForm,form:renderInbox,cust:renderCust,shift:renderShift,bag:renderBag,wash:renderWash,hist:renderHist,inv:renderInv})[TAB]()}
-function renderBadge(){const n=ORDERS.filter(o=>o.status==='受注').length;$('bdWeek').hidden=!n;$('bdWeek').textContent=n;const f=fiOpenN();$('bdForm').hidden=!f;$('bdForm').textContent=f;const gs=n+f;$('bdGsales').hidden=!gs||tabGroup(TAB)==='sales';$('bdGsales').textContent=gs}
+function render(){if(PM==='paste'&&tabGroup(TAB)==='sales'&&['list','week','new','cust','mghist'].includes(TAB)){renderBadge();const vv=$('v-'+TAB);if(vv)vv.hidden=true;mgRender();return}$('v-mg').hidden=true;$('v-'+TAB).hidden=false;if(TAB==='hist'){renderBadge();histWithPm();return}renderBadge();({list:renderList,week:renderWeek,new:renderForm,form:renderInbox,cust:renderCust,shift:renderShift,bag:renderBag,wash:renderWash,hist:renderHist,inv:renderInv})[TAB]()}
+function renderBadge(){const n=ORDERS.filter(o=>o.status==='受注').length;$('bdWeek').hidden=!n;$('bdWeek').textContent=n;const f=fiOpenN();$('bdForm').hidden=!f;$('bdForm').textContent=f;const gs=n+f+mgUnseen();{const m=mgUnseen();$('bdMg').hidden=!m;$('bdMg').textContent=m}$('bdGsales').hidden=!gs||tabGroup(TAB)==='sales';$('bdGsales').textContent=gs}
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('on'),2200)}
 
 /* ===== 一覧 ===== */
@@ -2011,20 +2098,22 @@ const IV={ym:'',sel:null,data:null,P:{},FEE:{},FEEPRE:{},DISC:{},MEMO:{},FIN:{},
 const ivAllowed=()=>{const r=(RAW&&RAW.settings||[]).find(x=>String(x['キー'])==='請求タブ_使える人');return String(r?r['値']:'成冨|渡邊').split('|').map(s=>s.trim()).includes(ME)};
 const ivName=l=>[l.item,l.size].filter(Boolean).join(' ')+(l.pack?'　'+l.pack:'');
 const ivBagKg=l=>/350/.test(l.size)?0.35:0.55;
-const ivQty=(l,u)=>u==='箱'?Number(l.boxes)||0:u==='袋'?(l.unit==='袋'?l.qty:0):u==='kg'?(l.unit==='kg'?l.qty:l.unit==='袋'?Math.round(l.qty*ivBagKg(l)*10)/10:0):0;
-const ivUnits=l=>['箱','袋','kg'].filter(u=>ivQty(l,u)>0);
-const ivDefUnit=l=>l.unit==='袋'?'袋':(Number(l.boxes)?'箱':'kg');
+const ivQty=(l,u)=>u==='箱'?Number(l.boxes)||0:u==='袋'?(l.unit==='袋'?l.qty:0):u==='kg'?(l.unit==='kg'?l.qty:l.unit==='袋'?Math.round(l.qty*ivBagKg(l)*10)/10:0):u==='pc'?(l.unit==='pc'?l.qty:0):0;
+const ivUnits=l=>['箱','袋','kg','pc'].filter(u=>ivQty(l,u)>0);
+const ivDefUnit=l=>l.unit==='袋'?'袋':l.unit==='pc'?'pc':(Number(l.boxes)?'箱':'kg');
 const ivDefRate=l=>['焼酎','苗'].includes(l.item)?10:8;
 const ivK=(no,g)=>no+'|'+g;
 const ivYen=n=>(n<0?'−¥':'¥')+fmt(Math.abs(Math.round(n)));
 const ivNo=c=>IV.ym.replace('-','')+'-'+String(c).replace(/-/g,'');
 const ivCar=o=>o.act.carrier||o.carrier||'';
 function ivFlag(o){if(IV.ACK[o.no])return '';const c=ivCar(o),k=carKind(c);if(!c)return '受け渡し（運送会社）が記録されていません';
+  if(o.mg&&k==='運送会社'&&!hasWay(o))return `${c}なのに伝票No.がありません（詳細を開くと入れられます）`;if(o.mg)return '';
   if(k==='運送会社'&&!hasWay(o))return `${c}なのに伝票No.がありません`;
   const pk={'宅配便':'運送会社','自社便':'自社','チャーター':'自社','引取り':'引取り'}[o.method];if(pk&&pk!==k)return `予定は「${o.method}」、発送手配では「${c}」`;return ''}
-function ivFeeOf(o){if(carKind(ivCar(o))==='引取り')return 0;if(IV.FEE[o.no]===undefined){const lp=(IV.data&&IV.data.last)||{};const x=lp['FEE|'+o.cust+'|'+ivCar(o)];if(x){IV.FEE[o.no]=x.price;IV.FEEPRE[o.no]=1}}return IV.FEE[o.no]}
-function ivOrders(){return ORDERS.filter(o=>o.status!=='キャンセル'&&o.act.shipAt&&ymd(o.deliver).slice(0,7)===IV.ym)}
-function ivOrdersOf(c){return ivOrders().filter(o=>o.cust===c).sort((a,b)=>a.deliver-b.deliver||a.no.localeCompare(b.no))}
+function ivFeeOf(o){if(carKind(ivCar(o))==='引取り')return 0;if(o.mg&&IV.FEE[o.no]===undefined){const f=mgFee(o.mg);if(f){IV.FEE[o.no]=f;IV.FEEPRE[o.no]='auto'}return IV.FEE[o.no]}if(IV.FEE[o.no]===undefined){const lp=(IV.data&&IV.data.last)||{};const x=lp['FEE|'+o.cust+'|'+ivCar(o)];if(x){IV.FEE[o.no]=x.price;IV.FEEPRE[o.no]=1}}return IV.FEE[o.no]}
+function ivOrders(){return ORDERS.filter(o=>o.status!=='キャンセル'&&o.act.shipAt&&ymd(o.deliver).slice(0,7)===IV.ym).concat(mgInvOrders())}
+const ivSecN=o=>o.sec==='paste'?1:0;// 欄：青果が先、ペーストがあと
+function ivOrdersOf(c){return ivOrders().filter(o=>o.cust===c).sort((a,b)=>ivSecN(a)-ivSecN(b)||a.deliver-b.deliver||a.no.localeCompare(b.no))}
 function ivCusts(){const s=new Set(ivOrders().map(o=>o.cust));return CUST.filter(c=>s.has(c.code)).sort((a,b)=>a.name.localeCompare(b.name,'ja'))}
 function ivSt(o,l){const k=ivK(o.no,l.gyo);if(!IV.P[k]){const u0=ivDefUnit(l);const lp=(IV.data&&IV.data.last)||{};let hit=null;
     for(const u of [u0,...ivUnits(l)]){const x=lp[o.cust+'|'+ivName(l)+'|'+u];if(x){hit={u,p:String(x.price),r:x.rate||ivDefRate(l),pre:true};break}}
@@ -2071,8 +2160,8 @@ function ivRenderEdit(){const c=CUST.find(x=>x.code===IV.sel);if(!c){$('ivEdit')
   const v=ivCalc(c.code);const os=ivOrdersOf(c.code);const h=IV.heads[c.code]||{};const done=h['状態']==='発行済';const dis=done?'disabled':'';const fin=IV.FIN[c.code]||{};
   $('ivEdit').innerHTML=`<div class="row" style="gap:10px;flex-wrap:wrap"><b style="font-size:16px">${esc(c.name)}</b><span class="dim">${c.code}　請求書番号 ${ivNo(c.code)}</span><span class="dim" id="ivSaveSt"></span><span style="margin-left:auto" class="row" style="gap:6px"><span class="iv-tx t8">8%</span><span class="dim">食品</span><span class="iv-tx t10">10%</span><span class="dim">送料など</span></span></div>
   ${done?`<div class="iv-ok">発行済み（${esc(String(h['発行日時']||'').replace('T',' ').slice(0,16))} ${esc(h['発行者']||'')}）。直すときは「発行を取り消す」を押してから。${h['PDF']?`　<a href="${esc(h['PDF'])}" target="_blank" rel="noopener">PDFを開く</a>`:''}</div>`:''}
-  ${os.map(o=>{const fl=ivFlag(o),ck=carKind(ivCar(o));return `<div class="iv-ord" ${fl?'style="border-color:var(--bad)"':''}><div class="iv-oh"><b>③納品 ${mdw(o.deliver)}</b><span class="dim">${o.no}　${esc(o.status)}</span><span class="dim">受け渡し</span><span class="iv-hand ${ck==='引取り'?'k':fl?'x':''}">${shipTxt(o)}</span>${IV.ACK[o.no]?'<span class="dim">（記録どおりと確認済み）</span>':''}</div>
-   ${fl&&!done?`<div class="iv-fix">⚠ ${esc(fl)}。実際の受け渡しを選んでください：<select data-ivfix="${o.no}">${carOpts('','選ぶ')}</select><button class="btn sm" data-ivack="${o.no}">記録どおりで正しい</button></div>`:''}
+  ${os.map((o,oi)=>{const fl=ivFlag(o),ck=carKind(ivCar(o));const both=os.some(x=>x.sec==='paste')&&os.some(x=>x.sec!=='paste');const sh=both&&(oi===0||ivSecN(os[oi-1])!==ivSecN(o))?`<div class="iv-sec ${o.sec==='paste'?'pz':''}">${IV_SEC[o.sec||'imo']}</div>`:'';return sh+`<div class="iv-ord" ${fl?'style="border-color:var(--bad)"':''}><div class="iv-oh"><b>③納品 ${mdw(o.deliver)}</b><span class="dim">${o.no}　${esc(o.status)}</span><span class="dim">受け渡し</span><span class="iv-hand ${ck==='引取り'?'k':fl?'x':''}">${shipTxt(o)}</span>${IV.ACK[o.no]?'<span class="dim">（記録どおりと確認済み）</span>':''}</div>
+   ${fl&&!done?(o.mg?`<div class="iv-fix">⚠ ${esc(fl)}<button class="btn sm" data-mgo="${o.no}">詳細を開く</button><button class="btn sm" data-ivack="${o.no}">記録どおりで正しい</button></div>`:`<div class="iv-fix">⚠ ${esc(fl)}。実際の受け渡しを選んでください：<select data-ivfix="${o.no}">${carOpts('','選ぶ')}</select><button class="btn sm" data-ivack="${o.no}">記録どおりで正しい</button></div>`):''}
    <div class="tw"><table class="iv-in"><tr><th>品名</th><th class="r">数量</th><th>単位</th><th class="r">単価（税抜）</th><th class="r">金額（税抜）</th><th>税率</th></tr>
    ${o.lines.map(l=>{const st=ivSt(o,l);const q=ivQty(l,st.u);const us=ivUnits(l);const k=ivK(o.no,l.gyo);const a=st.p===''?'':ivYen(Math.floor(q*Number(st.p)));
      return `<tr><td>${esc(ivName(l))}<div class="dim">${fmt(l.qty)} ${esc(l.unit)}${l.boxes?'・'+l.boxes+'箱':''}</div></td><td class="r"><b>${fmt(q)}</b> ${st.u}</td>
@@ -2080,7 +2169,7 @@ function ivRenderEdit(){const c=CUST.find(x=>x.code===IV.sel);if(!c){$('ivEdit')
      <td class="r">¥ <input class="iv-pin ${st.p===''?'miss':st.pre?'pre':''}" inputmode="numeric" data-ivp="${k}" value="${esc(st.p)}" placeholder="未入力" ${dis}> /${st.u}${st.pre&&st.p!==''?'<div class="dim">前回の単価</div>':''}</td><td class="r">${a||'—'}</td>
      <td><select data-ivr="${k}" ${dis}><option value="8" ${st.r!==10?'selected':''}>8%</option><option value="10" ${st.r===10?'selected':''}>10%</option></select></td></tr>`}).join('')}
    ${ck==='引取り'?`<tr class="iv-fee" style="opacity:.75"><td>送料</td><td colspan="4" class="r">引取りのため送料なし（0円）</td><td><span class="iv-tx t10">10%</span></td></tr>`
-    :(()=>{const fv=ivFeeOf(o);const none=fv===0&&!IV.FEEPRE[o.no];return `<tr class="iv-fee" ${fv===undefined?'style="outline:2px solid #e3c78e;outline-offset:-2px"':''}><td>送料<div class="dim">${ck==='自社'?'自社配送・チャーター':'運送会社'}の注文。入れるか「送料なし」に</div></td><td class="r"><label style="font-size:12px;white-space:nowrap"><input type="checkbox" data-ivnone="${o.no}" ${fv===0?'checked':''} ${dis} style="width:auto"> 送料なし</label></td><td></td><td class="r">¥ <input class="iv-pin ${fv===undefined?'miss':IV.FEEPRE[o.no]?'pre':''}" inputmode="numeric" data-ivf="${o.no}" value="${fv?fv:''}" placeholder="未入力" ${dis||fv===0?'disabled':''}>${IV.FEEPRE[o.no]&&fv?'<div class="dim">前回の送料</div>':''}</td><td class="r">${fv?ivYen(fv):fv===0?'0':'—'}</td><td><span class="iv-tx t10">10%</span></td></tr>`})()}
+    :(()=>{const fv=ivFeeOf(o);const none=fv===0&&!IV.FEEPRE[o.no];return `<tr class="iv-fee" ${fv===undefined?'style="outline:2px solid #e3c78e;outline-offset:-2px"':''}><td>送料<div class="dim">${o.mg?(mgFee(o.mg)===null?'10箱以上：都度入力':'1〜9箱は1箱¥1,550'):(ck==='自社'?'自社配送・チャーター':'運送会社')+'の注文。入れるか「送料なし」に'}</div></td><td class="r"><label style="font-size:12px;white-space:nowrap"><input type="checkbox" data-ivnone="${o.no}" ${fv===0?'checked':''} ${dis} style="width:auto"> 送料なし</label></td><td></td><td class="r">¥ <input class="iv-pin ${fv===undefined?'miss':IV.FEEPRE[o.no]?'pre':''}" inputmode="numeric" data-ivf="${o.no}" value="${fv?fv:''}" placeholder="未入力" ${dis||fv===0?'disabled':''}>${IV.FEEPRE[o.no]&&fv?`<div class="dim">${IV.FEEPRE[o.no]==='auto'?yen1550(mgFeeBoxes(o.mg))+'（自動）':'前回の送料'}</div>`:''}</td><td class="r">${fv?ivYen(fv):fv===0?'0':'—'}</td><td><span class="iv-tx t10">10%</span></td></tr>`})()}
    <tr class="iv-disc"><td>値引き<div class="dim">あるときだけ・税抜</div></td><td></td><td><select data-ivdr="${o.no}" ${dis}><option value="8" ${(IV.DISC[o.no]||{}).r!==10?'selected':''}>8%分</option><option value="10" ${(IV.DISC[o.no]||{}).r===10?'selected':''}>10%分</option></select></td><td class="r">−¥ <input class="iv-pin" inputmode="numeric" data-ivd="${o.no}" value="${(IV.DISC[o.no]||{}).a||''}" placeholder="0" ${dis}></td><td class="r">${(IV.DISC[o.no]||{}).a?ivYen(-IV.DISC[o.no].a):'—'}</td><td></td></tr>
    <tr class="iv-memo"><td>文言<div class="dim">空欄なら載せない</div></td><td colspan="5"><input data-ivm="${o.no}" value="${esc(IV.MEMO[o.no]||'')}" placeholder="例：店舗名、発注番号、イベント分 など" style="width:100%" ${dis}></td></tr>
    </table></div></div>`}).join('')}
@@ -2093,7 +2182,7 @@ function ivBind(c){const E=$('ivEdit');const upd=()=>{ivQueue(c);ivRenderEdit();
   E.querySelectorAll('[data-ivu]').forEach(s=>s.onchange=()=>{const st=IV.P[s.dataset.ivu];st.u=s.value;st.pre=false;upd()});
   E.querySelectorAll('[data-ivr]').forEach(s=>s.onchange=()=>{IV.P[s.dataset.ivr].r=Number(s.value);upd()});
   E.querySelectorAll('[data-ivp]').forEach(inp=>inp.onchange=()=>{const k=inp.dataset.ivp;const v=inp.value.replace(/[^\d.]/g,'');const st=IV.P[k];st.p=v;st.pre=false;
-    if(v!==''){const [no]=k.split('|');const o=ORDERS.find(x=>x.no===no);const l=o.lines.find(x=>ivK(no,x.gyo)===k);const nm=ivName(l);
+    if(v!==''){const [no]=k.split('|');const o=ivOrders().find(x=>x.no===no);const l=o.lines.find(x=>ivK(no,x.gyo)===k);const nm=ivName(l);
       ivOrdersOf(c).forEach(o2=>o2.lines.forEach(l2=>{const s2=ivSt(o2,l2);if(s2.p===''&&ivName(l2)===nm&&s2.u===st.u)s2.p=v}))}
     upd();const all=[...$('ivEdit').querySelectorAll('[data-ivp]')];const i=all.findIndex(x=>x.dataset.ivp===k);const nx=all.slice(i+1).find(x=>x.value==='');if(nx)nx.focus()});
   E.querySelectorAll('[data-ivf]').forEach(inp=>inp.onchange=()=>{const no=inp.dataset.ivf;const v=inp.value.replace(/[^\d]/g,'');delete IV.FEEPRE[no];if(v==='')delete IV.FEE[no];else IV.FEE[no]=Number(v);upd()});
@@ -2124,10 +2213,14 @@ function ivConfirmIssue(c){const v=ivCalc(c);const cu=CUST.find(x=>x.code===c);
 function ivRenderListOnly(){const box=$('ivMain').querySelector('.iv-clist');if(!box)return;box.querySelectorAll('[data-ivc]').forEach(b=>{const [k,t]=ivStatus(b.dataset.ivc);const s=b.querySelector('.iv-st');s.className='iv-st '+k;s.textContent=t})}
 function ivRenderSheet(){const c=CUST.find(x=>x.code===IV.sel);if(!c){$('ivSheet').innerHTML='';return}const v=ivCalc(c.code);
   const [y,m]=IV.ym.split('-').map(Number);const last=new Date(y,m,0),due=new Date(y,m+1,0);const jd=d=>`${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`;
-  const body=[];ivOrdersOf(c.code).forEach(o=>{v.rows.filter(r=>r.o===o).forEach(r=>body.push(`<tr><td>${md(o.deliver)}</td><td>${esc(ivName(r.l))}${r.st.r===8?'　※':''}</td><td class="n">${fmt(r.q)} ${r.st.u}</td><td class="n">${r.p===null?'':fmt(r.p)}</td><td class="n">${r.p===null?'':fmt(r.a)}</td></tr>`));
-    const f=Number(IV.FEE[o.no]||0);if(f)body.push(`<tr><td>${md(o.deliver)}</td><td>送料（${md(o.deliver)}納品分）</td><td class="n">1 回</td><td class="n">${fmt(f)}</td><td class="n">${fmt(f)}</td></tr>`);
+  const body=[];const os2=ivOrdersOf(c.code);const both=os2.some(x=>x.sec==='paste')&&os2.some(x=>x.sec!=='paste');let cs=null;
+  const subRow=s=>{const ro=v.rows.filter(r=>(r.o.sec||'imo')===s);let a8=0,a10=0;ro.forEach(r=>{if(r.st.r===10)a10+=r.a;else a8+=r.a});os2.filter(o=>(o.sec||'imo')===s).forEach(o=>{a10+=Number(IV.FEE[o.no]||0);const dc=IV.DISC[o.no];if(dc&&dc.a){if(dc.r===10)a10-=dc.a;else a8-=dc.a}});
+    return `<tr class="sub"><td colspan="4">${IV_SEC[s]}　小計（税抜）　8%対象 ¥${fmt(a8)}　10%対象 ¥${fmt(a10)}</td><td class="n">${fmt(a8+a10)}</td></tr>`};
+  os2.forEach(o=>{const s=o.sec||'imo';if(both&&s!==cs){if(cs)body.push(subRow(cs));body.push(`<tr class="sec"><td colspan="5">${IV_SEC[s]}</td></tr>`);cs=s}v.rows.filter(r=>r.o===o).forEach(r=>body.push(`<tr><td>${md(o.deliver)}</td><td>${esc(ivName(r.l))}${r.st.r===8?'　※':''}</td><td class="n">${fmt(r.q)} ${r.st.u}</td><td class="n">${r.p===null?'':fmt(r.p)}</td><td class="n">${r.p===null?'':fmt(r.a)}</td></tr>`));
+    const f=Number(IV.FEE[o.no]||0);const fb=o.mg&&f%MG_FEE===0?f/MG_FEE:0;if(f)body.push(`<tr><td>${md(o.deliver)}</td><td>送料（${md(o.deliver)}納品分）</td><td class="n">${fb?fb+' 箱':'1 回'}</td><td class="n">${fmt(fb?MG_FEE:f)}</td><td class="n">${fmt(f)}</td></tr>`);
     const dc=IV.DISC[o.no];if(dc&&dc.a)body.push(`<tr><td>${md(o.deliver)}</td><td>値引き（${md(o.deliver)}納品分）${dc.r===10?'':'　※'}</td><td></td><td></td><td class="n">−${fmt(dc.a)}</td></tr>`);
     if(IV.MEMO[o.no])body.push(`<tr class="mm"><td></td><td colspan="4">${esc(IV.MEMO[o.no])}</td></tr>`)});
+  if(both&&cs)body.push(subRow(cs));
   const fd=IV.FIN[c.code];if(fd&&fd.a)body.push(`<tr><td></td><td><b>${esc(fd.t||'お値引き')}</b>${fd.r===10?'':'　※'}</td><td></td><td></td><td class="n"><b>−${fmt(fd.a)}</b></td></tr>`);
   $('ivSheet').innerHTML=`<div class="iv-h1">請求書</div><div class="iv-top"><div><div class="iv-to">${esc(c.name)}　御中</div>${c.zip||c.addr?`<div style="font-size:9pt">${c.zip?'〒'+esc(c.zip)+'　':''}${esc(c.addr)}</div>`:''}
     <div class="iv-meta"><span>請求書番号</span><span>${ivNo(c.code)}</span><span>発行日</span><span>${jd(last)}</span><span>対象期間</span><span>${m}月1日〜${m}月${last.getDate()}日 納品分</span><span>お支払期限</span><span>${jd(due)}</span></div></div>
@@ -2139,6 +2232,245 @@ function ivRenderSheet(){const c=CUST.find(x=>x.code===IV.sel);if(!c){$('ivSheet
    <div class="iv-bank"><b>お振込先</b><br><span class="dim">（PDFでは、設定シートの「請求_振込先」の内容が入ります）</span></div>`}
 $('ivYm').onchange=()=>{if(IV.sel&&IV.dirty[IV.sel])ivSave(IV.sel);IV.ym=$('ivYm').value;IV.data=null;renderInv()};
 window.addEventListener('beforeunload',e=>{if(Object.keys(IV.dirty).length){e.preventDefault();e.returnValue=''}});
+
+
+/* ===== ペースト・ダイスカット（冷凍・製造発送はマグチフードプロセス）2026/11/1〜 =====
+   さつまいもの ORDERS とは別の MGO に持つ（シートも別：マグチ受注／マグチ受注明細／マグチ状態履歴）。顧客・請求は共通 */
+const MGP={'ペースト':{spec:'2kg入り',kg:2,c:'p'},'ダイスカット':{spec:'1kg入り',kg:1,c:'d'}};const MG_PER=4,MG_FEE=1550;
+const MG_ST=['受注','マグチへ依頼済','発送済','納品済'];
+const mgStLabel=s=>s==='受注'?'受注（依頼前）':s;
+const mgStCls=s=>s==='キャンセル'?'x':'s'+Math.max(0,MG_ST.indexOf(s));
+const mgBoxN=o=>o.lines.reduce((s,l)=>s+l.box,0);
+const mgFeeBoxes=o=>mgBoxN(o)+(o.lines.some(l=>l.bara)?1:0);// ばらはまとめて1箱
+const mgFee=o=>mgBoxN(o)>=10?null:mgFeeBoxes(o)*MG_FEE;// 10箱以上は都度入力（null）
+const mgPc=o=>o.lines.reduce((s,l)=>s+l.pc,0),mgKg=o=>o.lines.reduce((s,l)=>s+l.kg,0);
+const mgActive=o=>o.status!=='納品済'&&o.status!=='キャンセル';
+let MGO=[],PM='imo',MH_PM='imo';
+const MGONLY=()=>!!(RAW&&RAW.role==='maguchi');// 前山さん（マグチ）で入った。サーバーもペーストだけを返し、操作も絞っている
+try{PM=localStorage.getItem('juhatchu_pm')==='paste'?'paste':'imo'}catch(e){}
+function buildMg(d){MG_VER++;d.mgOrders=d.mgOrders||[];d.mgLines=d.mgLines||[];d.mgEvents=d.mgEvents||[];
+  const ls={},ev={};d.mgLines.forEach(r=>{if(r.NO)(ls[r.NO]=ls[r.NO]||[]).push(r)});d.mgEvents.forEach(r=>{if(r.NO)(ev[r.NO]=ev[r.NO]||[]).push(r)});
+  MGO=d.mgOrders.filter(r=>r.NO).map(r=>{const c=custOf(String(r['顧客コード']));
+    const lines=(ls[r.NO]||[]).sort((a,b)=>(Number(a['行'])||0)-(Number(b['行'])||0)).map(l=>{const it=String(l['品目']||'');const box=Number(l['箱数'])||0,bara=Number(l['ばら'])||0;const pc=box*MG_PER+bara;return {gyo:String(l['行']),item:it,spec:String(l['規格']||(MGP[it]||{}).spec||''),box,bara,pc,kg:pc*((MGP[it]||{}).kg||0)}});
+    return {no:String(r.NO),date:pdt(r['受注日時'])||new Date(),cust:String(r['顧客コード']||''),custName:c?c.name:'（未登録 '+(r['顧客コード']||'')+'）',deliver:pdt(r['納品日'])||new Date(),carrier:r['運送会社']||'',sales:r['営業担当']||'',status:r['状態']||'受注',addrAlt:r['送り先別']||'',note:r['申し送り']||'',
+      reqAt:pdt(r['依頼日時']),reqBy:r['依頼者']||'',reqMemo:r['依頼メモ']||'',shipAt:pdt(r['発送日時']),shipBy:r['発送者']||'',waybill:String(r['伝票No']||''),pieces:Number(r['個口数'])||'',dlvAt:pdt(r['納品確認日時']),dlvBy:r['納品担当']||'',dlvNote:r['納品メモ']||'',why:r['キャンセル理由']||'',src:r['登録元']||'',flag:r['マグチ変更']||'',plan:pdt(r['発送予定日']),lines,
+      events:(ev[r.NO]||[]).map(e=>({t:e['種別']||'',at:pdt(e['日時'])||new Date(),by:e['担当']||'',m:e['内容']||''})).sort((a,b)=>a.at-b.at)}});
+}
+/* 保存できた内容を RAW にも入れて作り直す（読み直さずに済むように） */
+function mgPatchRaw(no,fields,lines,event){const ts=dts(new Date());RAW.mgOrders=RAW.mgOrders||[];RAW.mgLines=RAW.mgLines||[];RAW.mgEvents=RAW.mgEvents||[];
+  let o=RAW.mgOrders.find(x=>String(x.NO)===String(no));if(!o){o={NO:no};RAW.mgOrders.push(o)}Object.assign(o,fields,{'更新日時':ts});
+  if(lines){RAW.mgLines=RAW.mgLines.filter(x=>String(x.NO)!==String(no)).concat(lines)}if(event)RAW.mgEvents.push(event);buildMg(RAW)}
+const mgItTxt=o=>o.lines.map(l=>`<span class="mgit"><i class="${(MGP[l.item]||{}).c||'p'}">${esc(l.item)}</i>${esc(l.spec)}　${l.box?l.box+'箱':''}${l.box&&l.bara?'＋':''}${l.bara?'ばら'+l.bara+'pc':''}　<span class="dim">(${l.pc}pc・${fmt(l.kg)}kg)</span></span>`).join('<br>');
+const mgBand=t=>`<div class="mgband"><span class="fz">冷凍</span>ペースト・ダイスカット　${t||''}</div>`;
+const mgTag=o=>`<span class="mgst ${mgStCls(o.status)}">${esc(mgStLabel(o.status))}</span>`;
+
+/* --- 切替（さつまいも／ペースト・ダイスカット） --- */
+function mgSetPM(m){PM=m;try{localStorage.setItem('juhatchu_pm',m)}catch(e){}document.body.classList.toggle('pm',PM==='paste');
+  $('kSw').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.m===PM));if(PM==='paste'&&TAB==='form')TAB='list';switchTab(TAB)}
+$('kSw').addEventListener('click',e=>{const b=e.target.closest('button[data-m]');if(b&&b.dataset.m!==PM)mgSetPM(b.dataset.m)});
+document.body.classList.toggle('pm',PM==='paste');$('kSw').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.m===PM));
+function mgRender(){const v=$('v-mg');v.hidden=false;({list:mgList,week:mgWeek,new:mgForm,cust:mgCust,mghist:()=>mgHist('v-mg')})[TAB]()}
+/* 前山さん（マグチ）が登録・変更した注文と顧客のうち、うちの営業がまだ見ていないもの */
+function mgUnseen(){if(MGONLY())return 0;return MGO.filter(o=>o.flag).length+CUST.filter(c=>c.src==='マグチ'&&!c.conf).length}
+const mgFlagTag=o=>!MGONLY()&&o.flag?`<span class="mgnew">マグチで${esc(o.flag)}</span>`:'';
+
+/* --- 一覧 --- */
+function mgList(){const live=MGO.filter(mgActive).sort((a,b)=>a.deliver-b.deliver||a.no.localeCompare(b.no));
+  $('v-mg').innerHTML=mgBand(MGONLY()?'一覧（オオサカポテトから依頼が来ている注文）':'一覧（進行中のみ。納品済・キャンセルは「履歴・集計」へ）')+(live.length?`<div class="tw card" style="padding:0"><table class="mgtab"><tr><th>No.</th><th>③納品日</th><th>顧客</th><th>中身</th><th class="r">合計</th><th>発送予定・運送会社</th><th>状態</th></tr>`+
+    live.map(o=>`<tr data-mgo="${o.no}"><td>${o.no}</td><td>${mdw(o.deliver)}</td><td><b>${esc(o.custName)}</b>${mgFlagTag(o)}${o.src==='マグチ'?'<br><span class="dim">マグチで受付</span>':''}</td><td>${mgItTxt(o)}</td><td class="r"><b>${fmt(mgKg(o))}kg</b><br><span class="dim">${mgPc(o)}pc</span></td><td>${o.plan?`<span class="mgplan">発送予定 ${mdw(o.plan)}</span><br>`:''}${o.carrier?esc(o.carrier):'<span class="dim">運送会社 未定</span>'}</td><td>${mgTag(o)}</td></tr>`).join('')+`</table></div>`
+    :`<div class="card"><p class="dim">進行中のペースト・ダイスカットの注文はありません。「登録」から入れてください。</p></div>`)+
+    (MGONLY()?`<p class="note">行を押すと詳細が開きます。発送したら「発送した」から運送会社と伝票No.を入れてください。マグチで受付した注文は、発送前ならご自身で直し・キャンセルできます。それ以外の直し・キャンセルはオオサカポテトの営業にご連絡ください。</p>`:'')+`<p class="note mgin">行を押すと詳細が開き、状態を進められます。状態は営業が前山さんとのやりとりを受けて進めます：受注（依頼前）→ マグチへ依頼済 → 発送済 → 納品済。流通・出荷作業（シフト・袋詰・洗浄）には出ません。</p>`}
+
+/* --- 週間 --- */
+let MG_WK=null;
+function mgWeek(){if(!MG_WK)MG_WK=monday(TODAY);const days=[...Array(7)].map((_,i)=>addD(MG_WK,i));const inW=d=>d0(d)>=MG_WK&&d0(d)<=days[6];
+  const wk=MGO.filter(o=>o.status!=='キャンセル'&&inW(o.deliver));
+  const sum=(it,f)=>wk.reduce((s,o)=>s+o.lines.filter(l=>l.item===it).reduce((a,l)=>a+l[f],0),0);
+  $('v-mg').innerHTML=mgBand('週間（③納品日で並べています）')+`<div class="row mb"><button class="btn sm" id="mgWp">‹</button><b>${md(MG_WK)}〜${md(days[6])}</b><button class="btn sm" id="mgWn">›</button><button class="btn sm" id="mgWt">今週</button></div>
+  <div class="mgkpi"><div><small>ペースト</small><b>${fmt(sum('ペースト','kg'))}</b><span>kg（${sum('ペースト','pc')}pc）</span></div><div><small>ダイスカット</small><b>${fmt(sum('ダイスカット','kg'))}</b><span>kg（${sum('ダイスカット','pc')}pc）</span></div><div><small>注文</small><b>${wk.length}</b><span>件</span></div><div><small>依頼前</small><b>${wk.filter(o=>o.status==='受注').length}</b><span>件</span></div></div>
+  <div class="mgwk">`+days.map(d=>{const os=wk.filter(o=>ymd(o.deliver)===ymd(d)).sort((a,b)=>a.no.localeCompare(b.no));const kg=os.reduce((s,o)=>s+mgKg(o),0);
+    return `<div class="mgday ${ymd(d)===ymd(TODAY)?'today':''}"><h5><span>${mdw(d)}</span><span class="tot">${kg?fmt(kg)+'kg':''}</span></h5>`+os.map(o=>`<div class="mgcard" data-mgo="${o.no}"><b>${esc(o.custName)}</b>${mgFlagTag(o)}<br>${o.plan?`<span class="mgplan">発送 ${md(o.plan)}</span><br>`:''}${o.lines.map(l=>`${esc(l.item)} ${l.box?l.box+'箱':''}${l.bara?'＋'+l.bara+'pc':''}`).join('<br>')}<br>${mgTag(o)}</div>`).join('')+`</div>`}).join('')+`</div>`;
+  $('mgWp').onclick=()=>{MG_WK=addD(MG_WK,-7);mgWeek()};$('mgWn').onclick=()=>{MG_WK=addD(MG_WK,7);mgWeek()};$('mgWt').onclick=()=>{MG_WK=monday(TODAY);mgWeek()}}
+
+/* --- 登録 --- */
+/* 発送予定日の目安：納品日の何日前に発送するか（中何日）。確認中なので仮に1日。決まったら設定シート「マグチ_配送日数」で直せる */
+const mgLead=()=>{const r=(RAW&&RAW.settings||[]).find(x=>String(x['キー'])==='マグチ_配送日数');const n=r?Number(r['値']):NaN;return isFinite(n)&&n>=0?n:1};
+/* 営業日は土日祝を除く。発送予定日は納品日の「配送日数」営業日前（土日祝に当たらないように） */
+const mgBiz=x=>x.getDay()!==0&&x.getDay()!==6&&!HOLIDAYS[ymd(x)];
+const mgBizAdd=(d,n)=>{let x=d0(d),k=0;const st=n<0?-1:1;while(k<Math.abs(n)){x=addD(x,st);if(mgBiz(x))k++}return x};
+/* お客様ごとの「ペースト配送日数」（マグチから何営業日で着くか）。空なら設定「マグチ_配送日数」、それも無ければ1 */
+const mgLeadOf=code=>{const c=custOf(code);return c&&c.mgLead!==''&&isFinite(c.mgLead)?c.mgLead:mgLead()};
+const mgPlanOf=(dl,code)=>dl?ymd(mgBizAdd(pdt(dl),-mgLeadOf(code))):'';
+/* 注文から届くまでの目安：3営業日以内（最短は当日発送・翌日着） */
+const mgNewF=()=>({plan:'',planAuto:true,no:'',expect:'',cust:'',q:'',it:{'ペースト':{box:0,bara:0},'ダイスカット':{box:0,bara:0}},dl:'',car:'',alt:false,altTxt:'',note:'',sales:ME});
+let MGF=mgNewF();
+const mgPasteCusts=()=>{const since=addD(TODAY,-60);const n={};MGO.forEach(o=>{if(o.date>=since||o.deliver>=since)n[o.cust]=(n[o.cust]||0)+1});return CUST.filter(c=>n[c.code]).sort((a,b)=>n[b.code]-n[a.code])};
+function mgForm(){const F=MGF;if(!F.sales)F.sales=ME;const v=$('v-mg');const c=custOf(F.cust);
+  const card=k=>{const x=F.it[k],p=MGP[k],on=x.box||x.bara,pc=x.box*MG_PER+x.bara;
+    return `<div class="mgpc ${on?'on':''}"><h4>${k}（冷凍）</h4><div class="dim">${p.spec} × ${MG_PER}pc ＝ 1箱（${p.kg*MG_PER}kg）／ばら 1〜3pc も可</div>
+    <div class="mgq"><label>箱</label><span class="mgstp"><button data-k="${k}" data-d="-1">−</button><input data-kb="${k}" inputmode="numeric" value="${x.box}"><button data-k="${k}" data-d="1">＋</button></span>
+    <label>ばら</label><span class="mgbara">${[0,1,2,3].map(n=>`<button data-k="${k}" data-bara="${n}" class="${x.bara===n?'on':''}">${n?n+'pc':'なし'}</button>`).join('')}</span></div>
+    ${on?`<div class="mgcalc">${x.box?x.box+'箱（'+x.box*MG_PER+'pc）':''}${x.box&&x.bara?'＋':''}${x.bara?'ばら'+x.bara+'pc':''} ＝ <b>${pc}pc・${pc*p.kg}kg</b></div>`:''}</div>`};
+  const tmp={lines:Object.keys(MGP).map(k=>({item:k,box:F.it[k].box,bara:F.it[k].bara})).filter(l=>l.box||l.bara)};
+  const fee=tmp.lines.length?mgFee(tmp):undefined,fb=tmp.lines.length?mgFeeBoxes(tmp):0;
+  const pick=(()=>{if(c)return `<div class="chips"><button class="chip on">${esc(c.name)}</button><button class="btn sm" id="mgCuX">別の顧客にする</button></div>`;
+    if(F.nc){const n=custNorm(F.nc.name);const sim=n.length>=2?CUST.filter(x=>custNorm(x.name).includes(n)||n.includes(custNorm(x.name))&&custNorm(x.name).length>=2).slice(0,5):[];
+      return `<div class="row" style="justify-content:space-between"><b style="font-size:13px">新しいお客様を登録</b><button class="btn sm" id="mgNcX">やめる（今のお客様から選ぶ）</button></div>
+      <label class="lbl">お客様の名前 <span style="color:var(--bad)">必須</span></label><input id="mgNcN" value="${esc(F.nc.name)}" placeholder="例：株式会社○○">
+      ${sim.length?`<div class="mgflag" style="margin-top:6px">似た名前のお客様がすでにあります。同じ会社ならこちらを選んでください：<div class="chips" style="margin-top:4px">${sim.map(x=>`<button class="chip" data-cu="${x.code}">${esc(x.name)}</button>`).join('')}</div></div>`:''}
+      <div class="two" style="gap:8px"><div><label class="lbl">郵便番号</label><input id="mgNcZ" value="${esc(F.nc.zip)}" placeholder="581-0010"></div><div><label class="lbl">電話</label><input id="mgNcT" value="${esc(F.nc.tel)}"></div></div>
+      <label class="lbl">住所</label><input id="mgNcA" value="${esc(F.nc.addr)}"><label class="lbl">宛名・ご担当</label><input id="mgNcP" value="${esc(F.nc.attn)}">
+      <p class="dim" style="margin-top:6px">登録するとオオサカポテトにお知らせが届き、営業が確認します</p>`}
+    const q=F.q.trim();let list,head;
+    if(q){const n=custNorm(q);list=CUST.filter(x=>x.active!==false&&custNorm(x.name).includes(n));head=`${list.length}件`}else{list=mgPasteCusts();head=list.length?'ペーストの取引が多い顧客（直近60日）':'まだペーストの取引がありません。名前を入力すると全顧客から探せます'}
+    const kp=new Set(MGO.map(o=>o.cust));
+    return `<input type="search" id="mgQ" placeholder="顧客名を入力（さつまいもの顧客も含めて全社から探せます）" value="${esc(F.q)}"><div class="dim" style="margin:8px 0 4px">${head}</div><div class="chips">${list.slice(0,8).map(x=>`<button class="chip" data-cu="${x.code}">${esc(x.name)}${kp.has(x.code)?'':' <span class="dim">（ペースト初）</span>'}</button>`).join('')}${list.length>8?`<span class="dim">ほか${list.length-8}件</span>`:''}</div>
+      <p class="dim" style="margin-top:6px">${MGONLY()?'見つからない新しいお客様は、オオサカポテトの営業に登録を頼んでください（お客様の登録はオオサカポテトが行います）':'新しい顧客は、さつまいもの「登録」→「新規の顧客」か「顧客」タブで先に登録してください（顧客は共通です）'}</p>`})();
+  v.innerHTML=mgBand(F.no?`${F.no} を直しています`:'登録')+`<div class="two"><div>
+    <section class="card" style="margin-bottom:12px"><h3>1 誰から <span class="dim mgin" style="font-weight:500;font-size:12px">顧客はさつまいもと共通</span></h3>${pick}</section>
+    <section class="card" style="margin-bottom:12px"><h3>2 どこへ <span class="dim" style="font-weight:500;font-size:12px">発送はマグチフードプロセスから</span></h3>
+      <div class="sumbox">${c?esc([c.zip?'〒'+c.zip:'',c.addr,c.attn].filter(Boolean).join('　')||'（顧客マスタに住所がありません）'):'顧客を選ぶと送り先が表示されます'}</div>
+      <label class="lbl"><input type="checkbox" id="mgAlt" style="width:auto" ${F.alt?'checked':''}> 今回だけ別の送り先にする（工場宛てなど）</label>
+      ${F.alt?`<textarea id="mgAltT" rows="2" placeholder="〒・住所・宛名・電話">${esc(F.altTxt)}</textarea>`:''}
+      <div class="two" style="gap:8px"><div><label class="lbl">運送会社（分かれば）</label><select id="mgCar">${carOpts(F.car,'あとで決める')}</select></div>
+      <div><label class="lbl">温度帯</label><div class="sumbox" style="margin:0"><b style="color:#2f6f8f">冷凍</b>（固定）</div></div></div></section>
+  </div><div>
+    <section class="card" style="margin-bottom:12px"><h3>製造・発送</h3><div class="sumbox" style="margin:0"><b>マグチフードプロセス</b>　担当：前山さん<br><span class="dim">${MGONLY()?'ここで登録した注文は「マグチへ依頼済」で入り、オオサカポテトの営業にもすぐ見えます。':'うちの営業が前山さんに依頼します。用意・発送の日はマグチ側が決めます。'}</span></div></section>
+    <section class="card" style="margin-bottom:12px"><h3>3・4 何を・どのくらい</h3><div class="mgp">${card('ペースト')}${card('ダイスカット')}</div>
+      ${tmp.lines.length&&!MGONLY()?`<div class="mgfee"><span>送料の見込み（税抜・10%）<br><span class="dim">${fee===null?mgBoxN(tmp)+'箱（10箱以上）→ 請求のときに都度入力':yen1550(fb)+(tmp.lines.some(l=>l.bara)?'（ばらはまとめて1箱）':'')}</span></span><b>${fee===null?'都度入力':'¥'+fmt(fee)}</b></div>`:''}</section>
+  </div></div>
+  <div class="two"><section class="card"><h3>5 いつまでに</h3>
+    <div class="two" style="gap:8px"><div><label class="lbl">③ 納品日（お客様着） <span style="color:var(--bad)">必須</span></label><input type="date" id="mgDl" value="${F.dl}"></div>
+    <div><label class="lbl">② 発送予定日（マグチから出す日）</label><input type="date" id="mgPl2" value="${F.plan}"></div></div>
+    ${(()=>{if(!F.dl)return '';const t=ymd(TODAY),q=ymd(mgBizAdd(TODAY,3));if(F.dl<=t)return '<p class="mgflag" style="margin-top:8px">納品日が今日以前になっています</p>';if(F.dl<q)return `<p class="mgflag" style="margin-top:8px">⚡ 急ぎ：注文から3営業日（${mdw(pdt(q))}）より前の納品です。${MGONLY()?'当日発送などで間に合うか確かめてから登録してください':'前山さんに間に合うか確認してください'}</p>`;return ''})()}
+    <p class="note">目安：注文から3営業日以内に着（最短は当日発送・翌日着）。${F.planAuto&&F.plan?`発送予定日は納品日の${mgLeadOf(F.cust)}営業日前（土日祝を除く）で自動で入れています${c&&c.mgLead!==''?'（このお客様の配送日数）':'（配送日数が未設定のお客様は1日）'}。違うときは直してください。`:'発送予定日は、納品日を入れると自動で入ります。直すこともできます。'}${MGONLY()?'':'空のままでも登録でき、あとで前山さんが入れられます。'}</p>
+    ${F.plan&&F.dl&&F.plan>F.dl?'<p class="dim" style="color:var(--bad)">発送予定日が納品日より後になっています</p>':''}</section>
+  <section class="card"><h3>6 申し送り・登録</h3><textarea id="mgNote" rows="2" placeholder="例：解凍しないで納品、ロット指定">${esc(F.note)}</textarea>
+    <label class="lbl">${MGONLY()?'受付':'営業担当'}</label><input id="mgSales" value="${esc(F.sales)}" ${MGONLY()?'readonly':''}>
+    <div class="sumbox">${c?esc(c.name):F.nc&&F.nc.name?esc(F.nc.name)+'（新規）':'（顧客未選択）'}　${tmp.lines.map(l=>l.item+' '+(l.box*MG_PER+l.bara)+'pc').join('・')||'（品目未選択）'}　${F.plan?'②発送 '+mdw(pdt(F.plan))+'　':''}${F.dl?'③'+mdw(pdt(F.dl)):''}</div>
+    <p class="dim" id="mgErr" style="color:var(--bad)"></p>
+    <button class="btn pri blk" id="mgSave">${F.no?'直した内容で保存':MGONLY()?'登録する（マグチへ依頼済で入ります）':'マグチフードプロセスへ依頼する（登録）'}</button>${F.no?`<button class="btn blk" id="mgEdX" style="margin-top:8px">直すのをやめる</button>`:''}
+    <p class="note mgin">単価はここでは入れません（「請求」で注文ごとに入力）。登録した時点の状態は「受注（依頼前）」です。前山さんに依頼したら、詳細で「マグチへ依頼した」を押してください。</p></section></div>`;
+  const re=()=>mgForm();
+  if($('mgNc'))$('mgNc').onclick=()=>{F.nc={name:F.q.trim(),zip:'',tel:'',addr:'',attn:''};re()};if($('mgNcX'))$('mgNcX').onclick=()=>{F.nc=null;re()};
+  [['mgNcN','name'],['mgNcZ','zip'],['mgNcT','tel'],['mgNcA','addr'],['mgNcP','attn']].forEach(([id,k])=>{const i=$(id);if(i)i.onchange=()=>{F.nc[k]=i.value.trim();if(k==='name')re()}});
+  v.querySelectorAll('[data-cu]').forEach(b=>b.onclick=()=>{F.nc=null;F.cust=b.dataset.cu;if(F.planAuto&&F.dl)F.plan=mgPlanOf(F.dl,F.cust);const cc=custOf(F.cust);if(cc&&!F.car&&cc.carrier)F.car=cc.carrier;re()});
+  const q=$('mgQ');if(q)q.oninput=()=>{const p=q.selectionStart;F.q=q.value;re();const n=$('mgQ');n.focus();n.setSelectionRange(p,p)};
+  if($('mgCuX'))$('mgCuX').onclick=()=>{F.cust='';F.q='';re()};
+  v.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{const x=F.it[b.dataset.k];x.box=Math.max(0,x.box+ +b.dataset.d);re()});
+  v.querySelectorAll('[data-kb]').forEach(i=>i.onchange=()=>{F.it[i.dataset.kb].box=Math.max(0,parseInt(i.value.replace(/[^\d]/g,''))||0);re()});
+  v.querySelectorAll('[data-bara]').forEach(b=>b.onclick=()=>{F.it[b.dataset.k].bara=+b.dataset.bara;re()});
+  $('mgAlt').onchange=e=>{F.alt=e.target.checked;re()};if($('mgAltT'))$('mgAltT').oninput=e=>{F.altTxt=e.target.value};
+  $('mgCar').onchange=e=>{F.car=e.target.value};$('mgDl').onchange=e=>{F.dl=e.target.value;if(F.planAuto)F.plan=mgPlanOf(F.dl,F.cust);re()};$('mgPl2').onchange=e=>{F.plan=e.target.value;F.planAuto=!F.plan;if(!F.plan&&F.dl&&false)F.plan='';re()};$('mgNote').oninput=e=>{F.note=e.target.value};$('mgSales').oninput=e=>{F.sales=e.target.value};
+  if($('mgEdX'))$('mgEdX').onclick=()=>{MGF=mgNewF();re()};
+  $('mgSave').onclick=mgSaveForm}
+const yen1550=n=>`¥${fmt(MG_FEE)} × ${n}箱`;
+async function mgSaveForm(){const F=MGF;const err=m=>{$('mgErr').textContent=m};
+  if(!F.cust&&!(F.nc&&F.nc.name))return err(F.nc?'お客様の名前を入れてください':'顧客を選んでください');const lines=Object.keys(MGP).map(k=>({'品目':k,'箱数':F.it[k].box,'ばら':F.it[k].bara})).filter(l=>l['箱数']||l['ばら']);
+  if(!lines.length)return err('箱数かばらを入れてください');if(!F.dl)return err('③納品日を入れてください');if(F.alt&&!F.altTxt.trim())return err('別の送り先を入れてください（使わないならチェックを外す）');
+  if(F.plan&&F.dl&&F.plan>F.dl)return err('発送予定日が納品日より後になっています');
+  const order={'発送予定日':F.plan||'','顧客コード':F.cust,'納品日':F.dl,'運送会社':F.car,'営業担当':F.sales||ME,'送り先別':F.alt?F.altTxt.trim():'','申し送り':F.note.trim()};
+  let payload={order,lines};if(!F.cust&&F.nc)payload.newCustomer={'顧客名':F.nc.name,'郵便番号':F.nc.zip,'住所1':F.nc.addr,'宛名':F.nc.attn,'電話':F.nc.tel,'区分':'その他','カテゴリ':'加工品','登録区分':'継続'};if(F.no){payload.no=F.no;payload.expect=F.expect}else payload.rid=ridOf('mgSave',payload);
+  busy(true);try{const r=await api('mgSave',payload);if(r.customer){RAW.customers.push(r.customer);build(RAW)}mgPatchRaw(r.no,r.order,r.lines,r.event);toast(F.no?`${r.no} を直しました`:`${r.no} を登録しました`+(MGONLY()?'（オオサカポテトにも見えています）':''));MGF=mgNewF();switchTab('list')}
+  catch(e){err('保存できませんでした：'+e.message);errBar('保存できませんでした：'+e.message+'　入力内容は残っています')}finally{busy(false)}}
+
+/* --- 顧客（共通マスタ。ペースト側では最初にペーストの取引がある顧客だけ） --- */
+const MGC={all:false,q:'',sel:''};
+function mgCust(){const v=$('v-mg');const cnt={};MGO.forEach(o=>{if(o.status!=='キャンセル')cnt[o.cust]=(cnt[o.cust]||0)+1});
+  const imoN={};ORDERS.forEach(o=>{if(o.status!=='キャンセル')imoN[o.cust]=(imoN[o.cust]||0)+1});
+  let list=MGC.all?CUST.filter(c=>c.active!==false):CUST.filter(c=>cnt[c.code]||(c.src==='マグチ'&&!c.conf));if(MGC.q){const n=custNorm(MGC.q);list=list.filter(c=>custNorm(c.name).includes(n))}
+  const uc=c=>c.src==='マグチ'&&!c.conf?1:0;list.sort((a,b)=>uc(b)-uc(a)||(cnt[b.code]||0)-(cnt[a.code]||0)||a.name.localeCompare(b.name,'ja'));
+  const tags=c=>`${c.src==='マグチ'&&!c.conf&&!MGONLY()?'<span class="mgnew">マグチで登録・未確認</span> ':''}${imoN[c.code]&&!MGONLY()?'<span class="mgst s3">青果</span> ':''}${cnt[c.code]?'<span class="mgst pz">ペースト</span>':''}`;
+  const sc=custOf(MGC.sel);const os=sc?MGO.filter(o=>o.cust===sc.code).sort((a,b)=>b.deliver-a.deliver):[];
+  v.innerHTML=mgBand(MGONLY()?'お客様（最初はペーストの取引があるお客様だけ）':'顧客はさつまいもと共通（1社1件）。最初はペーストの取引がある顧客だけを出しています')+`<div class="row mb"><span class="seg"><button data-a="0" class="${MGC.all?'':'on'}">ペーストの取引あり（${Object.keys(cnt).length}社）</button><button data-a="1" class="${MGC.all?'on':''}">すべて（${CUST.filter(c=>c.active!==false).length}社）</button></span><input type="search" id="mgCQ" placeholder="顧客名で検索" value="${esc(MGC.q)}" style="width:220px"></div>
+  <div class="cust"><div><div class="cl">${list.slice(0,300).map(c=>`<div class="mgci ${c.code===MGC.sel?'on':''}" data-s="${c.code}"><b>${esc(c.name)}</b><br>${tags(c)}</div>`).join('')||'<p class="dim" style="padding:8px">該当なし</p>'}</div></div>
+  <div>${sc?`<section class="card"><h3>${esc(sc.name)} <span class="dim" style="font-weight:500;font-size:12px">${sc.code}</span></h3>
+    ${sc.src==='マグチ'&&!sc.conf&&!MGONLY()?`<div class="mgflag">前山さん（マグチ）が登録したお客様です。名前・住所を確かめて、すでにある顧客と同じ会社でなければ「確認した」を押してください。同じ会社だったときは、顧客タブ（さつまいも側）で片方を無効にしてください。<div style="margin-top:6px"><button class="btn sm pri" id="mgCok">確認した</button></div></div>`:''}<div class="sumbox">${esc([sc.zip?'〒'+sc.zip:'',sc.addr,sc.attn,sc.tel].filter(Boolean).join('　')||'住所未登録')}</div>
+    <div class="row" style="gap:6px;margin-bottom:10px"><b style="font-size:13px">ペーストの配送日数</b><span class="dim">マグチから</span>${MGONLY()?`<b>${sc.mgLead!==''?sc.mgLead+' 営業日':'未設定（1営業日として計算）'}</b>`:`<input id="mgLd" inputmode="numeric" value="${sc.mgLead}" placeholder="1" style="width:60px">営業日<button class="btn sm" id="mgLdS">保存</button><span class="dim">発送予定日の自動入力に使います（さつまいもの配送日数とは別）</span>`}</div>
+    ${MGONLY()?'':`<div class="mgkpi" style="grid-template-columns:1fr 1fr"><div><small>さつまいも</small><b>${imoN[sc.code]||0}</b><span>件</span></div><div><small>ペースト・ダイスカット</small><b>${cnt[sc.code]||0}</b><span>件</span></div></div>`}
+    ${os.length?`<div class="tw"><table class="mgtab"><tr><th>No.</th><th>③納品日</th><th>中身</th><th>状態</th></tr>${os.map(o=>`<tr data-mgo="${o.no}"><td>${o.no}</td><td>${mdw(o.deliver)}</td><td>${mgItTxt(o)}</td><td>${mgTag(o)}</td></tr>`).join('')}</table></div>`:'<p class="dim">ペーストの取引はまだありません</p>'}
+    <p class="note mgin">さつまいもの取引は、上の切替を「さつまいも」にして顧客タブで見られます。工場宛てなど届け先が違うときは、登録のときに「今回だけ別の送り先」で入れます。</p></section>`:'<div class="card"><p class="dim">左から顧客を選ぶと、ペーストの注文が出ます</p></div>'}</div></div>`;
+  v.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{MGC.all=b.dataset.a==='1';mgCust()});
+  v.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{MGC.sel=b.dataset.s;mgCust()});
+  if($('mgLdS'))$('mgLdS').onclick=async()=>{const v=$('mgLd').value.replace(/[^\d]/g,'');busy(true);try{await api('saveCustomer',{customer:{'コード':sc.code,'ペースト配送日数':v===''?'':Number(v)}});const rc=RAW.customers.find(x=>String(x['コード'])===sc.code);if(rc)rc['ペースト配送日数']=v===''?'':Number(v);sc.mgLead=v===''?'':Number(v);toast(`${sc.name} の配送日数を ${v||'未設定'} にしました`);mgCust()}catch(e){errBar('保存できませんでした：'+e.message)}finally{busy(false)}};
+  if($('mgCok'))$('mgCok').onclick=async()=>{busy(true);try{const r=await api('mgCustOk',{code:sc.code});const rc=RAW.customers.find(x=>String(x['コード'])===sc.code);if(rc)rc['確認日時']=r.at;sc.conf=pdt(r.at);toast('確認しました');renderBadge();mgCust()}catch(e){errBar('確認できませんでした：'+e.message)}finally{busy(false)}};
+  const q=$('mgCQ');q.oninput=()=>{const p=q.selectionStart;MGC.q=q.value;mgCust();const n=$('mgCQ');n.focus();n.setSelectionRange(p,p)}}
+
+/* --- 詳細（状態を進める） --- */
+document.addEventListener('click',e=>{const t=e.target.closest('[data-mgo]');if(t&&!$('mgDt'))mgOpen(t.dataset.mgo)});
+function mgOpen(no){const o=MGO.find(x=>x.no===no);if(o&&o.flag&&!MGONLY()){o.seenNow=o.flag;api('mgSeen',{no}).then(()=>{mgPatchRaw(no,{'マグチ変更':''},null,null);renderBadge()}).catch(()=>{})}
+  const ov=document.createElement('div');ov.id='mgDt';ov.className='mgdo';ov.onclick=e=>{if(e.target===ov)mgClose()};document.body.appendChild(ov);mgDraw(no)}
+function mgClose(){const ov=$('mgDt');if(ov)ov.remove();render()}
+function mgDraw(no){const o=MGO.find(x=>x.no===no);const ov=$('mgDt');if(!o||!ov){mgClose();return}
+  const si=o.status==='キャンセル'?-1:MG_ST.indexOf(o.status);const at=[o.date,o.reqAt,o.shipAt,o.dlvAt];
+  const step=(i,lbl)=>`<div class="mgstp2 ${si<0?'x':si>i?'done':si===i?'cur':''}"><i>${si>i||(si===3&&i===3)?'✓':i+1}</i><span>${lbl}</span><small>${at[i]&&(si>=i)?mdhm(at[i]):''}</small></div>`;
+  const tu=(TRACK[o.carrier]&&o.waybill)?TRACK[o.carrier](o.waybill.replace(/[^0-9A-Za-z]/g,'')):'';
+  let act='';
+  if(o.status==='受注')act=`<h4>次：マグチフードプロセス（前山さん）に依頼する</h4><p class="dim">電話・LINE・メールで依頼したら押してください。</p>
+    <label class="lbl">メモ（任意）</label><input id="mgM" placeholder="例：LINEで依頼、11/5発送予定と返事あり"><button class="btn pri blk" data-go="マグチへ依頼済" style="margin-top:10px">マグチへ依頼した</button>`;
+  if(o.status==='マグチへ依頼済')act=`<div class="row" style="gap:6px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px dashed var(--line2)"><b style="font-size:13px">発送予定日</b><input type="date" id="mgPl" value="${o.plan?ymd(o.plan):''}" style="width:auto"><button class="btn sm" id="mgPlS">保存</button><span class="dim">${MGONLY()?'決まったら入れてください（営業がお客様に伝えます）':'前山さんが入れます。分かればこちらでも'}</span></div>
+    <h4>${MGONLY()?'発送したら、運送会社と伝票No.を入れてください':'次：発送した（前山さんから連絡があったら）'}</h4>
+    <div class="two" style="gap:8px"><div><label class="lbl">運送会社 <span style="color:var(--bad)">必須</span></label><select id="mgC">${carOpts(o.carrier,'選んでください')}</select></div><div><label class="lbl">個口数（箱）</label><input id="mgK" inputmode="numeric" value="${mgFeeBoxes(o)}"></div></div>
+    <label class="lbl">伝票No.</label><input id="mgD" placeholder="${MGONLY()?'伝票番号':'前山さんから聞いた伝票番号'}">
+    <label class="lbl" style="display:flex;gap:6px;align-items:center"><input type="checkbox" id="mgDn" style="width:auto"> 伝票No.はまだ分からない（あとで入れる）</label>
+    <button class="btn pri blk" data-go="発送済" style="margin-top:6px">発送済にする</button>`;
+  if(o.status==='発送済'||o.status==='納品済')act=(o.status==='発送済'?`<h4>${MGONLY()?'発送済（オオサカポテトが着荷を確かめます）':'次：届いたことを確かめる'}</h4>`:`<h4>納品済</h4><p class="dim mgin">一覧からは消え、「履歴・集計」（ペースト・ダイスカット）に入ります。「請求」の${o.deliver.getMonth()+1}月分に出ます。</p>`)+
+    `<div class="sumbox">${esc(o.carrier||'')}　伝票No. ${o.waybill?esc(o.waybill):o.carrier==='引取り'?'—':'<b style="color:var(--bad)">未入力</b>'}　${o.pieces?o.pieces+'個口':''} ${tu?`<a class="btn sm" href="${tu}" target="_blank" rel="noopener">追跡する</a>`:''}</div>
+    ${!o.waybill&&o.carrier!=='引取り'?`<div class="row" style="gap:6px"><input id="mgD2" placeholder="伝票No.を入れる" style="flex:1"><button class="btn sm" id="mgDsave">伝票No.を保存</button></div>`:''}
+    ${o.status==='発送済'&&!MGONLY()?`<label class="lbl">確かめ方</label><select id="mgN">${['追跡で着確認','客先から連絡','前山さんから連絡'].map(x=>`<option>${x}</option>`).join('')}</select><button class="btn pri blk" data-go="納品済" style="margin-top:10px">納品済にする</button>`:''}`;
+  if(o.status==='キャンセル')act=`<h4>キャンセル済</h4><p class="dim">理由：${esc(o.why)}。請求には出ません。</p>`;
+  const cr=[...new Set((CANCEL_REASONS||[]).concat(['マグチ側で対応できない']))];
+  ov.innerHTML=`<div class="mgds"><div class="mgdh"><b>${o.no}　${esc(o.custName)}</b>${mgTag(o)}<button class="btn sm" id="mgX" style="margin-left:auto">閉じる</button></div>
+  <div class="mgsteps">${step(0,'受注')}${step(1,'マグチへ依頼')}${step(2,'発送')}${step(3,'納品')}</div>
+  <div class="mggrid"><div><small>③納品日</small>${mdw(o.deliver)}</div><div><small>合計</small>${fmt(mgKg(o))}kg・${mgPc(o)}pc</div><div><small>製造・発送</small>マグチフードプロセス（前山さん）</div><div><small>送り先</small>${o.addrAlt?esc(o.addrAlt):'登録住所'}</div></div>
+  ${o.seenNow?`<div class="mgflag">前山さん（マグチ）が<b>${esc(o.seenNow)}</b>しました。下の記録で中身を確かめてください（開いたので「確認済み」にしました）</div>`:''}
+  <div class="sumbox">${mgItTxt(o)}${o.note?`<div class="dim" style="margin-top:4px">申し送り：${esc(o.note)}</div>`:''}<div class="dim">営業：${o.sales?esc(o.sales):o.src==='マグチ'?'—（マグチで受付）':'—'}</div></div>
+  <section class="mgact">${act}<p class="dim" id="mgErr2" style="color:var(--bad);margin-top:6px"></p></section>
+  ${o.events.length?`<div class="mglog">${o.events.map(e=>`<div>${mdhm(e.at)}　${esc(e.by)}　<b>${esc(e.t)}</b>${e.m?'　<span class="dim">'+esc(e.m)+'</span>':''}</div>`).join('')}</div>`:''}
+  ${MGONLY()?(o.src==='マグチ'&&o.status==='マグチへ依頼済'?`<div class="mgft"><button class="btn sm" id="mgEd">中身・日付を直す</button><span style="flex:1"></span><select id="mgCr" style="width:auto;font-size:13px;padding:5px"><option value="">キャンセル理由</option>${['先方都合','数量変更で再登録','登録ミス'].map(x=>`<option>${x}</option>`).join('')}</select><button class="btn sm warn" id="mgCn">キャンセル</button></div><p class="dim" style="margin-top:6px">マグチで受付した注文なので、発送前はご自身で直せます（オオサカポテトにお知らせが届きます）</p>`:'<p class="dim">直し・キャンセルはオオサカポテトの営業にご連絡ください。</p>'):''}<div class="mgft mgin">${si>0?`<button class="btn sm" id="mgBack">ひとつ前に戻す</button>`:''}${si>=0&&si<3?`<button class="btn sm" id="mgEd">中身・日付を直す</button><span style="flex:1"></span><select id="mgCr" style="width:auto;font-size:13px;padding:5px"><option value="">キャンセル理由</option>${cr.map(x=>`<option>${esc(x)}</option>`).join('')}</select><button class="btn sm warn" id="mgCn">キャンセル</button>`:''}</div></div>`;
+  const E=m=>{$('mgErr2').textContent=m};
+  $('mgX').onclick=mgClose;
+  const send=async(p,okMsg)=>{busy(true);E('');try{const r=await api(p.den!==undefined&&p.to===undefined?'mgShipInfo':'mgStatus',p);mgPatchRaw(o.no,r.fields,null,r.event);toast(okMsg);mgDraw(o.no)}catch(e){E(e.message);if(/ほかの人が先に/.test(e.message))reload()}finally{busy(false)}};
+  ov.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{const to=b.dataset.go;const p={no:o.no,expect:o.status,to};
+    if(to==='マグチへ依頼済')p.memo=$('mgM').value.trim();
+    if(to==='発送済'){p.car=$('mgC').value;p.den=$('mgD').value.trim();p.noDen=$('mgDn').checked;p.kuchi=$('mgK').value.replace(/[^\d]/g,'');
+      if(!p.car)return E('運送会社を選んでください');if(p.car!=='引取り'&&!p.den&&!p.noDen)return E('伝票No.を入れるか、「まだ分からない」にチェックしてください')}
+    if(to==='納品済')p.how=$('mgN').value;
+    send(p,`${o.no}：${mgStLabel(to)}にしました`)});
+  if($('mgPlS'))$('mgPlS').onclick=async()=>{const v=$('mgPl').value;busy(true);E('');try{const r=await api('mgPlan',{no:o.no,plan:v});mgPatchRaw(o.no,r.fields,null,r.event);toast(v?`発送予定日を ${md(pdt(v))} にしました`:'発送予定日を消しました');mgDraw(o.no)}catch(e){E(e.message)}finally{busy(false)}};
+  if($('mgDsave'))$('mgDsave').onclick=()=>{const d=$('mgD2').value.trim();if(!d)return E('伝票No.を入れてください');send({no:o.no,den:d},'伝票No.を保存しました')};
+  if($('mgBack'))$('mgBack').onclick=()=>{if(!confirmInline($('mgBack'),'もう一度押すと戻します'))return;send({no:o.no,expect:o.status,to:'戻す'},`${o.no}：ひとつ前に戻しました`)};
+  if($('mgCn'))$('mgCn').onclick=()=>{const r=$('mgCr').value;if(!r){$('mgCr').style.borderColor='var(--bad)';return E('キャンセルの理由を選んでください')}if(!confirmInline($('mgCn'),'もう一度押すとキャンセル'))return;send({no:o.no,expect:o.status,to:'キャンセル',reason:r},`${o.no} をキャンセルしました`)};
+  if($('mgEd'))$('mgEd').onclick=()=>{const F=mgNewF();F.no=o.no;F.expect=o.status;F.cust=o.cust;F.dl=ymd(o.deliver);F.plan=o.plan?ymd(o.plan):'';F.planAuto=!o.plan;F.car=o.carrier;F.note=o.note;F.sales=o.sales||ME;F.alt=!!o.addrAlt;F.altTxt=o.addrAlt;o.lines.forEach(l=>{if(F.it[l.item]){F.it[l.item].box=l.box;F.it[l.item].bara=l.bara}});MGF=F;$('mgDt').remove();if(PM!=='paste')mgSetPM('paste');switchTab('new')}}
+/* 取り返しのつかない操作は2回押し（ダイアログは出さない） */
+function confirmInline(btn,msg){if(btn.dataset.armed)return true;btn.dataset.armed='1';const t=btn.textContent;btn.textContent=msg;setTimeout(()=>{if(btn.isConnected){btn.textContent=t;delete btn.dataset.armed}},3000);return false}
+
+/* --- 履歴・集計（ペースト・ダイスカット側）。さつまいもとは同じ表に並べない --- */
+let MG_HM=null,MG_HQ='';
+let MG_HTG='hMg';
+function mgHist(tg){if(tg)MG_HTG=tg;if(!MG_HM)MG_HM=new Date(TODAY.getFullYear(),TODAY.getMonth(),1);const ym=`${MG_HM.getFullYear()}-${pad(MG_HM.getMonth()+1)}`;
+  let os=MGO.filter(o=>(MGONLY()?['発送済','納品済','キャンセル'].includes(o.status):!mgActive(o))&&ymd(o.deliver).slice(0,7)===ym).sort((a,b)=>b.deliver-a.deliver||b.no.localeCompare(a.no));
+  const ok=os.filter(o=>o.status==='納品済');const sum=(it,f)=>ok.reduce((s,o)=>s+o.lines.filter(l=>l.item===it).reduce((a,l)=>a+l[f],0),0);
+  if(MG_HQ){const n=custNorm(MG_HQ);os=os.filter(o=>custNorm(o.custName).includes(n)||o.no.includes(MG_HQ.toUpperCase()))}
+  $(MG_HTG).innerHTML=(MGONLY()?mgBand('履歴（発送済・納品済・キャンセル）'):'')+`<div class="row mb"><button class="btn sm" id="mgHp">‹ 前月</button><b>${MG_HM.getFullYear()}年${MG_HM.getMonth()+1}月</b><button class="btn sm" id="mgHn">翌月 ›</button><button class="btn sm" id="mgHt">今月</button><input type="search" id="mgHq" placeholder="顧客名・No." value="${esc(MG_HQ)}" style="width:200px"></div>
+  <div class="mgkpi"><div><small>ペースト（納品済）</small><b>${fmt(sum('ペースト','kg'))}</b><span>kg（${sum('ペースト','pc')}pc）</span></div><div><small>ダイスカット（納品済）</small><b>${fmt(sum('ダイスカット','kg'))}</b><span>kg（${sum('ダイスカット','pc')}pc）</span></div><div><small>納品済</small><b>${ok.length}</b><span>件</span></div><div><small>キャンセル</small><b>${os.filter(o=>o.status==='キャンセル').length}</b><span>件</span></div></div>
+  ${os.length?`<div class="tw card" style="padding:0"><table class="mgtab"><tr><th>No.</th><th>③納品日</th><th>顧客</th><th>中身</th><th>運送会社・伝票</th><th>状態</th></tr>${os.map(o=>`<tr data-mgo="${o.no}"><td>${o.no}</td><td>${mdw(o.deliver)}</td><td><b>${esc(o.custName)}</b></td><td>${mgItTxt(o)}</td><td>${esc(o.carrier)}${o.waybill?'<br><span class="dim">'+esc(o.waybill)+'</span>':''}</td><td>${mgTag(o)}${o.why?'<br><span class="dim">'+esc(o.why)+'</span>':''}</td></tr>`).join('')}</table></div>`:'<div class="card"><p class="dim">この月の納品済・キャンセルはありません</p></div>'}
+  <p class="note">集計は③納品日の月で、納品済のものだけ。さつまいもの集計には入りません。</p>`;
+  $('mgHp').onclick=()=>{MG_HM=new Date(MG_HM.getFullYear(),MG_HM.getMonth()-1,1);mgHist()};$('mgHn').onclick=()=>{MG_HM=new Date(MG_HM.getFullYear(),MG_HM.getMonth()+1,1);mgHist()};$('mgHt').onclick=()=>{MG_HM=null;mgHist()};
+  const q=$('mgHq');q.oninput=()=>{const p=q.selectionStart;MG_HQ=q.value;mgHist();const n=$('mgHq');n.focus();n.setSelectionRange(p,p)}}
+$('hPm').addEventListener('click',e=>{const b=e.target.closest('button[data-h]');if(!b)return;MH_PM=b.dataset.h;render()});
+function histWithPm(){$('hPm').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.h===MH_PM));
+  const paste=MH_PM==='paste';[...$('v-hist').children].forEach(el=>{if(el.id!=='hPmRow'&&el.id!=='hMg')el.style.display=paste?'none':''});$('hMg').hidden=!paste;
+  if(paste)mgHist('hMg');else renderHist()}
+
+/* --- 請求：ペーストの注文を、さつまいもと同じ形（疑似の注文）にして混ぜる。欄は 青果 → ペースト --- */
+/* 同じ月・同じデータなら同じ物を返す（画面の行と計算の行を突き合わせるため） */
+let MG_VER=0,MG_IVC={k:'',v:[]};
+function mgInvOrders(){const k=IV.ym+'|'+MG_VER;if(MG_IVC.k===k)return MG_IVC.v;MG_IVC={k,v:mgInvOrders0()};return MG_IVC.v}
+function mgInvOrders0(){return MGO.filter(o=>o.status!=='キャンセル'&&o.shipAt&&ymd(o.deliver).slice(0,7)===IV.ym).map(o=>{
+  const lines=[];o.lines.forEach(l=>{if(l.box)lines.push({gyo:l.gyo,item:l.item,size:l.spec+'×'+MG_PER+'pc',pack:'',qty:l.box,unit:'箱',boxes:l.box});if(l.bara)lines.push({gyo:l.gyo+'b',item:l.item,size:l.spec+' ばら',pack:'',qty:l.bara,unit:'pc',boxes:0})});
+  return {no:o.no,mg:o,sec:'paste',cust:o.cust,deliver:o.deliver,status:mgStLabel(o.status),carrier:o.carrier,method:methodOf(o.carrier),boxes:mgFeeBoxes(o),lines,act:{shipAt:o.shipAt,carrier:o.carrier,waybill:o.waybill,pieces:o.pieces}}})}
+const IV_SEC={imo:'青果（さつまいも）',paste:'ペースト・ダイスカット（冷凍）'};
 
 /* ===== 起動 ===== */
 $('v-hist').hidden=true;
