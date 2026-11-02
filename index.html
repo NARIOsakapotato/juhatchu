@@ -796,6 +796,8 @@ function custDupHtml(d,okId,checked){const why=c=>`${esc(c.name)} <span class="d
   if(!d.near.length)return '';
   return `<div class="dupbox"><b>似た顧客があります。同じ会社なら、こちらを使ってください（二重登録を防ぐため）</b>${d.near.map(c=>`<div class="row" style="gap:6px;margin-top:4px">${why(c)}<button class="btn sm" data-usec="${c.code}">この顧客を使う</button></div>`).join('')}
     <label style="display:flex;gap:6px;align-items:center;margin-top:8px;font-weight:700"><input type="checkbox" id="${okId}" style="width:auto" ${checked?'checked':''}> 上の顧客とは別の会社です（二重登録ではありません）</label></div>`}
+/* かな入力（変換中）に画面を作り直すと、打ちかけの文字が消える。変換中は待ち、確定してから作り直す（2026/11/2） */
+function imeIn(el,fn){if(!el)return;el.oninput=e=>{if(e.isComposing||el._ime)return;fn()};el.addEventListener('compositionstart',()=>{el._ime=true});el.addEventListener('compositionend',()=>{el._ime=false;fn()})}
 const custNorm=x=>String(x||'').normalize('NFKC').replace(/[\s　]/g,'').replace(/[（(]株[)）]|株式会社|[（(]有[)）]|有限会社/g,'').toLowerCase().replace(/[ァ-ヶ]/g,ch=>String.fromCharCode(ch.charCodeAt(0)-0x60));
 const boxUnit=p=>/野菜コンテナ/.test(p.n)?{label:'カゴ数',u:'カゴ',perLabel:'1カゴの'+(p.u==='kg'?'kg':p.u)}:/コンテナ/.test(p.n)?{label:'コンテナ数',u:'個',perLabel:'1コンテナの'+(p.u==='袋'?'袋数':p.u)}:{label:'箱数',u:'箱',perLabel:'1箱の'+(p.u==='袋'?'袋数':p.u)};
 const PACK_ALIAS={'折り畳みコンテナ（袋詰）':'イフコンテナ（袋詰）','5kg箱':'5kg箱（バラ）','10kg箱':'10kg箱（バラ）','コンテナ（バラ）':'野菜コンテナ（バラ）','袋詰 10kg箱（18袋入）':'10kg箱（袋詰）','袋詰 10kg箱（24袋入）':'10kg箱（袋詰）','袋詰 5kg箱（9袋入）':'10kg箱（袋詰）','袋詰 10kg箱':'10kg箱（袋詰）'};
@@ -2166,7 +2168,7 @@ function renderInv(){
   const listHtml=cs.filter(c=>!q||c.name.includes(q)).map(c=>{const [k,t]=ivStatus(c.code);return `<button class="iv-ci ${c.code===IV.sel?'on':''}" data-ivc="${c.code}"><span><b>${esc(c.name)}</b><small>${c.code}　${ivOrdersOf(c.code).length}回の納品</small></span><span class="iv-st ${k}">${t}</span></button>`}).join('')||'<span class="dim">この月の出荷はありません</span>';
   const keepQ=q;$('ivMain').innerHTML=`<div class="iv-main"><div class="card"><div class="row" style="gap:8px;margin-bottom:8px"><b>顧客</b><input id="ivQ" placeholder="名前で絞り込み" style="flex:1;min-width:0" value="${esc(keepQ)}"></div><div class="iv-clist">${listHtml}</div></div>
     <div style="display:grid;gap:12px;min-width:0"><div class="card" id="ivEdit"></div><div class="iv-sheetw"><div class="iv-sheet" id="ivSheet"></div></div></div></div>`;
-  $('ivQ').oninput=()=>{const p=$('ivQ').selectionStart;renderInv();const x=$('ivQ');x.focus();x.setSelectionRange(p,p)};
+  imeIn($('ivQ'),()=>{const p=$('ivQ').selectionStart;renderInv();const x=$('ivQ');x.focus();x.setSelectionRange(p,p)});
   $('ivMain').querySelector('.iv-clist').onclick=e=>{const b=e.target.closest('[data-ivc]');if(b){if(IV.sel&&IV.dirty[IV.sel])ivSave(IV.sel);IV.sel=b.dataset.ivc;renderInv()}};
   ivRenderEdit();ivRenderSheet();
 }
@@ -2373,7 +2375,7 @@ function mgForm(){const F=MGF;if(!F.sales)F.sales=ME;const v=$('v-mg');const c=c
   if($('mgNcOk'))$('mgNcOk').onchange=e=>{F.nc.dupOk=e.target.checked};
   v.querySelectorAll('[data-usec]').forEach(b=>b.onclick=()=>{const c=custOf(b.dataset.usec);if(c&&c.active===false){toast('この顧客は無効です。顧客タブで有効に戻してから選んでください');return}F.nc=null;F.cust=b.dataset.usec;if(F.planAuto&&F.dl)F.plan=mgPlanOf(F.dl,F.cust);re()});
   v.querySelectorAll('[data-cu]').forEach(b=>b.onclick=()=>{F.nc=null;F.cust=b.dataset.cu;if(F.planAuto&&F.dl)F.plan=mgPlanOf(F.dl,F.cust);const cc=custOf(F.cust);if(cc&&!F.car&&cc.carrier)F.car=cc.carrier;re()});
-  const q=$('mgQ');if(q)q.oninput=()=>{const p=q.selectionStart;F.q=q.value;re();const n=$('mgQ');n.focus();n.setSelectionRange(p,p)};
+  const q=$('mgQ');imeIn(q,()=>{const p=q.selectionStart;F.q=q.value;re();const n=$('mgQ');n.focus();n.setSelectionRange(p,p)});
   if($('mgCuX'))$('mgCuX').onclick=()=>{F.cust='';F.q='';re()};
   v.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{const x=F.it[b.dataset.k];x.box=Math.max(0,x.box+ +b.dataset.d);re()});
   v.querySelectorAll('[data-kb]').forEach(i=>i.onchange=()=>{F.it[i.dataset.kb].box=Math.max(0,parseInt(i.value.replace(/[^\d]/g,''))||0);re()});
@@ -2413,7 +2415,7 @@ function mgCust(){const v=$('v-mg');const cnt={};MGO.forEach(o=>{if(o.status!=='
   v.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{MGC.sel=b.dataset.s;mgCust()});
   if($('mgLdS'))$('mgLdS').onclick=async()=>{const v=$('mgLd').value.replace(/[^\d]/g,'');busy(true);try{await api('saveCustomer',{customer:{'コード':sc.code,'ペースト配送日数':v===''?'':Number(v)}});const rc=RAW.customers.find(x=>String(x['コード'])===sc.code);if(rc)rc['ペースト配送日数']=v===''?'':Number(v);sc.mgLead=v===''?'':Number(v);toast(`${sc.name} の配送日数を ${v||'未設定'} にしました`);mgCust()}catch(e){errBar('保存できませんでした：'+e.message)}finally{busy(false)}};
   if($('mgCok'))$('mgCok').onclick=async()=>{busy(true);try{const r=await api('mgCustOk',{code:sc.code});const rc=RAW.customers.find(x=>String(x['コード'])===sc.code);if(rc)rc['確認日時']=r.at;sc.conf=pdt(r.at);toast('確認しました');renderBadge();mgCust()}catch(e){errBar('確認できませんでした：'+e.message)}finally{busy(false)}};
-  const q=$('mgCQ');q.oninput=()=>{const p=q.selectionStart;MGC.q=q.value;mgCust();const n=$('mgCQ');n.focus();n.setSelectionRange(p,p)}}
+  const q=$('mgCQ');imeIn(q,()=>{const p=q.selectionStart;MGC.q=q.value;mgCust();const n=$('mgCQ');n.focus();n.setSelectionRange(p,p)})}
 
 /* --- 詳細（状態を進める） --- */
 document.addEventListener('click',e=>{const t=e.target.closest('[data-mgo]');if(t&&!$('mgDt'))mgOpen(t.dataset.mgo)});
@@ -2476,7 +2478,7 @@ function mgHist(tg){if(tg)MG_HTG=tg;if(!MG_HM)MG_HM=new Date(TODAY.getFullYear()
   ${os.length?`<div class="tw card" style="padding:0"><table class="mgtab"><tr><th>No.</th><th>③納品日</th><th>顧客</th><th>中身</th><th>運送会社・伝票</th><th>状態</th></tr>${os.map(o=>`<tr data-mgo="${o.no}"><td>${o.no}</td><td>${mdw(o.deliver)}</td><td><b>${esc(o.custName)}</b></td><td>${mgItTxt(o)}</td><td>${esc(o.carrier)}${o.waybill?'<br><span class="dim">'+esc(o.waybill)+'</span>':''}</td><td>${mgTag(o)}${o.why?'<br><span class="dim">'+esc(o.why)+'</span>':''}</td></tr>`).join('')}</table></div>`:'<div class="card"><p class="dim">この月の納品済・キャンセルはありません</p></div>'}
   <p class="note">集計は③納品日の月で、納品済のものだけ。さつまいもの集計には入りません。</p>`;
   $('mgHp').onclick=()=>{MG_HM=new Date(MG_HM.getFullYear(),MG_HM.getMonth()-1,1);mgHist()};$('mgHn').onclick=()=>{MG_HM=new Date(MG_HM.getFullYear(),MG_HM.getMonth()+1,1);mgHist()};$('mgHt').onclick=()=>{MG_HM=null;mgHist()};
-  const q=$('mgHq');q.oninput=()=>{const p=q.selectionStart;MG_HQ=q.value;mgHist();const n=$('mgHq');n.focus();n.setSelectionRange(p,p)}}
+  const q=$('mgHq');imeIn(q,()=>{const p=q.selectionStart;MG_HQ=q.value;mgHist();const n=$('mgHq');n.focus();n.setSelectionRange(p,p)})}
 $('hPm').addEventListener('click',e=>{const b=e.target.closest('button[data-h]');if(!b)return;MH_PM=b.dataset.h;render()});
 function histWithPm(){$('hPm').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.h===MH_PM));
   const paste=MH_PM==='paste';[...$('v-hist').children].forEach(el=>{if(el.id!=='hPmRow'&&el.id!=='hMg')el.style.display=paste?'none':''});$('hMg').hidden=!paste;
