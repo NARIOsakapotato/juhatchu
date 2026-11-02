@@ -489,8 +489,8 @@ body.pm .kshare{display:inline-block}
 .mgst{display:inline-block;font-size:11px;font-weight:800;padding:2px 8px;border-radius:999px;white-space:nowrap}
 .mgst.s0{background:var(--warn-soft);color:#8a5a12}.mgst.s1{background:var(--ready);color:#6b4d00}.mgst.s2{background:var(--ship);color:#1f4f7f}.mgst.s3{background:var(--deliver);color:var(--ok-ink)}.mgst.x{background:var(--bad-soft);color:var(--bad)}.mgst.pz{background:#e6eef3;color:#2f6f8f}
 .mgit{display:inline-block;font-size:12px;margin:1px 0}
-.mgit i{font-style:normal;font-size:10px;font-weight:800;padding:0 6px;border-radius:4px;margin-right:4px;color:#fff;background:#a0662a}.mgit i.d{background:#6b8f2a}
-.mgkpi{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.mgit i{font-style:normal;font-size:10px;font-weight:800;padding:0 6px;border-radius:4px;margin-right:4px;color:#fff;background:#a0662a}.mgit i.d{background:#6b8f2a}.mgit i.p2{background:#d08a3e}
+.mgkpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:12px}
 .mgkpi div{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 12px}
 .mgkpi small{display:block;font-size:11px;color:var(--mute);font-weight:700}.mgkpi b{font-size:20px}.mgkpi span{font-size:11px;color:var(--mute);margin-left:4px}
 .mgwk{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
@@ -499,7 +499,7 @@ body.pm .kshare{display:inline-block}
 .mgday h5{font-size:12px;margin-bottom:4px;display:flex;justify-content:space-between;gap:4px}
 .mgday .tot{font-size:10.5px;color:var(--mute);font-weight:700}
 .mgcard{border:1px solid #bcd3e0;border-left:4px solid #2f6f8f;border-radius:8px;padding:5px 6px;margin-bottom:5px;font-size:11.5px;background:#f7fafc;cursor:pointer}
-.mgp{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mgp{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .mgpc{border:2px solid var(--line);border-radius:12px;padding:12px;background:var(--paper)}
 .mgpc.on{border-color:#2f6f8f;background:#f3f8fb}
 .mgpc h4{font-size:15px;margin-bottom:2px}
@@ -2236,7 +2236,9 @@ window.addEventListener('beforeunload',e=>{if(Object.keys(IV.dirty).length){e.pr
 
 /* ===== ペースト・ダイスカット（冷凍・製造発送はマグチフードプロセス）2026/11/1〜 =====
    さつまいもの ORDERS とは別の MGO に持つ（シートも別：マグチ受注／マグチ受注明細／マグチ状態履歴）。顧客・請求は共通 */
-const MGP={'ペースト':{spec:'2kg入り',kg:2,c:'p'},'ダイスカット':{spec:'1kg入り',kg:1,c:'d'}};const MG_PER=4,MG_FEE=1550;
+/* 2026/11/2 ペーストは 皮あり／皮なし の2品目に分ける。前の「ペースト」（皮の指定なし）は表示だけ残す */
+const MGP={'ペースト（皮あり）':{spec:'2kg入り',kg:2,c:'p'},'ペースト（皮なし）':{spec:'2kg入り',kg:2,c:'p2'},'ダイスカット':{spec:'1kg入り',kg:1,c:'d'}};
+const MG_OLD={'ペースト':{spec:'2kg入り',kg:2,c:'p'}};const mgProd=it=>MGP[it]||MG_OLD[it]||{};const MG_PER=4,MG_FEE=1550;
 const MG_ST=['受注','マグチへ依頼済','発送済','納品済'];
 const mgStLabel=s=>s==='受注'?'受注（依頼前）':s;
 const mgStCls=s=>s==='キャンセル'?'x':'s'+Math.max(0,MG_ST.indexOf(s));
@@ -2251,7 +2253,7 @@ try{PM=localStorage.getItem('juhatchu_pm')==='paste'?'paste':'imo'}catch(e){}
 function buildMg(d){MG_VER++;d.mgOrders=d.mgOrders||[];d.mgLines=d.mgLines||[];d.mgEvents=d.mgEvents||[];
   const ls={},ev={};d.mgLines.forEach(r=>{if(r.NO)(ls[r.NO]=ls[r.NO]||[]).push(r)});d.mgEvents.forEach(r=>{if(r.NO)(ev[r.NO]=ev[r.NO]||[]).push(r)});
   MGO=d.mgOrders.filter(r=>r.NO).map(r=>{const c=custOf(String(r['顧客コード']));
-    const lines=(ls[r.NO]||[]).sort((a,b)=>(Number(a['行'])||0)-(Number(b['行'])||0)).map(l=>{const it=String(l['品目']||'');const box=Number(l['箱数'])||0,bara=Number(l['ばら'])||0;const pc=box*MG_PER+bara;return {gyo:String(l['行']),item:it,spec:String(l['規格']||(MGP[it]||{}).spec||''),box,bara,pc,kg:pc*((MGP[it]||{}).kg||0)}});
+    const lines=(ls[r.NO]||[]).sort((a,b)=>(Number(a['行'])||0)-(Number(b['行'])||0)).map(l=>{const it=String(l['品目']||'');const box=Number(l['箱数'])||0,bara=Number(l['ばら'])||0;const pc=box*MG_PER+bara;return {gyo:String(l['行']),item:it,spec:String(l['規格']||mgProd(it).spec||''),box,bara,pc,kg:pc*(mgProd(it).kg||0)}});
     return {no:String(r.NO),date:pdt(r['受注日時'])||new Date(),cust:String(r['顧客コード']||''),custName:c?c.name:'（未登録 '+(r['顧客コード']||'')+'）',deliver:pdt(r['納品日'])||new Date(),carrier:r['運送会社']||'',sales:r['営業担当']||'',status:r['状態']||'受注',addrAlt:r['送り先別']||'',note:r['申し送り']||'',
       reqAt:pdt(r['依頼日時']),reqBy:r['依頼者']||'',reqMemo:r['依頼メモ']||'',shipAt:pdt(r['発送日時']),shipBy:r['発送者']||'',waybill:String(r['伝票No']||''),pieces:Number(r['個口数'])||'',dlvAt:pdt(r['納品確認日時']),dlvBy:r['納品担当']||'',dlvNote:r['納品メモ']||'',why:r['キャンセル理由']||'',src:r['登録元']||'',flag:r['マグチ変更']||'',plan:pdt(r['発送予定日']),lines,
       events:(ev[r.NO]||[]).map(e=>({t:e['種別']||'',at:pdt(e['日時'])||new Date(),by:e['担当']||'',m:e['内容']||''})).sort((a,b)=>a.at-b.at)}});
@@ -2260,7 +2262,7 @@ function buildMg(d){MG_VER++;d.mgOrders=d.mgOrders||[];d.mgLines=d.mgLines||[];d
 function mgPatchRaw(no,fields,lines,event){const ts=dts(new Date());RAW.mgOrders=RAW.mgOrders||[];RAW.mgLines=RAW.mgLines||[];RAW.mgEvents=RAW.mgEvents||[];
   let o=RAW.mgOrders.find(x=>String(x.NO)===String(no));if(!o){o={NO:no};RAW.mgOrders.push(o)}Object.assign(o,fields,{'更新日時':ts});
   if(lines){RAW.mgLines=RAW.mgLines.filter(x=>String(x.NO)!==String(no)).concat(lines)}if(event)RAW.mgEvents.push(event);buildMg(RAW)}
-const mgItTxt=o=>o.lines.map(l=>`<span class="mgit"><i class="${(MGP[l.item]||{}).c||'p'}">${esc(l.item)}</i>${esc(l.spec)}　${l.box?l.box+'箱':''}${l.box&&l.bara?'＋':''}${l.bara?'ばら'+l.bara+'pc':''}　<span class="dim">(${l.pc}pc・${fmt(l.kg)}kg)</span></span>`).join('<br>');
+const mgItTxt=o=>o.lines.map(l=>`<span class="mgit"><i class="${mgProd(l.item).c||'p'}">${esc(l.item)}</i>${esc(l.spec)}　${l.box?l.box+'箱':''}${l.box&&l.bara?'＋':''}${l.bara?'ばら'+l.bara+'pc':''}　<span class="dim">(${l.pc}pc・${fmt(l.kg)}kg)</span></span>`).join('<br>');
 const mgBand=t=>`<div class="mgband"><span class="fz">冷凍</span>ペースト・ダイスカット　${t||''}</div>`;
 const mgTag=o=>`<span class="mgst ${mgStCls(o.status)}">${esc(mgStLabel(o.status))}</span>`;
 
@@ -2287,7 +2289,7 @@ function mgWeek(){if(!MG_WK)MG_WK=monday(TODAY);const days=[...Array(7)].map((_,
   const wk=MGO.filter(o=>o.status!=='キャンセル'&&inW(o.deliver));
   const sum=(it,f)=>wk.reduce((s,o)=>s+o.lines.filter(l=>l.item===it).reduce((a,l)=>a+l[f],0),0);
   $('v-mg').innerHTML=mgBand('週間（③納品日で並べています）')+`<div class="row mb"><button class="btn sm" id="mgWp">‹</button><b>${md(MG_WK)}〜${md(days[6])}</b><button class="btn sm" id="mgWn">›</button><button class="btn sm" id="mgWt">今週</button></div>
-  <div class="mgkpi"><div><small>ペースト</small><b>${fmt(sum('ペースト','kg'))}</b><span>kg（${sum('ペースト','pc')}pc）</span></div><div><small>ダイスカット</small><b>${fmt(sum('ダイスカット','kg'))}</b><span>kg（${sum('ダイスカット','pc')}pc）</span></div><div><small>注文</small><b>${wk.length}</b><span>件</span></div><div><small>依頼前</small><b>${wk.filter(o=>o.status==='受注').length}</b><span>件</span></div></div>
+  <div class="mgkpi">${Object.keys(MGP).concat(Object.keys(MG_OLD)).filter(k=>MGP[k]||sum(k,'pc')).map(k=>`<div><small>${k}</small><b>${fmt(sum(k,'kg'))}</b><span>kg（${sum(k,'pc')}pc）</span></div>`).join('')}<div><small>注文</small><b>${wk.length}</b><span>件</span></div><div><small>依頼前</small><b>${wk.filter(o=>o.status==='受注').length}</b><span>件</span></div></div>
   <div class="mgwk">`+days.map(d=>{const os=wk.filter(o=>ymd(o.deliver)===ymd(d)).sort((a,b)=>a.no.localeCompare(b.no));const kg=os.reduce((s,o)=>s+mgKg(o),0);
     return `<div class="mgday ${ymd(d)===ymd(TODAY)?'today':''}"><h5><span>${mdw(d)}</span><span class="tot">${kg?fmt(kg)+'kg':''}</span></h5>`+os.map(o=>`<div class="mgcard" data-mgo="${o.no}"><b>${esc(o.custName)}</b>${mgFlagTag(o)}<br>${o.plan?`<span class="mgplan">発送 ${md(o.plan)}</span><br>`:''}${o.lines.map(l=>`${esc(l.item)} ${l.box?l.box+'箱':''}${l.bara?'＋'+l.bara+'pc':''}`).join('<br>')}<br>${mgTag(o)}</div>`).join('')+`</div>`}).join('')+`</div>`;
   $('mgWp').onclick=()=>{MG_WK=addD(MG_WK,-7);mgWeek()};$('mgWn').onclick=()=>{MG_WK=addD(MG_WK,7);mgWeek()};$('mgWt').onclick=()=>{MG_WK=monday(TODAY);mgWeek()}}
@@ -2302,12 +2304,12 @@ const mgBizAdd=(d,n)=>{let x=d0(d),k=0;const st=n<0?-1:1;while(k<Math.abs(n)){x=
 const mgLeadOf=code=>{const c=custOf(code);return c&&c.mgLead!==''&&isFinite(c.mgLead)?c.mgLead:mgLead()};
 const mgPlanOf=(dl,code)=>dl?ymd(mgBizAdd(pdt(dl),-mgLeadOf(code))):'';
 /* 注文から届くまでの目安：3営業日以内（最短は当日発送・翌日着） */
-const mgNewF=()=>({plan:'',planAuto:true,no:'',expect:'',cust:'',q:'',it:{'ペースト':{box:0,bara:0},'ダイスカット':{box:0,bara:0}},dl:'',car:'',alt:false,altTxt:'',note:'',sales:ME});
+const mgNewF=()=>({plan:'',planAuto:true,no:'',expect:'',cust:'',q:'',it:Object.fromEntries(Object.keys(MGP).map(k=>[k,{box:0,bara:0}])),dl:'',car:'',alt:false,altTxt:'',note:'',sales:ME});
 let MGF=mgNewF();
 const mgPasteCusts=()=>{const since=addD(TODAY,-60);const n={};MGO.forEach(o=>{if(o.date>=since||o.deliver>=since)n[o.cust]=(n[o.cust]||0)+1});return CUST.filter(c=>n[c.code]).sort((a,b)=>n[b.code]-n[a.code])};
 function mgForm(){const F=MGF;if(!F.sales)F.sales=ME;const v=$('v-mg');const c=custOf(F.cust);
   const card=k=>{const x=F.it[k],p=MGP[k],on=x.box||x.bara,pc=x.box*MG_PER+x.bara;
-    return `<div class="mgpc ${on?'on':''}"><h4>${k}（冷凍）</h4><div class="dim">${p.spec} × ${MG_PER}pc ＝ 1箱（${p.kg*MG_PER}kg）／ばら 1〜3pc も可</div>
+    return `<div class="mgpc ${on?'on':''}"><h4>${k}</h4><div class="dim">${p.spec} × ${MG_PER}pc ＝ 1箱（${p.kg*MG_PER}kg）／ばら 1〜3pc も可</div>
     <div class="mgq"><label>箱</label><span class="mgstp"><button data-k="${k}" data-d="-1">−</button><input data-kb="${k}" inputmode="numeric" value="${x.box}"><button data-k="${k}" data-d="1">＋</button></span>
     <label>ばら</label><span class="mgbara">${[0,1,2,3].map(n=>`<button data-k="${k}" data-bara="${n}" class="${x.bara===n?'on':''}">${n?n+'pc':'なし'}</button>`).join('')}</span></div>
     ${on?`<div class="mgcalc">${x.box?x.box+'箱（'+x.box*MG_PER+'pc）':''}${x.box&&x.bara?'＋':''}${x.bara?'ばら'+x.bara+'pc':''} ＝ <b>${pc}pc・${pc*p.kg}kg</b></div>`:''}</div>`};
@@ -2336,7 +2338,7 @@ function mgForm(){const F=MGF;if(!F.sales)F.sales=ME;const v=$('v-mg');const c=c
       <div><label class="lbl">温度帯</label><div class="sumbox" style="margin:0"><b style="color:#2f6f8f">冷凍</b>（固定）</div></div></div></section>
   </div><div>
     <section class="card" style="margin-bottom:12px"><h3>製造・発送</h3><div class="sumbox" style="margin:0"><b>マグチフードプロセス</b>　担当：前山さん<br><span class="dim">${MGONLY()?'ここで登録した注文は「マグチへ依頼済」で入り、オオサカポテトの営業にもすぐ見えます。':'うちの営業が前山さんに依頼します。用意・発送の日はマグチ側が決めます。'}</span></div></section>
-    <section class="card" style="margin-bottom:12px"><h3>3・4 何を・どのくらい</h3><div class="mgp">${card('ペースト')}${card('ダイスカット')}</div>
+    <section class="card" style="margin-bottom:12px"><h3>3・4 何を・どのくらい</h3><div class="mgp">${Object.keys(MGP).map(card).join('')}</div>
       ${tmp.lines.length&&!MGONLY()?`<div class="mgfee"><span>送料の見込み（税抜・10%）<br><span class="dim">${fee===null?mgBoxN(tmp)+'箱（10箱以上）→ 請求のときに都度入力':yen1550(fb)+(tmp.lines.some(l=>l.bara)?'（ばらはまとめて1箱）':'')}</span></span><b>${fee===null?'都度入力':'¥'+fmt(fee)}</b></div>`:''}</section>
   </div></div>
   <div class="two"><section class="card"><h3>5 いつまでに</h3>
@@ -2453,7 +2455,7 @@ function mgHist(tg){if(tg)MG_HTG=tg;if(!MG_HM)MG_HM=new Date(TODAY.getFullYear()
   const ok=os.filter(o=>o.status==='納品済');const sum=(it,f)=>ok.reduce((s,o)=>s+o.lines.filter(l=>l.item===it).reduce((a,l)=>a+l[f],0),0);
   if(MG_HQ){const n=custNorm(MG_HQ);os=os.filter(o=>custNorm(o.custName).includes(n)||o.no.includes(MG_HQ.toUpperCase()))}
   $(MG_HTG).innerHTML=(MGONLY()?mgBand('履歴（発送済・納品済・キャンセル）'):'')+`<div class="row mb"><button class="btn sm" id="mgHp">‹ 前月</button><b>${MG_HM.getFullYear()}年${MG_HM.getMonth()+1}月</b><button class="btn sm" id="mgHn">翌月 ›</button><button class="btn sm" id="mgHt">今月</button><input type="search" id="mgHq" placeholder="顧客名・No." value="${esc(MG_HQ)}" style="width:200px"></div>
-  <div class="mgkpi"><div><small>ペースト（納品済）</small><b>${fmt(sum('ペースト','kg'))}</b><span>kg（${sum('ペースト','pc')}pc）</span></div><div><small>ダイスカット（納品済）</small><b>${fmt(sum('ダイスカット','kg'))}</b><span>kg（${sum('ダイスカット','pc')}pc）</span></div><div><small>納品済</small><b>${ok.length}</b><span>件</span></div><div><small>キャンセル</small><b>${os.filter(o=>o.status==='キャンセル').length}</b><span>件</span></div></div>
+  <div class="mgkpi">${Object.keys(MGP).concat(Object.keys(MG_OLD)).filter(k=>MGP[k]||sum(k,'pc')).map(k=>`<div><small>${k}（納品済）</small><b>${fmt(sum(k,'kg'))}</b><span>kg（${sum(k,'pc')}pc）</span></div>`).join('')}<div><small>納品済</small><b>${ok.length}</b><span>件</span></div><div><small>キャンセル</small><b>${os.filter(o=>o.status==='キャンセル').length}</b><span>件</span></div></div>
   ${os.length?`<div class="tw card" style="padding:0"><table class="mgtab"><tr><th>No.</th><th>③納品日</th><th>顧客</th><th>中身</th><th>運送会社・伝票</th><th>状態</th></tr>${os.map(o=>`<tr data-mgo="${o.no}"><td>${o.no}</td><td>${mdw(o.deliver)}</td><td><b>${esc(o.custName)}</b></td><td>${mgItTxt(o)}</td><td>${esc(o.carrier)}${o.waybill?'<br><span class="dim">'+esc(o.waybill)+'</span>':''}</td><td>${mgTag(o)}${o.why?'<br><span class="dim">'+esc(o.why)+'</span>':''}</td></tr>`).join('')}</table></div>`:'<div class="card"><p class="dim">この月の納品済・キャンセルはありません</p></div>'}
   <p class="note">集計は③納品日の月で、納品済のものだけ。さつまいもの集計には入りません。</p>`;
   $('mgHp').onclick=()=>{MG_HM=new Date(MG_HM.getFullYear(),MG_HM.getMonth()-1,1);mgHist()};$('mgHn').onclick=()=>{MG_HM=new Date(MG_HM.getFullYear(),MG_HM.getMonth()+1,1);mgHist()};$('mgHt').onclick=()=>{MG_HM=null;mgHist()};
