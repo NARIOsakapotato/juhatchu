@@ -471,6 +471,7 @@ body.pm .tab.on{color:#2f6f8f;box-shadow:inset 0 -3px 0 #2f6f8f}
 body.pm #bdWeek,body.pm #bdForm{display:none!important}
 /* 前山さん（マグチフードプロセス）で入ったとき：ペーストのページだけ */
 body.mgonly #grps,body.mgonly #kSw,body.mgonly #askBtn,body.mgonly #gearBtn,body.mgonly .kshare,body.mgonly .mgin{display:none!important}
+.dupbox{background:#fff8ec;border:1px solid #e3c78e;border-radius:10px;padding:8px 10px;margin:8px 0;font-size:12.5px}.dupbox.bad{background:#fdf1ee;border-color:#f0bfb2;color:#7a3a22}
 .mgnew{display:inline-block;font-size:10.5px;font-weight:800;padding:1px 7px;border-radius:999px;background:#fde7e2;color:#9a4a2e;border:1px solid #f0bfb2;margin-left:4px;white-space:nowrap}
 .mgplan{font-size:11.5px;color:#1f4f7f;font-weight:700}
 .mgflag{background:#fdf1ee;border:1px solid #f0bfb2;color:#7a3a22;border-radius:10px;padding:8px 10px;font-size:12.5px;margin-bottom:8px}
@@ -618,6 +619,7 @@ body.pm .kshare{display:inline-block}
         <div id="fPick"><input type="search" id="fCustQ" placeholder="顧客名を入力すると候補が出ます"><div class="sugg" id="fSugg"></div></div>
         <div id="fNew" hidden>
           <div class="two" style="gap:8px"><div><label class="lbl">顧客名 <span style="color:var(--bad)">必須</span></label><input id="nName"></div><div><label class="lbl">電話（伝票用）</label><input id="nTel"></div></div>
+          <div id="nDup"></div>
           <div class="two" style="gap:8px"><div><label class="lbl">区分</label><select id="nKind"><option>小売</option><option>市場</option><option>卸</option><option>農家</option><option>その他</option></select></div><div><label class="lbl">配送日数（発送→着）</label><input type="number" id="nLead" value="1"></div></div>
           <label class="lbl">顧客マスタに登録しますか？</label>
           <div class="seg" id="fReg"><button class="on" data-r="継続">登録する（継続取引）</button><button data-r="スポット">登録しない（今回だけ）</button></div>
@@ -786,6 +788,14 @@ let SETTINGS={targetKg:5000,workdays:'月〜土',from:'',to:''};
 let REASONS=[],CARRIERS=[],CANCEL_REASONS=[],DELIVER_HOW=[],STAFF_NAMES=[],SETTING_ROWS=[],OPT={};
 let ITEMS=[],CUST=[],ORDERS=[];
 const custOf=c=>CUST.find(x=>x.code===c);
+/* 顧客の二重登録を防ぐ（2026/11/2）：名前が同じ→作らせない。電話が同じ・名前の一部が重なる→「別の会社です」と確かめてから。サーバーも同じきまりで止める */
+function custDupCands(name,tel){const n=custNorm(name),t=String(tel||'').replace(/\D/g,'');if(n.length<2&&t.length<9)return {same:[],near:[]};
+  const same=CUST.filter(c=>custNorm(c.name)===n);const near=CUST.filter(c=>{if(same.includes(c))return false;const cn=custNorm(c.name),ct=String(c.tel||'').replace(/\D/g,'');return (t.length>=9&&ct===t)||(n.length>=2&&cn.length>=2&&(cn.includes(n)||n.includes(cn)))}).slice(0,6);return {same,near}}
+function custDupHtml(d,okId,checked){const why=c=>`${esc(c.name)} <span class="dim">${c.code}${c.tel?'・'+esc(c.tel):''}${c.active===false?'・無効':''}</span>`;
+  if(d.same.length)return `<div class="dupbox bad"><b>同じ名前の顧客がすでにあります。新しくは作れません。</b>${d.same.map(c=>`<div class="row" style="gap:6px;margin-top:4px">${why(c)}<button class="btn sm" data-usec="${c.code}">この顧客を使う</button></div>`).join('')}${d.same.some(c=>c.active===false)?'<div class="dim" style="margin-top:4px">「無効」の顧客は、顧客タブで有効に戻すと選べます</div>':''}</div>`;
+  if(!d.near.length)return '';
+  return `<div class="dupbox"><b>似た顧客があります。同じ会社なら、こちらを使ってください（二重登録を防ぐため）</b>${d.near.map(c=>`<div class="row" style="gap:6px;margin-top:4px">${why(c)}<button class="btn sm" data-usec="${c.code}">この顧客を使う</button></div>`).join('')}
+    <label style="display:flex;gap:6px;align-items:center;margin-top:8px;font-weight:700"><input type="checkbox" id="${okId}" style="width:auto" ${checked?'checked':''}> 上の顧客とは別の会社です（二重登録ではありません）</label></div>`}
 const custNorm=x=>String(x||'').normalize('NFKC').replace(/[\s　]/g,'').replace(/[（(]株[)）]|株式会社|[（(]有[)）]|有限会社/g,'').toLowerCase().replace(/[ァ-ヶ]/g,ch=>String.fromCharCode(ch.charCodeAt(0)-0x60));
 const boxUnit=p=>/野菜コンテナ/.test(p.n)?{label:'カゴ数',u:'カゴ',perLabel:'1カゴの'+(p.u==='kg'?'kg':p.u)}:/コンテナ/.test(p.n)?{label:'コンテナ数',u:'個',perLabel:'1コンテナの'+(p.u==='袋'?'袋数':p.u)}:{label:'箱数',u:'箱',perLabel:'1箱の'+(p.u==='袋'?'袋数':p.u)};
 const PACK_ALIAS={'折り畳みコンテナ（袋詰）':'イフコンテナ（袋詰）','5kg箱':'5kg箱（バラ）','10kg箱':'10kg箱（バラ）','コンテナ（バラ）':'野菜コンテナ（バラ）','袋詰 10kg箱（18袋入）':'10kg箱（袋詰）','袋詰 10kg箱（24袋入）':'10kg箱（袋詰）','袋詰 5kg箱（9袋入）':'10kg箱（袋詰）','袋詰 10kg箱':'10kg箱（袋詰）'};
@@ -1386,11 +1396,15 @@ function renderForm(){
   $('fSummary').innerHTML=c?`<b>${esc(c.name)}</b>${isNew?`<span class="tag t-受注" style="margin-left:6px">新規・${F.reg==='継続'?'マスタ登録':'スポット'}</span>`:''} へ ${F.lines.map(l=>`${l.item} ${l.size} ${l.qty||'?'}`).join('／')}<br>③ 納品 <b>${mdw(dv)}</b>　→ 流通の提案：② 発送 ${md(addD(dv,-c.lead))}　① 用意 ${md(addD(dv,-c.lead-1))}　　${$('fCarrier').value||'運送会社：流通に任せる'}`:'顧客を選んでください';
   $('fSave').textContent=F.editNo?`${F.editNo} を更新する`:'流通部へ渡す（登録）';$('fEditCancel').hidden=!F.editNo;
 }
-$('fEditCancel').onclick=()=>{resetForm();renderForm();toast('編集をやめました')};$('fCustQ').oninput=renderForm;$('fDeliver').onchange=renderForm;$('fMode').onclick=e=>{const b=e.target.closest('[data-m]');if(b){F.mode=b.dataset.m;renderForm()}};$('fReg').onclick=e=>{const b=e.target.closest('[data-r]');if(b){F.reg=b.dataset.r;renderForm()}};$('nName').oninput=renderForm;$('fAltOn').onchange=()=>{$('fAlt').hidden=!$('fAltOn').checked};$('fCarrier').onchange=()=>{F.carrierTouched=true;renderForm()};
+$('fEditCancel').onclick=()=>{resetForm();renderForm();toast('編集をやめました')};$('fCustQ').oninput=renderForm;$('fDeliver').onchange=renderForm;$('fMode').onclick=e=>{const b=e.target.closest('[data-m]');if(b){F.mode=b.dataset.m;renderForm()}};$('fReg').onclick=e=>{const b=e.target.closest('[data-r]');if(b){F.reg=b.dataset.r;renderForm()}};$('nName').oninput=()=>{F.dupOk=false;renderForm();nDupRender()};$('nTel').oninput=()=>{F.dupOk=false;nDupRender()};
+function nDupRender(){const box=$('nDup');if(F.mode!=='new'){box.innerHTML='';return}box.innerHTML=custDupHtml(custDupCands($('nName').value,$('nTel').value),'nDupOk',F.dupOk);
+  const ok=$('nDupOk');if(ok)ok.onchange=()=>{F.dupOk=ok.checked};
+  box.querySelectorAll('[data-usec]').forEach(b=>b.onclick=()=>{const c=custOf(b.dataset.usec);if(c&&c.active===false){toast('この顧客は無効です。顧客タブで有効に戻してから選んでください');return}F.mode='pick';F.cust=b.dataset.usec;$('fCustQ').value=c?c.name:'';$('nName').value='';$('nTel').value='';renderForm();nDupRender();toast(`${c?c.name:''} を選びました`)})}$('fAltOn').onchange=()=>{$('fAlt').hidden=!$('fAltOn').checked};$('fCarrier').onchange=()=>{F.carrierTouched=true;renderForm()};
 $('fSave').onclick=async()=>{
   let newCustomer=null;
   if(F.mode==='new'){if(!$('nName').value.trim()){toast('顧客名を入れてください');return}
-    newCustomer={'顧客名':$('nName').value.trim(),'区分':$('nKind').value,'カテゴリ':F.cat,'郵便番号':$('nZip').value,'住所1':$('nAddr').value,'住所2':'','宛名':$('nAttn').value,'電話':$('nTel').value,'配送方法':$('fMethod').value,'標準運送会社':$('fCarrier').value,'配送日数':Number($('nLead').value)||1,'受入時間':$('nHours').value,'受入不可日':$('nClosed').value,'有効':true,'登録区分':F.reg,'備考':''}}
+    {const d=custDupCands($('nName').value,$('nTel').value);nDupRender();if(d.same.length){toast('同じ名前の顧客があります。その顧客を選んでください');return}if(d.near.length&&!F.dupOk){toast('似た顧客があります。同じ会社ならその顧客を選び、別の会社ならチェックを入れてください');return}F._dupOkSend=d.near.length>0}
+    newCustomer={'顧客名':$('nName').value.trim(),'区分':$('nKind').value,'カテゴリ':F.cat,'郵便番号':$('nZip').value,'住所1':$('nAddr').value,'住所2':'','宛名':$('nAttn').value,'電話':$('nTel').value,'配送方法':$('fMethod').value,'標準運送会社':$('fCarrier').value,'配送日数':Number($('nLead').value)||1,'受入時間':$('nHours').value,'受入不可日':$('nClosed').value,'有効':true,'登録区分':F.reg,'備考':'',_dupOk:!!F._dupOkSend}}
   else if(!F.cust){toast('顧客を選んでください');return}
   if(!$('fDeliver').value){toast('納品日を入れてください');return}
   if(F.lines.some(l=>!l.qty)){toast('数量を入れてください');return}
@@ -2316,18 +2330,18 @@ function mgForm(){const F=MGF;if(!F.sales)F.sales=ME;const v=$('v-mg');const c=c
   const tmp={lines:Object.keys(MGP).map(k=>({item:k,box:F.it[k].box,bara:F.it[k].bara})).filter(l=>l.box||l.bara)};
   const fee=tmp.lines.length?mgFee(tmp):undefined,fb=tmp.lines.length?mgFeeBoxes(tmp):0;
   const pick=(()=>{if(c)return `<div class="chips"><button class="chip on">${esc(c.name)}</button><button class="btn sm" id="mgCuX">別の顧客にする</button></div>`;
-    if(F.nc){const n=custNorm(F.nc.name);const sim=n.length>=2?CUST.filter(x=>custNorm(x.name).includes(n)||n.includes(custNorm(x.name))&&custNorm(x.name).length>=2).slice(0,5):[];
-      return `<div class="row" style="justify-content:space-between"><b style="font-size:13px">新しいお客様を登録</b><button class="btn sm" id="mgNcX">やめる（今のお客様から選ぶ）</button></div>
-      <label class="lbl">お客様の名前 <span style="color:var(--bad)">必須</span></label><input id="mgNcN" value="${esc(F.nc.name)}" placeholder="例：株式会社○○">
-      ${sim.length?`<div class="mgflag" style="margin-top:6px">似た名前のお客様がすでにあります。同じ会社ならこちらを選んでください：<div class="chips" style="margin-top:4px">${sim.map(x=>`<button class="chip" data-cu="${x.code}">${esc(x.name)}</button>`).join('')}</div></div>`:''}
+    if(F.nc){const dd=custDupCands(F.nc.name,F.nc.tel);
+      return `<div class="row" style="justify-content:space-between"><b style="font-size:13px">新しい顧客を登録</b><button class="btn sm" id="mgNcX">やめる（今の顧客から選ぶ）</button></div>
+      <label class="lbl">顧客名 <span style="color:var(--bad)">必須</span></label><input id="mgNcN" value="${esc(F.nc.name)}" placeholder="例：株式会社○○">
+      ${custDupHtml(dd,'mgNcOk',F.nc.dupOk)}
       <div class="two" style="gap:8px"><div><label class="lbl">郵便番号</label><input id="mgNcZ" value="${esc(F.nc.zip)}" placeholder="581-0010"></div><div><label class="lbl">電話</label><input id="mgNcT" value="${esc(F.nc.tel)}"></div></div>
       <label class="lbl">住所</label><input id="mgNcA" value="${esc(F.nc.addr)}"><label class="lbl">宛名・ご担当</label><input id="mgNcP" value="${esc(F.nc.attn)}">
-      <p class="dim" style="margin-top:6px">登録するとオオサカポテトにお知らせが届き、営業が確認します</p>`}
+      <p class="dim" style="margin-top:6px">この注文を登録すると、顧客マスタにも登録されます（区分：その他・取扱：加工品。あとで顧客タブで直せます）</p>`}
     const q=F.q.trim();let list,head;
     if(q){const n=custNorm(q);list=CUST.filter(x=>x.active!==false&&custNorm(x.name).includes(n));head=`${list.length}件`}else{list=mgPasteCusts();head=list.length?'ペーストの取引が多い顧客（直近60日）':'まだペーストの取引がありません。名前を入力すると全顧客から探せます'}
     const kp=new Set(MGO.map(o=>o.cust));
     return `<input type="search" id="mgQ" placeholder="顧客名を入力（さつまいもの顧客も含めて全社から探せます）" value="${esc(F.q)}"><div class="dim" style="margin:8px 0 4px">${head}</div><div class="chips">${list.slice(0,8).map(x=>`<button class="chip" data-cu="${x.code}">${esc(x.name)}${kp.has(x.code)?'':' <span class="dim">（ペースト初）</span>'}</button>`).join('')}${list.length>8?`<span class="dim">ほか${list.length-8}件</span>`:''}</div>
-      <p class="dim" style="margin-top:6px">${MGONLY()?'見つからない新しいお客様は、オオサカポテトの営業に登録を頼んでください（お客様の登録はオオサカポテトが行います）':'新しい顧客は、さつまいもの「登録」→「新規の顧客」か「顧客」タブで先に登録してください（顧客は共通です）'}</p>`})();
+      <p class="dim" style="margin-top:6px">${MGONLY()?'見つからない新しいお客様は、オオサカポテトの営業に登録を頼んでください（お客様の登録はオオサカポテトが行います）':'見つからない新しいお客様は <button class="btn sm" id="mgNc">＋ 新しい顧客を登録</button>（ここで登録した顧客は、さつまいも側でも同じ顧客として使えます）'}</p>`})();
   v.innerHTML=mgBand(F.no?`${F.no} を直しています`:'登録')+`<div class="two"><div>
     <section class="card" style="margin-bottom:12px"><h3>1 誰から <span class="dim mgin" style="font-weight:500;font-size:12px">顧客はさつまいもと共通</span></h3>${pick}</section>
     <section class="card" style="margin-bottom:12px"><h3>2 どこへ <span class="dim" style="font-weight:500;font-size:12px">発送はマグチフードプロセスから</span></h3>
@@ -2355,7 +2369,9 @@ function mgForm(){const F=MGF;if(!F.sales)F.sales=ME;const v=$('v-mg');const c=c
     <p class="note mgin">単価はここでは入れません（「請求」で注文ごとに入力）。登録した時点の状態は「受注（依頼前）」です。前山さんに依頼したら、詳細で「マグチへ依頼した」を押してください。</p></section></div>`;
   const re=()=>mgForm();
   if($('mgNc'))$('mgNc').onclick=()=>{F.nc={name:F.q.trim(),zip:'',tel:'',addr:'',attn:''};re()};if($('mgNcX'))$('mgNcX').onclick=()=>{F.nc=null;re()};
-  [['mgNcN','name'],['mgNcZ','zip'],['mgNcT','tel'],['mgNcA','addr'],['mgNcP','attn']].forEach(([id,k])=>{const i=$(id);if(i)i.onchange=()=>{F.nc[k]=i.value.trim();if(k==='name')re()}});
+  [['mgNcN','name'],['mgNcZ','zip'],['mgNcT','tel'],['mgNcA','addr'],['mgNcP','attn']].forEach(([id,k])=>{const i=$(id);if(i)i.onchange=()=>{F.nc[k]=i.value.trim();if(k==='name'||k==='tel'){F.nc.dupOk=false;re()}}});
+  if($('mgNcOk'))$('mgNcOk').onchange=e=>{F.nc.dupOk=e.target.checked};
+  v.querySelectorAll('[data-usec]').forEach(b=>b.onclick=()=>{const c=custOf(b.dataset.usec);if(c&&c.active===false){toast('この顧客は無効です。顧客タブで有効に戻してから選んでください');return}F.nc=null;F.cust=b.dataset.usec;if(F.planAuto&&F.dl)F.plan=mgPlanOf(F.dl,F.cust);re()});
   v.querySelectorAll('[data-cu]').forEach(b=>b.onclick=()=>{F.nc=null;F.cust=b.dataset.cu;if(F.planAuto&&F.dl)F.plan=mgPlanOf(F.dl,F.cust);const cc=custOf(F.cust);if(cc&&!F.car&&cc.carrier)F.car=cc.carrier;re()});
   const q=$('mgQ');if(q)q.oninput=()=>{const p=q.selectionStart;F.q=q.value;re();const n=$('mgQ');n.focus();n.setSelectionRange(p,p)};
   if($('mgCuX'))$('mgCuX').onclick=()=>{F.cust='';F.q='';re()};
@@ -2368,23 +2384,24 @@ function mgForm(){const F=MGF;if(!F.sales)F.sales=ME;const v=$('v-mg');const c=c
   $('mgSave').onclick=mgSaveForm}
 const yen1550=n=>`¥${fmt(MG_FEE)} × ${n}箱`;
 async function mgSaveForm(){const F=MGF;const err=m=>{$('mgErr').textContent=m};
-  if(!F.cust&&!(F.nc&&F.nc.name))return err(F.nc?'お客様の名前を入れてください':'顧客を選んでください');const lines=Object.keys(MGP).map(k=>({'品目':k,'箱数':F.it[k].box,'ばら':F.it[k].bara})).filter(l=>l['箱数']||l['ばら']);
+  if(!F.cust&&!(F.nc&&F.nc.name))return err(F.nc?'顧客名を入れてください':'顧客を選んでください');
+  if(!F.cust&&F.nc){const d=custDupCands(F.nc.name,F.nc.tel);if(d.same.length)return err('同じ名前の顧客があります。その顧客を選んでください');if(d.near.length&&!F.nc.dupOk)return err('似た顧客があります。同じ会社ならその顧客を選び、別の会社なら「別の会社です」にチェックしてください');F.nc.dupOkSend=d.near.length>0}const lines=Object.keys(MGP).map(k=>({'品目':k,'箱数':F.it[k].box,'ばら':F.it[k].bara})).filter(l=>l['箱数']||l['ばら']);
   if(!lines.length)return err('箱数かばらを入れてください');if(!F.dl)return err('③納品日を入れてください');if(F.alt&&!F.altTxt.trim())return err('別の送り先を入れてください（使わないならチェックを外す）');
   if(F.plan&&F.dl&&F.plan>F.dl)return err('発送予定日が納品日より後になっています');
   const order={'発送予定日':F.plan||'','顧客コード':F.cust,'納品日':F.dl,'運送会社':F.car,'営業担当':F.sales||ME,'送り先別':F.alt?F.altTxt.trim():'','申し送り':F.note.trim()};
-  let payload={order,lines};if(!F.cust&&F.nc)payload.newCustomer={'顧客名':F.nc.name,'郵便番号':F.nc.zip,'住所1':F.nc.addr,'宛名':F.nc.attn,'電話':F.nc.tel,'区分':'その他','カテゴリ':'加工品','登録区分':'継続'};if(F.no){payload.no=F.no;payload.expect=F.expect}else payload.rid=ridOf('mgSave',payload);
+  let payload={order,lines};if(!F.cust&&F.nc)payload.newCustomer={'顧客名':F.nc.name,'郵便番号':F.nc.zip,'住所1':F.nc.addr,'宛名':F.nc.attn,'電話':F.nc.tel,'区分':'その他','カテゴリ':'加工品','登録区分':'継続',_dupOk:!!F.nc.dupOkSend};if(F.no){payload.no=F.no;payload.expect=F.expect}else payload.rid=ridOf('mgSave',payload);
   busy(true);try{const r=await api('mgSave',payload);if(r.customer){RAW.customers.push(r.customer);build(RAW)}mgPatchRaw(r.no,r.order,r.lines,r.event);toast(F.no?`${r.no} を直しました`:`${r.no} を登録しました`+(MGONLY()?'（オオサカポテトにも見えています）':''));MGF=mgNewF();switchTab('list')}
   catch(e){err('保存できませんでした：'+e.message);errBar('保存できませんでした：'+e.message+'　入力内容は残っています')}finally{busy(false)}}
 
 /* --- 顧客（共通マスタ。ペースト側では最初にペーストの取引がある顧客だけ） --- */
-const MGC={all:false,q:'',sel:''};
+const MGC={all:true,q:'',sel:''};// 顧客は共通。最初からすべて出す（ペーストの取引ありだけに絞ることもできる）
 function mgCust(){const v=$('v-mg');const cnt={};MGO.forEach(o=>{if(o.status!=='キャンセル')cnt[o.cust]=(cnt[o.cust]||0)+1});
   const imoN={};ORDERS.forEach(o=>{if(o.status!=='キャンセル')imoN[o.cust]=(imoN[o.cust]||0)+1});
   let list=MGC.all?CUST.filter(c=>c.active!==false):CUST.filter(c=>cnt[c.code]||(c.src==='マグチ'&&!c.conf));if(MGC.q){const n=custNorm(MGC.q);list=list.filter(c=>custNorm(c.name).includes(n))}
   const uc=c=>c.src==='マグチ'&&!c.conf?1:0;list.sort((a,b)=>uc(b)-uc(a)||(cnt[b.code]||0)-(cnt[a.code]||0)||a.name.localeCompare(b.name,'ja'));
   const tags=c=>`${c.src==='マグチ'&&!c.conf&&!MGONLY()?'<span class="mgnew">マグチで登録・未確認</span> ':''}${imoN[c.code]&&!MGONLY()?'<span class="mgst s3">青果</span> ':''}${cnt[c.code]?'<span class="mgst pz">ペースト</span>':''}`;
   const sc=custOf(MGC.sel);const os=sc?MGO.filter(o=>o.cust===sc.code).sort((a,b)=>b.deliver-a.deliver):[];
-  v.innerHTML=mgBand(MGONLY()?'お客様（最初はペーストの取引があるお客様だけ）':'顧客はさつまいもと共通（1社1件）。最初はペーストの取引がある顧客だけを出しています')+`<div class="row mb"><span class="seg"><button data-a="0" class="${MGC.all?'':'on'}">ペーストの取引あり（${Object.keys(cnt).length}社）</button><button data-a="1" class="${MGC.all?'on':''}">すべて（${CUST.filter(c=>c.active!==false).length}社）</button></span><input type="search" id="mgCQ" placeholder="顧客名で検索" value="${esc(MGC.q)}" style="width:220px"></div>
+  v.innerHTML=mgBand(MGONLY()?'お客様':'顧客はさつまいもと共通（1社1件）。さつまいもの顧客も、ペーストの顧客も、ここで全部見られます')+`<div class="row mb"><span class="seg"><button data-a="0" class="${MGC.all?'':'on'}">ペーストの取引あり（${Object.keys(cnt).length}社）</button><button data-a="1" class="${MGC.all?'on':''}">すべて（${CUST.filter(c=>c.active!==false).length}社）</button></span><input type="search" id="mgCQ" placeholder="顧客名で検索" value="${esc(MGC.q)}" style="width:220px"></div>
   <div class="cust"><div><div class="cl">${list.slice(0,300).map(c=>`<div class="mgci ${c.code===MGC.sel?'on':''}" data-s="${c.code}"><b>${esc(c.name)}</b><br>${tags(c)}</div>`).join('')||'<p class="dim" style="padding:8px">該当なし</p>'}</div></div>
   <div>${sc?`<section class="card"><h3>${esc(sc.name)} <span class="dim" style="font-weight:500;font-size:12px">${sc.code}</span></h3>
     ${sc.src==='マグチ'&&!sc.conf&&!MGONLY()?`<div class="mgflag">前山さん（マグチ）が登録したお客様です。名前・住所を確かめて、すでにある顧客と同じ会社でなければ「確認した」を押してください。同じ会社だったときは、顧客タブ（さつまいも側）で片方を無効にしてください。<div style="margin-top:6px"><button class="btn sm pri" id="mgCok">確認した</button></div></div>`:''}<div class="sumbox">${esc([sc.zip?'〒'+sc.zip:'',sc.addr,sc.attn,sc.tel].filter(Boolean).join('　')||'住所未登録')}</div>
