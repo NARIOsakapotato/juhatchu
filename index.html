@@ -48,6 +48,7 @@ textarea{resize:vertical}
 .btn.pri{background:var(--ok);color:#fff;border-color:var(--ok)}
 .btn.acc{background:var(--accent);color:#fff;border-color:var(--accent)}
 .btn.warn{color:var(--bad);border-color:#d9b8ad}
+.btn.pri.warn{background:var(--bad);border-color:var(--bad);color:#fff}/* 2026/11/3 送信の確認（もう一度押すと送る）が緑地に赤字で読めなかったので、赤地に白字に */
 .btn.blk{width:100%;padding:13px;font-size:16px;border-radius:12px}
 .btn:disabled{opacity:.45;cursor:default}
 .seg{display:inline-flex;border:1px solid var(--line2);border-radius:10px;overflow:hidden;background:var(--paper)}
@@ -474,6 +475,13 @@ body.mgonly #grps,body.mgonly #kSw,body.mgonly #askBtn,body.mgonly #gearBtn,body
 .nhst{display:inline-block;font-size:11.5px;font-weight:800;padding:2px 8px;border-radius:999px;white-space:nowrap}.nhst.none{background:var(--bad-soft);color:var(--bad)}.nhst.made{background:var(--warn-soft);color:#8a5a12}.nhst.sent{background:var(--ok-soft);color:var(--ok-ink)}
 .nhh{background:var(--paper2);border-radius:10px;padding:6px 10px;margin:8px 0}
 .mbox.wide{max-width:1180px}
+.trbox{display:flex;flex-direction:column;gap:6px}.trun{display:flex;gap:6px;align-items:center;font-size:13px}.trun input{width:auto}
+.trsel{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:13px;min-height:30px}.trpick{display:inline-flex;align-items:center;gap:4px;background:var(--ok-soft);border:1px solid #cfe3c5;border-radius:999px;padding:3px 4px 3px 10px;font-weight:700}.trpick button{border:none;background:none;cursor:pointer;font-size:14px;color:var(--mute);padding:0 4px}
+.chip.trc.on{background:var(--head);color:#fff;border-color:var(--head)}.trarea{flex-wrap:wrap}
+.trrc{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+#gTr.trng{outline:2px solid var(--bad);outline-offset:4px;border-radius:8px}
+.trg{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:14px;align-items:start;margin-top:8px}.trg tr.on td{background:var(--accent-soft)}
+@media(max-width:900px){.trg{grid-template-columns:1fr}}
 .nhg{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:18px;align-items:start;margin-top:8px}
 .nhpaper{position:relative;background:#e9e5de;border:1px solid var(--line2);border-radius:10px;overflow:hidden;min-height:300px}
 .nhpaper iframe.nhdoc{position:absolute;left:0;top:0;width:794px;height:1123px;border:0;background:#fff;transform-origin:0 0}
@@ -589,6 +597,7 @@ body.pm .kshare{display:inline-block}
   <button class="tab" data-t="bag" data-g="ops">袋詰</button>
   <button class="tab" data-t="wash" data-g="ops">洗浄</button>
   <button class="tab" data-t="hist" data-g="hist">履歴</button>
+  <button class="tab" data-t="trace" data-g="hist">圃場トレース</button>
   </div>
 </nav>
 
@@ -741,6 +750,7 @@ body.pm .kshare{display:inline-block}
   <section class="card sec"><h3>日別の記録<span>タップで修正</span></h3><div class="tw" id="bTable"></div></section>
 </main>
 <main class="wrap" id="v-nh" hidden></main>
+<main class="wrap" id="v-trace" hidden></main>
 <main class="wrap" id="v-inv" hidden>
   <section class="card" style="margin-bottom:12px"><div class="row" style="gap:10px;flex-wrap:wrap"><label for="ivYm" style="font-weight:700">請求月</label><select id="ivYm" style="width:auto"></select><span class="dim">対象：その月に納品日があり、発送手配済・納品済になった注文（キャンセルは除く）</span><span class="dim" id="ivProg" style="margin-left:auto"></span></div></section>
   <div id="ivMain"></div>
@@ -868,7 +878,7 @@ async function reload(){busy(true);try{const d=await api('init',{});TODAY=new Da
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&KEY&&LAST_LOAD&&Date.now()-LAST_LOAD>60000)reload()});
 
 let RAW=null,REC=[];
-function build(d){RAW=d;d.recurring=d.recurring||[];d.formInbox=d.formInbox||[];d.wash=d.wash||[];
+function build(d){RAW=d;trBuild(d);d.recurring=d.recurring||[];d.formInbox=d.formInbox||[];d.wash=d.wash||[];
   const sget=k=>{const r=d.settings.find(x=>x['キー']===k);return r?String(r['値']??''):''};
   SETTING_ROWS=d.settings;
   SETTINGS.targetKg=Number(sget('週間目標kg'))||5000;SETTINGS.workdays=sget('稼働日')||'月〜土';
@@ -962,10 +972,10 @@ const GRP_LAST={sales:'list',ops:'shift',hist:'hist',bill:'nh'};
 function tabGroup(t){const b=document.querySelector(`.tab[data-t="${t}"]`);return b?b.dataset.g:'sales'}
 function showGroup(g){document.querySelectorAll('.grp').forEach(b=>b.classList.toggle('on',b.dataset.g===g));let n=0;document.querySelectorAll('.tab').forEach(b=>{let vis=b.dataset.g===g&&!((b.id==='tabInv'||b.id==='tabNh')&&!ivAllowed());if(vis&&b.dataset.t==='form'&&PM==='paste')vis=false;if(vis&&b.dataset.t==='mghist'&&!MGONLY())vis=false;if(vis&&b.dataset.t==='new'&&MGONLY())vis=false;/* 前山さんは登録しない（注文はオオサカポテトが登録して依頼する） */b.style.display=vis?'':'none';if(vis)n++});if(n<=1)$('tabs').setAttribute('data-one','');else $('tabs').removeAttribute('data-one');
   $('grpBill').hidden=!ivAllowed();$('kSw').classList.toggle('show',g==='sales')}
-function switchTab(t){if(MGONLY()&&!['list','week','cust','mghist'].includes(t))t='list';if(!MGONLY()&&t==='mghist')t='list';TAB=t;const g=tabGroup(t);GRP_LAST[g]=t;showGroup(g);try{localStorage.setItem('juhatchu_tab',t)}catch(e){}document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t===t));['list','week','new','form','cust','shift','bag','wash','hist','inv','nh','mg'].forEach(v=>$('v-'+v).hidden=v!==t);render()}
+function switchTab(t){if(MGONLY()&&!['list','week','cust','mghist'].includes(t))t='list';if(!MGONLY()&&t==='mghist')t='list';TAB=t;const g=tabGroup(t);GRP_LAST[g]=t;showGroup(g);try{localStorage.setItem('juhatchu_tab',t)}catch(e){}document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t===t));['list','week','new','form','cust','shift','bag','wash','hist','inv','nh','mg','trace'].forEach(v=>$('v-'+v).hidden=v!==t);render()}
 $('tabs').addEventListener('click',e=>{const b=e.target.closest('.tab');if(b)switchTab(b.dataset.t)});
 $('grps').addEventListener('click',e=>{const b=e.target.closest('.grp');if(b)switchTab(GRP_LAST[b.dataset.g])});
-function render(){if(PM==='paste'&&tabGroup(TAB)==='sales'&&['list','week','new','cust','mghist'].includes(TAB)){renderBadge();const vv=$('v-'+TAB);if(vv)vv.hidden=true;mgRender();return}$('v-mg').hidden=true;$('v-'+TAB).hidden=false;if(TAB==='hist'){renderBadge();histWithPm();return}renderBadge();({list:renderList,week:renderWeek,new:renderForm,form:renderInbox,cust:renderCust,shift:renderShift,bag:renderBag,wash:renderWash,hist:renderHist,inv:renderInv,nh:renderNh})[TAB]()}
+function render(){if(PM==='paste'&&tabGroup(TAB)==='sales'&&['list','week','new','cust','mghist'].includes(TAB)){renderBadge();const vv=$('v-'+TAB);if(vv)vv.hidden=true;mgRender();return}$('v-mg').hidden=true;$('v-'+TAB).hidden=false;if(TAB==='hist'){renderBadge();histWithPm();return}renderBadge();({list:renderList,week:renderWeek,new:renderForm,form:renderInbox,cust:renderCust,shift:renderShift,bag:renderBag,wash:renderWash,hist:renderHist,inv:renderInv,nh:renderNh,trace:renderTrace})[TAB]()}
 function renderBadge(){const n=ORDERS.filter(o=>o.status==='受注').length;$('bdWeek').hidden=!n;$('bdWeek').textContent=n;const f=fiOpenN();$('bdForm').hidden=!f;$('bdForm').textContent=f;const gs=n+f+mgUnseen();{const m=mgUnseen();$('bdMg').hidden=!m;$('bdMg').textContent=m}$('bdGsales').hidden=!gs||tabGroup(TAB)==='sales';$('bdGsales').textContent=gs}
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('on'),2200)}
 
@@ -1070,9 +1080,10 @@ function openOrder(no){
   <div class="kv"><span class="k">送り先</span><span>〒${c.zip} ${esc(c.addr)}　${esc(c.attn)}　${c.tel}${((RAW.customers.find(x=>String(x['コード'])===c.code)||{})['お客様番号'])?`　<span class="dim">お客様番号 ${esc(RAW.customers.find(x=>String(x['コード'])===c.code)['お客様番号'])}</span>`:''}<br><span class="dim">受入 ${c.hours||'—'}　不可 ${c.closed||'—'}　${esc(c.note)}</span></span></div>
   ${o.note?`<div class="kv"><span class="k">申し送り</span><span>${esc(o.note)}</span></div>`:''}
   <div class="kv"><span class="k">配送</span><span><span class="row" style="gap:10px">${shipTxt(o)}${o.status!=='キャンセル'?`<button class="btn sm" data-a="ship">${(o.act.carrier||o.carrier)?'直す':'決める'}</button>`:''}</span><div id="shipEd"></div></span></div>
+  ${trNeed(o)?`<div class="kv"><span class="k">圃場</span><span><span class="row" style="gap:10px">${trOf(o.no).length?esc(trTxt(o.no)):'<span style="color:var(--bad);font-weight:700">未記録</span>'}<button class="btn sm" data-a="trace">${trOf(o.no).length?'直す':'入れる'}</button></span></span></div>`:''}
   ${timeline(o)}`);
   $('modal').querySelector('.mbox').onclick=e=>{const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a;
-    if(a==='close')closeModal();else if(a==='ship')openShipEdit(o);else if(a==='conf'){if(unconf(o))confirmOrders([o],()=>openOrder(o.no))}else if(a==='unconf'){if(!unconf(o))unconfirmOrder(o,true)}else if(a==='sched')openSched(o);else if(a==='next')openStage(o,next);else if(a==='cancel')openCancel(o);else if(a==='edit'){closeModal();loadForm(o);switchTab('new')}else if(a==='nh'){nhOpen.S=null;nhOpen('imo',o.no)}};
+    if(a==='close')closeModal();else if(a==='ship')openShipEdit(o);else if(a==='conf'){if(unconf(o))confirmOrders([o],()=>openOrder(o.no))}else if(a==='unconf'){if(!unconf(o))unconfirmOrder(o,true)}else if(a==='sched')openSched(o);else if(a==='next')openStage(o,next);else if(a==='cancel')openCancel(o);else if(a==='edit'){closeModal();loadForm(o);switchTab('new')}else if(a==='nh'){nhOpen.S=null;nhOpen('imo',o.no)}else if(a==='trace')openTraceEdit(o)};
 }
 /* ===== 確定（定期の事前登録 → 発注を受けた） ===== */
 async function confirmOrders(os,after){const at=dts(new Date());
@@ -1146,7 +1157,7 @@ function openStage(o,stage,ucOk){
   const c=custOf(o.cust);const now=new Date();
   const plan=stage==='用意完了'?o.readyFix:stage==='発送手配済'?o.shipFix:o.deliver;
   const lab=stage==='用意完了'?['用意期限 ①','完了日時']:stage==='発送手配済'?['発送手配日 ②','手配日時']:['納品予定 ③','納品確認日時'];
-  const extra=stage==='用意完了'?`<label>実際の箱数</label><div class="s"><input type="number" id="gBoxes" value="${o.boxes||''}" style="width:90px"> 箱 <span class="dim">予定 ${o.boxes||'—'}箱。違えば直す</span></div>`
+  const extra=stage==='用意完了'?`<label>実際の箱数</label><div class="s"><input type="number" id="gBoxes" value="${o.boxes||''}" style="width:90px"> 箱 <span class="dim">予定 ${o.boxes||'—'}箱。違えば直す</span></div>${o.cat==='青果'?`<label>使った圃場<br><span class="dim" style="font-weight:400">トレーサビリティ</span></label><div id="gTr"></div>`:''}`
     :stage==='発送手配済'?`<label>運送会社</label><select id="gCarrier">${carOpts(o.carrier,'選んでください')}</select><label>伝票No.</label><input id="gWaybill" placeholder="追跡用"><label>個口数</label><div class="s"><input type="number" id="gPieces" value="${o.act.readyBoxes||o.boxes||''}" style="width:90px"> 箱</div><span></span><div id="gCarMsg"></div>`
     :`<label>確認方法</label><select id="gHow">${DELIVER_HOW.map(x=>`<option>${esc(x)}</option>`).join('')}</select>`;
   modal(`<h2>「${stage}」にする</h2><div class="meta"><span>${esc(c.name)}</span><span>${o.no}</span><span>${lineSummary(o)}</span></div>
@@ -1161,6 +1172,7 @@ function openStage(o,stage,ucOk){
   const late=()=>{const at=new Date($('gAt').value);const n=diffD(at,plan);$('gLate').innerHTML=n>0?`<div class="alert">${lab[0].slice(0,-2)} ${md(plan)} より <b>${n}日遅れ</b> です。理由を選ぶかメモに残してください（履歴に出ます）</div><div class="chips" style="margin-bottom:8px">${REASONS.map(r=>`<button class="chip late ${reason===r?'on':''}" data-r="${r}">${r}</button>`).join('')}</div>`:`<div class="alert ok">予定どおり（${md(plan)}）${n<0?`　${-n}日早い`:''}</div>`;
     $('gLate').querySelectorAll('.chip').forEach(b=>b.onclick=()=>{reason=b.dataset.r;late()})};
   $('gAt').onchange=late;late();
+  const TS=stage==='用意完了'&&$('gTr')?trEditor($('gTr'),{ids:[],area:'',unknown:false,note:''}):null;
   if(stage==='発送手配済'){const chk=()=>{const c=$('gCarrier').value,w=$('gWaybill').value.trim(),k=carKind(c);$('gWaybill').disabled=$('gPieces').disabled=k==='引取り';
       const keep=$('gNoWay')&&$('gNoWay').checked;
       $('gCarMsg').innerHTML=!c?'<div class="alert" style="margin:0">運送会社を選んでください（引取り・自社配送もここで選びます）</div>':k==='運送会社'&&!w?`<div class="alert" style="margin:0">${esc(c)}なのに伝票No.が空です。<label style="display:block;margin-top:4px"><input type="checkbox" id="gNoWay" style="width:auto" ${keep?'checked':''}> 伝票なしで記録する</label></div>`:k==='引取り'?'<div class="alert ok" style="margin:0">引取り：請求書の送料は0円になります</div>':'';
@@ -1168,11 +1180,13 @@ function openStage(o,stage,ucOk){
     $('gCarrier').onchange=chk;$('gWaybill').oninput=chk;chk()}
   $('gNo').onclick=()=>openOrder(o.no);
   $('gOk').onclick=async()=>{const expect=o.status;const at=new Date($('gAt').value);const by=$('gBy').value;const n=Math.max(0,diffD(at,plan));const memo=$('gMemo').value;let fields={},ev;
+    let trRows=null;if(TS){const c=trCheck(TS);if(c.err){toast(c.err);const t=$('gTr');t.classList.add('trng');t.scrollIntoView({block:'center'});return}trRows=c.rows}
     if(stage==='用意完了'){Object.assign(o.act,{readyAt:at,readyBy:by,readyReason:reason,readyNote:memo,readyBoxes:Number($('gBoxes').value)||o.boxes});ev={t:'用意完了',at,by,late:n,plan,m:(reason?reason+(memo?'：'+memo:''):memo)+(o.act.readyBoxes!==o.boxes?`　実際 ${o.act.readyBoxes}箱（予定 ${o.boxes}）`:'')};fields={'用意完了日時':dts(at),'用意担当':by,'用意理由':reason,'用意メモ':memo,'実箱数':o.act.readyBoxes}}
     if(stage==='発送手配済'){if(!$('gCarrier').value){toast('運送会社を選んでください');return}const pick=carKind($('gCarrier').value)==='引取り';Object.assign(o.act,{shipAt:at,shipBy:by,carrier:$('gCarrier').value,waybill:pick?'':$('gWaybill').value.trim(),pieces:pick?'':(Number($('gPieces').value)||o.boxes),shipNote:memo});o.carrier=o.act.carrier;ev={t:'発送手配',at,by,late:n,plan,m:`${o.act.carrier}${pick?'':`　伝票 ${o.act.waybill||'（未入力）'}　${o.act.pieces}個口`}${reason?'　'+reason:''}${memo?'　'+memo:''}`};fields={'発送手配日時':dts(at),'手配担当':by,'運送会社':o.act.carrier,'伝票No':o.act.waybill,'個口数':o.act.pieces,'手配メモ':memo}}
     if(stage==='納品済'){Object.assign(o.act,{deliverAt:at,deliverBy:by,deliverNote:$('gHow').value+(memo?'　'+memo:'')});ev={t:'納品',at,by,late:n,plan,m:o.act.deliverNote+(reason?'　'+reason:'')};fields={'納品確認日時':dts(at),'納品担当':by,'納品メモ':o.act.deliverNote}}
+    if(trRows)trLocal(o.no,trRows);
     o.events.push(ev);o.status=stage;fields['状態']=stage;render();stage==='納品済'?closeModal():openOrder(o.no);
-    await save('updateOrderFields',{no:o.no,expect,fields,event:{'種別':ev.t,'日時':dts(at),'担当':by,'内容':ev.m,'遅れ日数':n,'予定日':plan?ymd(plan):''}},`${o.no} を ${stage} にしました`)};
+    await save('updateOrderFields',{no:o.no,expect,fields,...(trRows?{trace:trRows}:{}),event:{'種別':ev.t,'日時':dts(at),'担当':by,'内容':ev.m,'遅れ日数':n,'予定日':plan?ymd(plan):''}},`${o.no} を ${stage} にしました`)};
 }
 function openCancel(o){
   modal(`<h2>キャンセルする</h2><div class="meta"><span>${o.no}</span><span>${esc(custOf(o.cust).name)}</span></div><div class="frm"><label>理由</label><select id="xR">${CANCEL_REASONS.map(x=>`<option>${esc(x)}</option>`).join('')}</select><label>メモ</label><input id="xM"></div>
@@ -2634,6 +2648,94 @@ function renderNh(){const v=$('v-nh');if(!ivAllowed()){v.innerHTML='<div class="
   const q=$('nhQ');imeIn(q,()=>{const p=q.selectionStart;NHV.q=q.value;renderNh();const n=$('nhQ');n.focus();n.setSelectionRange(p,p)});
   v.querySelectorAll('[data-nh]').forEach(tr=>tr.onclick=e=>{if(e.target.closest('[data-nhdl]'))return;const [k,no]=tr.dataset.nh.split('|');nhOpen.S=null;nhOpen(k,no)});
   v.querySelectorAll('[data-nhdl]').forEach(b=>b.onclick=e=>{e.stopPropagation();const [n,ver]=b.dataset.nhdl.split('|');nhSavePdf(n,Number(ver))})}
+
+/* ===== 圃場トレース（2026/11/6〜・さつまいも青果のみ）=====
+   用意完了のときに「どの圃場の芋を使ったか」を入れる（量は入れない。どの圃場の芋をどこへ出したかが分かればよい）
+   圃場の一覧は畝立て設計DBの「圃場」を読む（ここでは持たない）
+   RAW.fields：[{圃場ID,圃場名,エリア}]（サーバーが畝立て設計DBから作る）
+   RAW.trace ：シート「出荷圃場」の行 [{NO,圃場ID,圃場名,エリア,メモ,記録日時,記録者}]。圃場ID が「不明」の行は「分からない」（理由はメモ） */
+const TR_AREAS=['八尾','河南','羽曳野','富田林','しまやん'];
+let TRF=[],TRBY={};
+function trBuild(d){TRF=(d.fields||[]).map(r=>({id:String(r['圃場ID']),name:String(r['圃場名']),area:String(r['エリア']||'その他')}));TRBY={};
+  (d.trace||[]).forEach(r=>{if(r.NO)(TRBY[r.NO]=TRBY[r.NO]||[]).push({id:String(r['圃場ID']),name:String(r['圃場名']||''),area:String(r['エリア']||''),note:String(r['メモ']||''),at:pdt(r['記録日時']),by:r['記録者']||''})})}
+const trOf=no=>TRBY[no]||[];
+const trUnknown=no=>trOf(no).some(r=>r.id==='不明');
+const trNeed=o=>o.cat==='青果'&&!!o.act.readyAt&&o.status!=='キャンセル';
+const trTxt=no=>{const r=trOf(no);if(!r.length)return '';if(trUnknown(no))return '分からない（'+(r[0].note||'理由なし')+'）';return r.map(x=>x.name).join('・')};
+/* よく使う圃場：直近の記録から8つ */
+function trRecent(){const seen=[];Object.values(TRBY).flat().filter(r=>r.id!=='不明').sort((a,b)=>(b.at||0)-(a.at||0)).forEach(r=>{if(!seen.includes(r.id)&&seen.length<8)seen.push(r.id)});return seen.map(id=>TRF.find(f=>f.id===id)).filter(Boolean)}
+/* 入力欄：host に描く。S={ids:[圃場ID…],area,unknown,note}。チップを押して選ぶ／外す */
+function trEditor(host,S){
+  const draw=()=>{host.classList.remove('trng');const rc=trRecent();const on=id=>S.ids.includes(id);
+    const chip=f=>`<button type="button" class="chip trc ${on(f.id)?'on':''}" data-f="${esc(f.id)}">${on(f.id)?'✓ ':''}${esc(f.name)}</button>`;
+    const areas=TR_AREAS.concat(TRF.some(x=>!TR_AREAS.includes(x.area))?['その他']:[]);
+    const inA=TRF.filter(f=>f.area===S.area);
+    host.innerHTML=`<div class="trbox">${!TRF.length?`<div class="alert" style="margin:0">圃場の一覧を読み込めませんでした${RAW&&RAW.fieldsError?'（'+esc(RAW.fieldsError)+'）':''}。いまは「圃場が分からない」にチェックし、理由に「一覧が出ない」と入れて記録してください。あとで注文の詳細の「直す」から入れられます。</div>`:''}
+     <label class="trun"><input type="checkbox" id="trUn" ${S.unknown?'checked':''}> 圃場が分からない</label>
+     ${S.unknown?`<input id="trNote" placeholder="分からない理由（例：混ざったコンテナで判別できない）" value="${esc(S.note||'')}">`:`
+     <div class="trsel">${S.ids.length?`<b>選んだ圃場（${S.ids.length}）</b> ${S.ids.map(id=>{const f=TRF.find(x=>x.id===id)||{name:id};return `<span class="trpick">${esc(f.name)}<button type="button" data-x="${esc(id)}" title="外す">×</button></span>`}).join('')}`:'<span class="dim">まだ選んでいません。下から押して選んでください（いくつでも選べます）</span>'}</div>
+     ${rc.length?`<div class="trrc"><span class="dim">よく使う：</span>${rc.map(chip).join('')}</div>`:''}
+     <div class="seg trarea">${areas.map(a=>`<button type="button" data-a="${a}" class="${S.area===a?'on':''}">${a}</button>`).join('')}</div>
+     ${S.area?`<div class="trrc">${inA.map(chip).join('')||'<span class="dim">このエリアの圃場はありません</span>'}</div>`:'<div class="dim" style="font-size:12px">エリアを押すと、そのエリアの圃場が出ます</div>'}`}
+    </div>`;
+    $('trUn').onchange=e=>{S.unknown=e.target.checked;draw()};
+    if($('trNote'))$('trNote').oninput=e=>{S.note=e.target.value};
+    host.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{const id=b.dataset.f;S.ids=on(id)?S.ids.filter(x=>x!==id):S.ids.concat([id]);draw()});
+    host.querySelectorAll('[data-x]').forEach(b=>b.onclick=()=>{S.ids=S.ids.filter(x=>x!==b.dataset.x);draw()});
+    host.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{S.area=S.area===b.dataset.a?'':b.dataset.a;draw()})};
+  S.ids=S.ids||[];draw();S.redraw=draw;return S}
+/* 入力の確かめ：OK なら保存する行を返す。だめならエラー文 */
+function trCheck(S){if(S.unknown){if(!String(S.note||'').trim())return {err:'「圃場が分からない」の理由を入れてください'};return {rows:[{'圃場ID':'不明','圃場名':'（分からない）','エリア':'','メモ':String(S.note).trim()}]}}
+  if(!S.ids.length)return {err:'使った圃場を選んでください（分からないときは「圃場が分からない」にチェック）'};
+  return {rows:S.ids.map(id=>{const f=TRF.find(x=>x.id===id)||{};return {'圃場ID':id,'圃場名':f.name||'','エリア':f.area||'','メモ':''}})}}
+function trStateOf(no){const r=trOf(no);if(trUnknown(no))return {ids:[],area:'',unknown:true,note:r[0].note};return {ids:r.map(x=>x.id),area:'',unknown:false,note:''}}
+/* 用意完了のあとで直す */
+function openTraceEdit(o){const S=trStateOf(o.no);
+  modal(`<h2>出荷に使った圃場</h2><div class="meta"><span>${esc(custOf(o.cust).name)}</span><span>${o.no}</span><span>${lineSummary(o)}</span><span>用意完了 ${o.act.readyAt?mdhm(o.act.readyAt):'—'}</span></div>
+  <div id="trEd"></div><p class="dim" id="trErr" style="color:var(--bad);margin-top:6px"></p>
+  <button class="btn pri blk" id="trOk">保存</button><div class="acts"><button class="btn" id="trNo">やめる</button></div>`);
+  trEditor($('trEd'),S);$('trNo').onclick=()=>openOrder(o.no);
+  $('trOk').onclick=async()=>{const c=trCheck(S);if(c.err){$('trErr').textContent=c.err;return}
+    try{await save('saveTrace',{no:o.no,rows:c.rows},`${o.no} の圃場を保存しました`);trLocal(o.no,c.rows);openOrder(o.no)}catch(e){}}}
+function trLocal(no,rows){RAW.trace=(RAW.trace||[]).filter(r=>r.NO!==no).concat(rows.map(r=>Object.assign({NO:no,'記録日時':dts(new Date()),'記録者':ME},r)));trBuild(RAW)}
+const trQty=o=>o.lines.map(l=>`${fmt(l.qty)} ${l.unit}`).join('＋');
+
+/* ===== 履歴 → 圃場トレース タブ：圃場から「いつ・どこへ出したか」を引く ===== */
+const TRV={ym:null,area:'',field:'',q:''};
+function renderTrace(){const v=$('v-trace');if(!TRV.ym){const t=TODAY;TRV.ym=`${t.getFullYear()}-${pad(t.getMonth()+1)}`}
+  const [y,m]=TRV.ym.split('-').map(Number);const inM=d=>d&&d.getFullYear()===y&&d.getMonth()+1===m;
+  const os=ORDERS.filter(o=>trNeed(o)&&inM(o.act.readyAt));
+  const recs=[];os.forEach(o=>trOf(o.no).forEach(r=>recs.push({o,r})));
+  const miss=os.filter(o=>!trOf(o.no).length);
+  const agg={};recs.forEach(({o,r})=>{if(TRV.area&&r.area!==TRV.area)return;const k=r.id;const a=agg[k]=agg[k]||{id:r.id,name:r.id==='不明'?'（分からない）':r.name,area:r.area,n:0,cust:new Set(),first:null,last:null};
+    a.n++;a.cust.add(o.cust);const d=o.act.readyAt;if(!a.first||d<a.first)a.first=d;if(!a.last||d>a.last)a.last=d});
+  const ai=a=>a.id==='不明'?99:(TR_AREAS.indexOf(a.area)+1||98);const list=Object.values(agg).sort((a,b)=>ai(a)-ai(b)||b.n-a.n);
+  const sel=TRV.field&&agg[TRV.field];
+  let det=[];if(TRV.field)det=recs.filter(x=>x.r.id===TRV.field).sort((a,b)=>a.o.act.readyAt-b.o.act.readyAt);
+  if(TRV.q){const n=custNorm(TRV.q);det=det.filter(x=>custNorm(custOf(x.o.cust).name).includes(n)||x.o.no.includes(TRV.q))}
+  const others=(o,id)=>trOf(o.no).filter(x=>x.id!==id).map(x=>x.name);
+  v.innerHTML=`<div class="row mb"><button class="btn sm" id="trPrev">‹</button><b>${y}年${m}月</b><button class="btn sm" id="trNext">›</button><span class="dim">①用意完了の日で数えます（さつまいも青果のみ）</span>
+   <span class="seg" id="trArea"><button data-a="" class="${TRV.area?'':'on'}">すべて</button>${TR_AREAS.map(a=>`<button data-a="${a}" class="${TRV.area===a?'on':''}">${a}</button>`).join('')}</span></div>
+  <div class="mgkpi"><div><small>用意完了した出荷</small><b>${os.length}</b><span>件</span></div><div><small>圃場を記録した出荷</small><b>${os.length-miss.length}</b><span>件</span></div><div><small>圃場が未記録</small><b style="color:${miss.length?'var(--bad)':'inherit'}">${miss.length}</b><span>件</span></div><div><small>出荷に使った圃場</small><b>${list.filter(a=>a.id!=='不明').length}</b><span>か所</span></div></div>
+  ${miss.length?`<div class="alert" style="margin:8px 0">圃場が入っていない出荷が ${miss.length}件あります（機能を入れる前に用意完了したものなど）：${miss.slice(0,8).map(o=>`<button class="btn sm" data-tro="${o.no}">${o.no} ${esc(custOf(o.cust).name)}</button>`).join(' ')}${miss.length>8?' ほか':''}</div>`:''}
+  <div class="trg">
+  <div class="card" style="padding:0"><table class="mgtab"><tr><th>エリア</th><th>圃場</th><th>出荷</th><th>出荷先</th><th>用意完了</th></tr>
+   ${list.length?list.map(a=>`<tr data-trf="${esc(a.id)}" class="${TRV.field===a.id?'on':''}" style="cursor:pointer"><td>${esc(a.area||'—')}</td><td><b>${esc(a.name)}</b></td><td><b>${a.n}</b>件</td><td>${a.cust.size}軒</td><td class="dim">${md(a.first)}〜${md(a.last)}</td></tr>`).join(''):'<tr><td colspan="5" class="dim">この月の記録はありません</td></tr>'}</table></div>
+  <div class="card">${sel?`<div class="row" style="justify-content:space-between"><h3 style="margin:0">${esc(sel.name)} <span class="dim" style="font-size:13px;font-weight:400">${esc(sel.area)}　${y}年${m}月　${sel.n}件・${sel.cust.size}軒</span></h3><button class="btn sm" id="trCsv">CSVに書き出す</button></div>
+    <input type="search" id="trQ" placeholder="出荷先・No.で絞り込み" value="${esc(TRV.q)}" style="margin:8px 0">
+    <table class="mgtab"><tr><th>①用意完了</th><th>No.</th><th>出荷先</th><th>出荷の中身</th><th>一緒に使った圃場</th><th>③納品</th></tr>${det.map(({o,r})=>`<tr data-tro="${o.no}" style="cursor:pointer"><td>${mdw(o.act.readyAt)}</td><td>${o.no}</td><td><b>${esc(custOf(o.cust).name)}</b></td><td style="font-size:12px">${esc(o.lines.map(l=>l.size+' '+l.pack).join('／'))}<div class="dim">${esc(trQty(o))}</div></td><td style="font-size:12px">${esc(others(o,r.id).join('・'))||'<span class="dim">なし</span>'}</td><td>${mdw(o.deliver)}</td></tr>`).join('')}</table>`
+    :'<p class="dim">左の表で圃場を押すと、その圃場の芋を「いつ・どこへ」出したかが出ます。</p>'}</div></div>
+  <p class="note">圃場の一覧は、畝立て設計アプリの圃場（アグリノートの圃場名）を使っています。</p>`;
+  $('trPrev').onclick=()=>{const d=new Date(y,m-2,1);TRV.ym=`${d.getFullYear()}-${pad(d.getMonth()+1)}`;TRV.field='';renderTrace()};
+  $('trNext').onclick=()=>{const d=new Date(y,m,1);TRV.ym=`${d.getFullYear()}-${pad(d.getMonth()+1)}`;TRV.field='';renderTrace()};
+  $('trArea').onclick=e=>{const b=e.target.closest('[data-a]');if(b){TRV.area=b.dataset.a;TRV.field='';renderTrace()}};
+  v.querySelectorAll('[data-trf]').forEach(tr=>tr.onclick=()=>{TRV.field=tr.dataset.trf;TRV.q='';renderTrace()});
+  v.querySelectorAll('[data-tro]').forEach(b=>b.onclick=()=>openOrder(b.dataset.tro));
+  if($('trQ')){const q=$('trQ');imeIn(q,()=>{const p=q.selectionStart;TRV.q=q.value;renderTrace();const n=$('trQ');n.focus();n.setSelectionRange(p,p)})}
+  if($('trCsv'))$('trCsv').onclick=()=>{const head=['圃場','エリア','用意完了','受注No','出荷先','規格・荷姿','数量','一緒に使った圃場','納品日'];
+    const rows=det.map(({o,r})=>[sel.name,sel.area,ymd(o.act.readyAt),o.no,custOf(o.cust).name,o.lines.map(l=>l.size+' '+l.pack).join('／'),trQty(o),others(o,r.id).join('・'),ymd(o.deliver)]);
+    const csv='﻿'+[head].concat(rows).map(r=>r.map(x=>'"'+String(x).replace(/"/g,'""')+'"').join(',')).join('\r\n');
+    const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download=`圃場トレース_${sel.name}_${TRV.ym}.csv`;a.click();toast(`${rows.length}件を書き出しました`)}}
 
 /* ===== 起動 ===== */
 $('v-hist').hidden=true;
