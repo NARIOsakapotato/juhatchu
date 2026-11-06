@@ -478,6 +478,9 @@ body.mgonly #grps,body.mgonly #kSw,body.mgonly #askBtn,body.mgonly #gearBtn,body
 .trbox{display:flex;flex-direction:column;gap:6px}.trun{display:flex;gap:6px;align-items:center;font-size:13px}.trun input{width:auto}
 .trsel{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:13px;min-height:30px}.trpick{display:inline-flex;align-items:center;gap:4px;background:var(--ok-soft);border:1px solid #cfe3c5;border-radius:999px;padding:3px 4px 3px 10px;font-weight:700}.trpick button{border:none;background:none;cursor:pointer;font-size:14px;color:var(--mute);padding:0 4px}
 .chip.trc.on{background:var(--head);color:#fff;border-color:var(--head)}.trarea{flex-wrap:wrap}
+.trtag{display:inline-block;background:var(--ok-soft);border:1px solid #cfe3c5;border-radius:999px;padding:1px 8px;font-size:12px;font-weight:700;margin:1px 0}.trmiss{color:var(--bad);font-weight:800;font-size:12px}tr.trrowmiss td{background:#fdf3f0}
+#trArea,#trView{flex-wrap:wrap}#trArea button,#trView button{white-space:nowrap}
+@media(max-width:700px){#v-trace .mgtab{display:block;overflow-x:auto}}
 .trrc{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 #gTr.trng{outline:2px solid var(--bad);outline-offset:4px;border-radius:8px}
 .trg{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:14px;align-items:start;margin-top:8px}.trg tr.on td{background:var(--accent-soft)}
@@ -2701,7 +2704,33 @@ function trLocal(no,rows){RAW.trace=(RAW.trace||[]).filter(r=>r.NO!==no).concat(
 const trQty=o=>o.lines.map(l=>`${fmt(l.qty)} ${l.unit}`).join('＋');
 
 /* ===== 履歴 → 圃場トレース タブ：圃場から「いつ・どこへ出したか」を引く ===== */
-const TRV={ym:null,area:'',field:'',q:''};
+const TRV={ym:null,area:'',field:'',q:'',view:'field',sq:'',miss:false};
+/* 出荷ごとの一覧：その月の用意完了を日付順に、使った圃場つきで */
+function trShipRows(os){let rows=os.slice().sort((a,b)=>a.act.readyAt-b.act.readyAt||String(a.no).localeCompare(String(b.no)));
+  if(TRV.area)rows=rows.filter(o=>trOf(o.no).some(r=>r.area===TRV.area));
+  if(TRV.miss)rows=rows.filter(o=>!trOf(o.no).length);
+  if(TRV.sq){const q=custNorm(TRV.sq);rows=rows.filter(o=>custNorm(custOf(o.cust).name).includes(q)||o.no.includes(TRV.sq)||trOf(o.no).some(r=>custNorm(r.name).includes(q)))}
+  return rows}
+function trShipList(os){const rows=trShipRows(os);const nMiss=os.filter(o=>!trOf(o.no).length).length;
+  const fcell=o=>{const r=trOf(o.no);if(!r.length)return `<span class="trmiss">未記録</span> <button class="btn sm" data-tre="${o.no}">入れる</button>`;
+    if(trUnknown(o.no))return `<span class="dim">分からない（${esc(r[0].note)}）</span>`;
+    return r.map(x=>`<span class="trtag" title="${esc(x.area)}">${esc(x.name)}</span>`).join(' ')};
+  return `<div class="card" style="margin-top:8px"><div class="row" style="justify-content:space-between;gap:8px;flex-wrap:wrap">
+    <div class="row" style="gap:8px"><input type="search" id="trSQ" placeholder="出荷先・No.・圃場名で絞り込み" value="${esc(TRV.sq)}" style="width:280px">
+    <label class="dim" style="display:flex;gap:4px;align-items:center"><input type="checkbox" id="trMiss" style="width:auto" ${TRV.miss?'checked':''}> 未記録だけ（${nMiss}件）</label></div>
+    <div class="row" style="gap:8px"><span class="dim">${rows.length}件</span><button class="btn sm" id="trSCsv">CSVに書き出す</button></div></div>
+  <table class="mgtab" style="margin-top:8px"><tr><th>①用意完了</th><th>No.</th><th>出荷先</th><th>出荷の中身</th><th>使った圃場</th><th>③納品</th><th>記録</th></tr>
+  ${rows.length?rows.map(o=>{const r=trOf(o.no);return `<tr data-tro="${o.no}" style="cursor:pointer" class="${r.length?'':'trrowmiss'}"><td>${mdw(o.act.readyAt)}</td><td>${o.no}</td><td><b>${esc(custOf(o.cust).name)}</b></td>
+    <td style="font-size:12px">${esc(o.lines.map(l=>l.size+' '+l.pack).join('／'))}<div class="dim">${esc(trQty(o))}</div></td><td>${fcell(o)}</td><td>${mdw(o.deliver)}</td>
+    <td class="dim" style="font-size:11px">${r.length?esc(r[0].by||'')+'<br>'+(r[0].at?mdhm(r[0].at):''):''}</td></tr>`}).join(''):'<tr><td colspan="7" class="dim">当てはまる出荷はありません</td></tr>'}</table></div>`}
+function trShipWire(os){const v=$('v-trace');
+  if($('trSQ')){const q=$('trSQ');imeIn(q,()=>{const p=q.selectionStart;TRV.sq=q.value;renderTrace();const n=$('trSQ');n.focus();n.setSelectionRange(p,p)})}
+  if($('trMiss'))$('trMiss').onchange=e=>{TRV.miss=e.target.checked;renderTrace()};
+  v.querySelectorAll('[data-tre]').forEach(b=>b.onclick=e=>{e.stopPropagation();openTraceEdit(ORDERS.find(o=>o.no===b.dataset.tre))});
+  if($('trSCsv'))$('trSCsv').onclick=()=>{const rows=trShipRows(os);const head=['用意完了','受注No','出荷先','規格・荷姿','数量','使った圃場','エリア','圃場の数','納品日','記録者'];
+    const out=rows.map(o=>{const r=trOf(o.no);const un=trUnknown(o.no);return [ymd(o.act.readyAt),o.no,custOf(o.cust).name,o.lines.map(l=>l.size+' '+l.pack).join('／'),trQty(o),!r.length?'（未記録）':un?'（分からない：'+r[0].note+'）':r.map(x=>x.name).join('・'),un?'':[...new Set(r.map(x=>x.area))].join('・'),un?0:r.length,ymd(o.deliver),r.length?r[0].by:'']});
+    const csv='\ufeff'+[head].concat(out).map(r=>r.map(x=>'"'+String(x).replace(/"/g,'""')+'"').join(',')).join('\r\n');
+    const [y,m]=TRV.ym.split('-');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download=`圃場トレース_出荷一覧_${y}-${m}${TRV.area?'_'+TRV.area:''}.csv`;a.click();toast(`${out.length}件を書き出しました`)}}
 function renderTrace(){const v=$('v-trace');if(!TRV.ym){const t=TODAY;TRV.ym=`${t.getFullYear()}-${pad(t.getMonth()+1)}`}
   const [y,m]=TRV.ym.split('-').map(Number);const inM=d=>d&&d.getFullYear()===y&&d.getMonth()+1===m;
   const os=ORDERS.filter(o=>trNeed(o)&&inM(o.act.readyAt));
@@ -2715,20 +2744,23 @@ function renderTrace(){const v=$('v-trace');if(!TRV.ym){const t=TODAY;TRV.ym=`${
   if(TRV.q){const n=custNorm(TRV.q);det=det.filter(x=>custNorm(custOf(x.o.cust).name).includes(n)||x.o.no.includes(TRV.q))}
   const others=(o,id)=>trOf(o.no).filter(x=>x.id!==id).map(x=>x.name);
   v.innerHTML=`<div class="row mb"><button class="btn sm" id="trPrev">‹</button><b>${y}年${m}月</b><button class="btn sm" id="trNext">›</button><span class="dim">①用意完了の日で数えます（さつまいも青果のみ）</span>
+   <span class="seg" id="trView"><button data-v="field" class="${TRV.view==='field'?'on':''}">圃場ごと</button><button data-v="ship" class="${TRV.view==='ship'?'on':''}">出荷ごと</button></span>
    <span class="seg" id="trArea"><button data-a="" class="${TRV.area?'':'on'}">すべて</button>${TR_AREAS.map(a=>`<button data-a="${a}" class="${TRV.area===a?'on':''}">${a}</button>`).join('')}</span></div>
   <div class="mgkpi"><div><small>用意完了した出荷</small><b>${os.length}</b><span>件</span></div><div><small>圃場を記録した出荷</small><b>${os.length-miss.length}</b><span>件</span></div><div><small>圃場が未記録</small><b style="color:${miss.length?'var(--bad)':'inherit'}">${miss.length}</b><span>件</span></div><div><small>出荷に使った圃場</small><b>${list.filter(a=>a.id!=='不明').length}</b><span>か所</span></div></div>
   ${miss.length?`<div class="alert" style="margin:8px 0">圃場が入っていない出荷が ${miss.length}件あります（機能を入れる前に用意完了したものなど）：${miss.slice(0,8).map(o=>`<button class="btn sm" data-tro="${o.no}">${o.no} ${esc(custOf(o.cust).name)}</button>`).join(' ')}${miss.length>8?' ほか':''}</div>`:''}
-  <div class="trg">
+  ${TRV.view==='ship'?trShipList(os):`<div class="trg">
   <div class="card" style="padding:0"><table class="mgtab"><tr><th>エリア</th><th>圃場</th><th>出荷</th><th>出荷先</th><th>用意完了</th></tr>
    ${list.length?list.map(a=>`<tr data-trf="${esc(a.id)}" class="${TRV.field===a.id?'on':''}" style="cursor:pointer"><td>${esc(a.area||'—')}</td><td><b>${esc(a.name)}</b></td><td><b>${a.n}</b>件</td><td>${a.cust.size}軒</td><td class="dim">${md(a.first)}〜${md(a.last)}</td></tr>`).join(''):'<tr><td colspan="5" class="dim">この月の記録はありません</td></tr>'}</table></div>
   <div class="card">${sel?`<div class="row" style="justify-content:space-between"><h3 style="margin:0">${esc(sel.name)} <span class="dim" style="font-size:13px;font-weight:400">${esc(sel.area)}　${y}年${m}月　${sel.n}件・${sel.cust.size}軒</span></h3><button class="btn sm" id="trCsv">CSVに書き出す</button></div>
     <input type="search" id="trQ" placeholder="出荷先・No.で絞り込み" value="${esc(TRV.q)}" style="margin:8px 0">
     <table class="mgtab"><tr><th>①用意完了</th><th>No.</th><th>出荷先</th><th>出荷の中身</th><th>一緒に使った圃場</th><th>③納品</th></tr>${det.map(({o,r})=>`<tr data-tro="${o.no}" style="cursor:pointer"><td>${mdw(o.act.readyAt)}</td><td>${o.no}</td><td><b>${esc(custOf(o.cust).name)}</b></td><td style="font-size:12px">${esc(o.lines.map(l=>l.size+' '+l.pack).join('／'))}<div class="dim">${esc(trQty(o))}</div></td><td style="font-size:12px">${esc(others(o,r.id).join('・'))||'<span class="dim">なし</span>'}</td><td>${mdw(o.deliver)}</td></tr>`).join('')}</table>`
-    :'<p class="dim">左の表で圃場を押すと、その圃場の芋を「いつ・どこへ」出したかが出ます。</p>'}</div></div>
+    :'<p class="dim">左の表で圃場を押すと、その圃場の芋を「いつ・どこへ」出したかが出ます。</p>'}</div></div>`}
   <p class="note">圃場の一覧は、畝立て設計アプリの圃場（アグリノートの圃場名）を使っています。</p>`;
   $('trPrev').onclick=()=>{const d=new Date(y,m-2,1);TRV.ym=`${d.getFullYear()}-${pad(d.getMonth()+1)}`;TRV.field='';renderTrace()};
   $('trNext').onclick=()=>{const d=new Date(y,m,1);TRV.ym=`${d.getFullYear()}-${pad(d.getMonth()+1)}`;TRV.field='';renderTrace()};
   $('trArea').onclick=e=>{const b=e.target.closest('[data-a]');if(b){TRV.area=b.dataset.a;TRV.field='';renderTrace()}};
+  $('trView').onclick=e=>{const b=e.target.closest('[data-v]');if(b&&b.dataset.v!==TRV.view){TRV.view=b.dataset.v;renderTrace()}};
+  if(TRV.view==='ship')trShipWire(os);
   v.querySelectorAll('[data-trf]').forEach(tr=>tr.onclick=()=>{TRV.field=tr.dataset.trf;TRV.q='';renderTrace()});
   v.querySelectorAll('[data-tro]').forEach(b=>b.onclick=()=>openOrder(b.dataset.tro));
   if($('trQ')){const q=$('trQ');imeIn(q,()=>{const p=q.selectionStart;TRV.q=q.value;renderTrace();const n=$('trQ');n.focus();n.setSelectionRange(p,p)})}
