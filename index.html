@@ -978,7 +978,7 @@ const GRP_LAST={sales:'list',ops:'shift',hist:'hist',bill:'nh'};
 function tabGroup(t){const b=document.querySelector(`.tab[data-t="${t}"]`);return b?b.dataset.g:'sales'}
 function showGroup(g){document.querySelectorAll('.grp').forEach(b=>b.classList.toggle('on',b.dataset.g===g));let n=0;document.querySelectorAll('.tab').forEach(b=>{let vis=b.dataset.g===g&&!((b.id==='tabInv'||b.id==='tabNh')&&!ivAllowed());if(vis&&b.dataset.t==='form'&&PM==='paste')vis=false;if(vis&&b.dataset.t==='mghist'&&!MGONLY())vis=false;if(vis&&b.dataset.t==='new'&&MGONLY())vis=false;/* 前山さんは登録しない（注文はオオサカポテトが登録して依頼する） */b.style.display=vis?'':'none';if(vis)n++});if(n<=1)$('tabs').setAttribute('data-one','');else $('tabs').removeAttribute('data-one');
   $('grpBill').hidden=!ivAllowed();$('kSw').classList.toggle('show',g==='sales')}
-function switchTab(t){const back=t==='new'&&TAB!=='new'&&F&&F.editNo&&!switchTab.keep;switchTab.keep=false;if(back)setTimeout(editAsk,0);if(MGONLY()&&!['list','week','cust','mghist'].includes(t))t='list';if(!MGONLY()&&t==='mghist')t='list';TAB=t;const g=tabGroup(t);GRP_LAST[g]=t;showGroup(g);try{localStorage.setItem('juhatchu_tab',t)}catch(e){}document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t===t));['list','week','new','form','cust','shift','bag','wash','hist','inv','nh','mg','trace'].forEach(v=>$('v-'+v).hidden=v!==t);render()}
+function switchTab(t){const back=t==='new'&&TAB!=='new'&&!switchTab.keep&&((F&&F.editNo)||(typeof MGF!=='undefined'&&MGF&&MGF.no));switchTab.keep=false;if(back)setTimeout(editAsk,0);if(MGONLY()&&!['list','week','cust','mghist'].includes(t))t='list';if(!MGONLY()&&t==='mghist')t='list';TAB=t;const g=tabGroup(t);GRP_LAST[g]=t;showGroup(g);try{localStorage.setItem('juhatchu_tab',t)}catch(e){}document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t===t));['list','week','new','form','cust','shift','bag','wash','hist','inv','nh','mg','trace'].forEach(v=>$('v-'+v).hidden=v!==t);render()}
 $('tabs').addEventListener('click',e=>{const b=e.target.closest('.tab');if(b)switchTab(b.dataset.t)});
 $('grps').addEventListener('click',e=>{const b=e.target.closest('.grp');if(b)switchTab(GRP_LAST[b.dataset.g])});
 function render(){if(PM==='paste'&&tabGroup(TAB)==='sales'&&['list','week','new','cust','mghist'].includes(TAB)){renderBadge();const vv=$('v-'+TAB);if(vv)vv.hidden=true;mgRender();return}$('v-mg').hidden=true;$('v-'+TAB).hidden=false;if(TAB==='hist'){renderBadge();histWithPm();return}renderBadge();({list:renderList,week:renderWeek,new:renderForm,form:renderInbox,cust:renderCust,shift:renderShift,bag:renderBag,wash:renderWash,hist:renderHist,inv:renderInv,nh:renderNh,trace:renderTrace})[TAB]()}
@@ -1391,7 +1391,17 @@ function editGuard(){const bar=$('fEditBar'),lock=$('fCustLock'),mode=$('fMode')
     $('fCustUnlock').onclick=()=>custUnlockAsk()}
   else{$('fCustQ').disabled=false;lock.innerHTML=`<div class="custlock warn">${F.editNo} の顧客を変えようとしています（元：${esc(c0.name)}）。新規の顧客は選べません。<button class="btn sm" id="fCustRelock">元の顧客に戻す</button></div>`;
     $('fCustRelock').onclick=()=>{F.custUnlock=false;F.cust=F.editCust;$('fCustQ').value=c0.name;renderForm()}}}
-function editAsk(){if(!F.editNo)return;const c0=custOf(F.editCust)||{name:F.editCust};const o=ORDERS.find(x=>x.no===F.editNo);
+function mgEditAsk(){const F=MGF;const c0=custOf(F.editCust)||{name:F.editCust};const o=MGO.find(x=>x.no===F.no);
+  modal(`<h2>編集の途中です</h2><p style="margin:8px 0"><b>${F.no}（${esc(c0.name)}${o?'・③納品 '+mdw(o.deliver):''}）</b>の編集が、保存されないまま残っています。</p>
+  <button class="btn pri blk" id="eaNew">編集をやめて新しい注文を入れる</button><button class="btn blk" id="eaGo" style="margin-top:8px">${F.no} の編集を続ける</button>`);
+  $('eaNew').onclick=()=>{closeModal();MGF=mgNewF();render();toast('編集をやめました。新しい注文を入れられます')};$('eaGo').onclick=closeModal}
+function mgCustUnlockAsk(){const F=MGF;const c0=custOf(F.editCust)||{name:F.editCust};
+  modal(`<h2>この注文の顧客を変えますか？</h2><p style="margin:8px 0">${F.no} は <b>${esc(c0.name)}</b> の注文です。顧客を変えると、<b>この注文そのもの</b>が別のお客様の注文になり、${esc(c0.name)} の注文はなくなります。</p>
+  <div class="alert">別のお客様の<b>新しい注文</b>を入れたいときは、「編集をやめて新しい注文を入れる」を押してください。</div>
+  <button class="btn pri blk" id="cuNew">編集をやめて新しい注文を入れる</button><button class="btn blk" id="cuChg" style="margin-top:8px">${F.no} の顧客を変える（注文の入れ間違いを直すとき）</button><div class="acts"><button class="btn" id="cuNo">やめる</button></div>`);
+  $('cuNew').onclick=()=>{closeModal();MGF=mgNewF();render();toast('編集をやめました。新しい注文を入れられます')};
+  $('cuChg').onclick=()=>{closeModal();F.custUnlock=true;F.cust='';F.q='';render();const q=$('mgQ');if(q)q.focus()};$('cuNo').onclick=closeModal}
+function editAsk(){if(PM==='paste'){if(MGF&&MGF.no)mgEditAsk();return}if(!F.editNo)return;const c0=custOf(F.editCust)||{name:F.editCust};const o=ORDERS.find(x=>x.no===F.editNo);
   modal(`<h2>編集の途中です</h2><p style="margin:8px 0"><b>${F.editNo}（${esc(c0.name)}${o?'・③納品 '+mdw(o.deliver):''}）</b>の編集が、保存されないまま残っています。</p>
   <button class="btn pri blk" id="eaNew">編集をやめて新しい注文を入れる</button><button class="btn blk" id="eaGo" style="margin-top:8px">${F.editNo} の編集を続ける</button>`);
   $('eaNew').onclick=()=>{closeModal();resetForm();renderForm();toast('編集をやめました。新しい注文を入れられます')};$('eaGo').onclick=closeModal}
@@ -2391,7 +2401,9 @@ function mgForm(){const F=MGF;if(!F.sales)F.sales=ME;const v=$('v-mg');const c=c
     ${on?`<div class="mgcalc">${x.box?x.box+'箱（'+x.box*MG_PER+'pc）':''}${x.box&&x.bara?'＋':''}${x.bara?'ばら'+x.bara+'pc':''} ＝ <b>${pc}pc・${pc*p.kg}kg</b></div>`:''}</div>`};
   const tmp={lines:Object.keys(MGP).map(k=>({item:k,box:F.it[k].box,bara:F.it[k].bara})).filter(l=>l.box||l.bara)};
   const fee=tmp.lines.length?mgFee(tmp):undefined,fb=tmp.lines.length?mgFeeBoxes(tmp):0;
-  const pick=(()=>{if(c)return `<div class="chips"><button class="chip on">${esc(c.name)}</button><button class="btn sm" id="mgCuX">別の顧客にする</button></div>`;
+  const c0=F.no?(custOf(F.editCust)||{name:F.editCust}):null;
+  const pick=(()=>{if(F.no&&!F.custUnlock)return `<div class="custlock">編集中は顧客を変えられません（<b>${esc(c0.name)}</b>）。<button class="btn sm" id="mgCuUnlock">この注文の顧客を変える…</button></div>`;
+    if(c)return `${F.no?`<div class="custlock warn">${F.no} の顧客を変えようとしています（元：${esc(c0.name)}）。新規の顧客は選べません。<button class="btn sm" id="mgCuRelock">元の顧客に戻す</button></div>`:''}<div class="chips"><button class="chip on">${esc(c.name)}</button><button class="btn sm" id="mgCuX">別の顧客にする</button></div>`;
     if(F.nc){const dd=custDupCands(F.nc.name,F.nc.tel);
       return `<div class="row" style="justify-content:space-between"><b style="font-size:13px">新しい顧客を登録</b><button class="btn sm" id="mgNcX">やめる（今の顧客から選ぶ）</button></div>
       <label class="lbl">顧客名 <span style="color:var(--bad)">必須</span></label><input id="mgNcN" value="${esc(F.nc.name)}" placeholder="例：株式会社○○">
@@ -2403,8 +2415,9 @@ function mgForm(){const F=MGF;if(!F.sales)F.sales=ME;const v=$('v-mg');const c=c
     if(q){const n=custNorm(q);list=CUST.filter(x=>x.active!==false&&custNorm(x.name).includes(n));head=`${list.length}件`}else{list=mgPasteCusts();head=list.length?'ペーストの取引が多い顧客（直近60日）':'まだペーストの取引がありません。名前を入力すると全顧客から探せます'}
     const kp=new Set(MGO.map(o=>o.cust));
     return `<input type="search" id="mgQ" placeholder="顧客名を入力（さつまいもの顧客も含めて全社から探せます）" value="${esc(F.q)}"><div class="dim" style="margin:8px 0 4px">${head}</div><div class="chips">${list.slice(0,8).map(x=>`<button class="chip" data-cu="${x.code}">${esc(x.name)}${kp.has(x.code)?'':' <span class="dim">（ペースト初）</span>'}</button>`).join('')}${list.length>8?`<span class="dim">ほか${list.length-8}件</span>`:''}</div>
-      <p class="dim" style="margin-top:6px">${MGONLY()?'見つからない新しいお客様は、オオサカポテトの営業に登録を頼んでください（お客様の登録はオオサカポテトが行います）':'見つからない新しいお客様は <button class="btn sm" id="mgNc">＋ 新しい顧客を登録</button>（ここで登録した顧客は、さつまいも側でも同じ顧客として使えます）'}</p>`})();
-  v.innerHTML=mgBand(F.no?`${F.no} を直しています`:'登録')+`<div class="two"><div>
+      ${F.no?`<div class="custlock warn" style="margin-top:6px">${F.no} の顧客を変えようとしています（元：${esc(c0.name)}）。新規の顧客は選べません。<button class="btn sm" id="mgCuRelock">元の顧客に戻す</button></div>`:`<p class="dim" style="margin-top:6px">${MGONLY()?'見つからない新しいお客様は、オオサカポテトの営業に登録を頼んでください（お客様の登録はオオサカポテトが行います）':'見つからない新しいお客様は <button class="btn sm" id="mgNc">＋ 新しい顧客を登録</button>（ここで登録した顧客は、さつまいも側でも同じ顧客として使えます）'}</p>`}`})();
+  const mo=F.no?MGO.find(x=>x.no===F.no):null;
+  v.innerHTML=mgBand(F.no?`${F.no} を直しています`:'登録')+(F.no?`<div class="editbar"><div><b>✎ ${F.no}（${esc(c0.name)}${mo?'・③納品 '+mdw(mo.deliver):''}）を編集しています</b><br><span>ここで保存すると、この注文が書き換わります。<b>新しい注文を入れるときは「編集をやめる」</b>を押してください。</span></div><button class="btn" id="mgEdStop">編集をやめる（新しい注文を入れる）</button></div>`:'')+`<div class="two"><div>
     <section class="card" style="margin-bottom:12px"><h3>1 誰から <span class="dim mgin" style="font-weight:500;font-size:12px">顧客はさつまいもと共通</span></h3>${pick}</section>
     <section class="card" style="margin-bottom:12px"><h3>2 どこへ <span class="dim" style="font-weight:500;font-size:12px">発送はマグチフードプロセスから</span></h3>
       <div class="sumbox">${c?esc([c.zip?'〒'+c.zip:'',c.addr,c.attn].filter(Boolean).join('　')||'（顧客マスタに住所がありません）'):'顧客を選ぶと送り先が表示されます'}</div>
@@ -2443,9 +2456,14 @@ function mgForm(){const F=MGF;if(!F.sales)F.sales=ME;const v=$('v-mg');const c=c
   $('mgAlt').onchange=e=>{F.alt=e.target.checked;re()};if($('mgAltT'))$('mgAltT').oninput=e=>{F.altTxt=e.target.value};
   $('mgCar').onchange=e=>{F.car=e.target.value};$('mgDl').onchange=e=>{F.dl=e.target.value;if(F.planAuto)F.plan=mgPlanOf(F.dl,F.cust);re()};$('mgPl2').onchange=e=>{F.plan=e.target.value;F.planAuto=!F.plan;if(!F.plan&&F.dl&&false)F.plan='';re()};$('mgNote').oninput=e=>{F.note=e.target.value};$('mgSales').oninput=e=>{F.sales=e.target.value};
   if($('mgEdX'))$('mgEdX').onclick=()=>{MGF=mgNewF();re()};
+  if($('mgEdStop'))$('mgEdStop').onclick=()=>{MGF=mgNewF();re();toast('編集をやめました。新しい注文を入れられます')};
+  if($('mgCuUnlock'))$('mgCuUnlock').onclick=()=>mgCustUnlockAsk();
+  v.querySelectorAll('#mgCuRelock').forEach(b=>b.onclick=()=>{F.custUnlock=false;F.cust=F.editCust;F.nc=null;F.q='';re()});
   $('mgSave').onclick=mgSaveForm}
 const yen1550=n=>`¥${fmt(MG_FEE)} × ${n}箱`;
 async function mgSaveForm(){const F=MGF;const err=m=>{$('mgErr').textContent=m};
+  if(F.no&&F.nc)return err('編集中は新規の顧客を選べません。新しい注文なら「編集をやめる」を押してください');
+  if(F.no&&F.editCust&&F.cust!==F.editCust&&!F.custUnlock)return err('編集中は顧客を変えられません');
   if(!F.cust&&!(F.nc&&F.nc.name))return err(F.nc?'顧客名を入れてください':'顧客を選んでください');
   if(!F.cust&&F.nc){const d=custDupCands(F.nc.name,F.nc.tel);if(d.same.length)return err('同じ名前の顧客があります。その顧客を選んでください');if(d.near.length&&!F.nc.dupOk)return err('似た顧客があります。同じ会社ならその顧客を選び、別の会社なら「別の会社です」にチェックしてください');F.nc.dupOkSend=d.near.length>0}const lines=Object.keys(MGP).map(k=>({'品目':k,'箱数':F.it[k].box,'ばら':F.it[k].bara})).filter(l=>l['箱数']||l['ばら']);
   if(!lines.length)return err('箱数かばらを入れてください');if(!F.dl)return err('③納品日を入れてください');if(F.alt&&!F.altTxt.trim())return err('別の送り先を入れてください（使わないならチェックを外す）');
@@ -2523,7 +2541,7 @@ function mgDraw(no){const o=MGO.find(x=>x.no===no);const ov=$('mgDt');if(!o||!ov
   if($('mgDsave'))$('mgDsave').onclick=()=>{const d=$('mgD2').value.trim();if(!d)return E('伝票No.を入れてください');send({no:o.no,den:d},'伝票No.を保存しました')};
   if($('mgBack'))$('mgBack').onclick=()=>{if(!confirmInline($('mgBack'),'もう一度押すと戻します'))return;send({no:o.no,expect:o.status,to:'戻す'},`${o.no}：ひとつ前に戻しました`)};
   if($('mgCn'))$('mgCn').onclick=()=>{const r=$('mgCr').value;if(!r){$('mgCr').style.borderColor='var(--bad)';return E('キャンセルの理由を選んでください')}if(!confirmInline($('mgCn'),'もう一度押すとキャンセル'))return;send({no:o.no,expect:o.status,to:'キャンセル',reason:r},`${o.no} をキャンセルしました`)};
-  if($('mgEd'))$('mgEd').onclick=()=>{const F=mgNewF();F.no=o.no;F.expect=o.status;F.cust=o.cust;F.dl=ymd(o.deliver);F.plan=o.plan?ymd(o.plan):'';F.planAuto=!o.plan;F.car=o.carrier;F.note=o.note;F.sales=o.sales||ME;F.alt=!!o.addrAlt;F.altTxt=o.addrAlt;o.lines.forEach(l=>{if(F.it[l.item]){F.it[l.item].box=l.box;F.it[l.item].bara=l.bara}});MGF=F;$('mgDt').remove();if(PM!=='paste')mgSetPM('paste');switchTab('new')}}
+  if($('mgEd'))$('mgEd').onclick=()=>{const F=mgNewF();F.no=o.no;F.expect=o.status;F.cust=o.cust;F.dl=ymd(o.deliver);F.plan=o.plan?ymd(o.plan):'';F.planAuto=!o.plan;F.car=o.carrier;F.note=o.note;F.sales=o.sales||ME;F.alt=!!o.addrAlt;F.altTxt=o.addrAlt;o.lines.forEach(l=>{if(F.it[l.item]){F.it[l.item].box=l.box;F.it[l.item].bara=l.bara}});F.editCust=o.cust;F.custUnlock=false;MGF=F;$('mgDt').remove();if(PM!=='paste')mgSetPM('paste');switchTab.keep=true;switchTab('new')}}
 /* 取り返しのつかない操作は2回押し（ダイアログは出さない） */
 function confirmInline(btn,msg){if(btn.dataset.armed)return true;btn.dataset.armed='1';const t=btn.textContent;btn.textContent=msg;setTimeout(()=>{if(btn.isConnected){btn.textContent=t;delete btn.dataset.armed}},3000);return false}
 
