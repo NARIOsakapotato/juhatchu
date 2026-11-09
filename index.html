@@ -235,6 +235,8 @@ tr.sum td{background:var(--bg);font-weight:700;border-top:2px solid var(--line2)
 .frm label{color:var(--ink2)}
 .frm .s{display:flex;gap:8px;align-items:center}
 .frm .s input{width:auto}
+.editbar{position:sticky;top:0;z-index:20;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;background:#fff3cd;border:2px solid #e0a800;border-radius:12px;padding:10px 14px;margin:0 0 12px;font-size:13.5px}.editbar b{font-size:14.5px}
+.custlock{background:var(--paper2);border:1px dashed var(--line2);border-radius:10px;padding:8px 10px;font-size:13px;margin-bottom:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}.custlock.warn{background:#fff3cd;border-color:#e0a800}
 .alert{background:var(--bad-soft);border:1px solid #e6c4b8;border-radius:10px;padding:9px 12px;font-size:13px;margin:8px 0}
 .alert.ok{background:var(--ok-soft);border-color:#cfe0c6}
 .acts{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-top:10px}
@@ -634,13 +636,14 @@ body.pm .kshare{display:inline-block}
 </main>
 
 <main class="wrap" id="v-new" hidden>
+  <div id="fEditBar" class="editbar" hidden></div>
   <div class="seg rseg" id="fView" hidden><button class="on" data-v="one">1件ずつ登録</button><button data-v="rep">定期をまとめて作成<span class="tag t-納品済" id="repBadge" hidden></span></button></div>
   <div id="fOne">
   <div class="steps"><span><b>1</b>誰から</span>›<span><b>2</b>どこへ</span>›<span><b>3</b>何を</span>›<span><b>4</b>どのくらい</span>›<span><b>5</b>いつまでに</span>›<span><b>6</b>登録</span><span class="dim">発送手配日・用意期限は流通部が決めます</span></div>
   <div class="two">
     <div>
       <section class="card" style="margin-bottom:12px"><h3>1 誰から</h3>
-        <div class="seg" id="fMode" style="margin-bottom:8px"><button class="on" data-m="pick">既存の顧客</button><button data-m="new">新規の顧客</button></div>
+        <div class="seg" id="fMode" style="margin-bottom:8px"><button class="on" data-m="pick">既存の顧客</button><button data-m="new">新規の顧客</button></div><div id="fCustLock" hidden></div>
         <div id="fPick"><input type="search" id="fCustQ" placeholder="顧客名を入力すると候補が出ます"><div class="sugg" id="fSugg"></div></div>
         <div id="fNew" hidden>
           <div class="two" style="gap:8px"><div><label class="lbl">顧客名 <span style="color:var(--bad)">必須</span></label><input id="nName"></div><div><label class="lbl">電話（伝票用）</label><input id="nTel"></div></div>
@@ -975,7 +978,7 @@ const GRP_LAST={sales:'list',ops:'shift',hist:'hist',bill:'nh'};
 function tabGroup(t){const b=document.querySelector(`.tab[data-t="${t}"]`);return b?b.dataset.g:'sales'}
 function showGroup(g){document.querySelectorAll('.grp').forEach(b=>b.classList.toggle('on',b.dataset.g===g));let n=0;document.querySelectorAll('.tab').forEach(b=>{let vis=b.dataset.g===g&&!((b.id==='tabInv'||b.id==='tabNh')&&!ivAllowed());if(vis&&b.dataset.t==='form'&&PM==='paste')vis=false;if(vis&&b.dataset.t==='mghist'&&!MGONLY())vis=false;if(vis&&b.dataset.t==='new'&&MGONLY())vis=false;/* 前山さんは登録しない（注文はオオサカポテトが登録して依頼する） */b.style.display=vis?'':'none';if(vis)n++});if(n<=1)$('tabs').setAttribute('data-one','');else $('tabs').removeAttribute('data-one');
   $('grpBill').hidden=!ivAllowed();$('kSw').classList.toggle('show',g==='sales')}
-function switchTab(t){if(MGONLY()&&!['list','week','cust','mghist'].includes(t))t='list';if(!MGONLY()&&t==='mghist')t='list';TAB=t;const g=tabGroup(t);GRP_LAST[g]=t;showGroup(g);try{localStorage.setItem('juhatchu_tab',t)}catch(e){}document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t===t));['list','week','new','form','cust','shift','bag','wash','hist','inv','nh','mg','trace'].forEach(v=>$('v-'+v).hidden=v!==t);render()}
+function switchTab(t){const back=t==='new'&&TAB!=='new'&&F&&F.editNo&&!switchTab.keep;switchTab.keep=false;if(back)setTimeout(editAsk,0);if(MGONLY()&&!['list','week','cust','mghist'].includes(t))t='list';if(!MGONLY()&&t==='mghist')t='list';TAB=t;const g=tabGroup(t);GRP_LAST[g]=t;showGroup(g);try{localStorage.setItem('juhatchu_tab',t)}catch(e){}document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t===t));['list','week','new','form','cust','shift','bag','wash','hist','inv','nh','mg','trace'].forEach(v=>$('v-'+v).hidden=v!==t);render()}
 $('tabs').addEventListener('click',e=>{const b=e.target.closest('.tab');if(b)switchTab(b.dataset.t)});
 $('grps').addEventListener('click',e=>{const b=e.target.closest('.grp');if(b)switchTab(GRP_LAST[b.dataset.g])});
 function render(){if(PM==='paste'&&tabGroup(TAB)==='sales'&&['list','week','new','cust','mghist'].includes(TAB)){renderBadge();const vv=$('v-'+TAB);if(vv)vv.hidden=true;mgRender();return}$('v-mg').hidden=true;$('v-'+TAB).hidden=false;if(TAB==='hist'){renderBadge();histWithPm();return}renderBadge();({list:renderList,week:renderWeek,new:renderForm,form:renderInbox,cust:renderCust,shift:renderShift,bag:renderBag,wash:renderWash,hist:renderHist,inv:renderInv,nh:renderNh,trace:renderTrace})[TAB]()}
@@ -1086,7 +1089,7 @@ function openOrder(no){
   ${trNeed(o)?`<div class="kv"><span class="k">圃場</span><span><span class="row" style="gap:10px">${trOf(o.no).length?esc(trTxt(o.no)):'<span style="color:var(--bad);font-weight:700">未記録</span>'}<button class="btn sm" data-a="trace">${trOf(o.no).length?'直す':'入れる'}</button></span></span></div>`:''}
   ${timeline(o)}`);
   $('modal').querySelector('.mbox').onclick=e=>{const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a;
-    if(a==='close')closeModal();else if(a==='ship')openShipEdit(o);else if(a==='conf'){if(unconf(o))confirmOrders([o],()=>openOrder(o.no))}else if(a==='unconf'){if(!unconf(o))unconfirmOrder(o,true)}else if(a==='sched')openSched(o);else if(a==='next')openStage(o,next);else if(a==='cancel')openCancel(o);else if(a==='edit'){closeModal();loadForm(o);switchTab('new')}else if(a==='nh'){nhOpen.S=null;nhOpen('imo',o.no)}else if(a==='trace')openTraceEdit(o)};
+    if(a==='close')closeModal();else if(a==='ship')openShipEdit(o);else if(a==='conf'){if(unconf(o))confirmOrders([o],()=>openOrder(o.no))}else if(a==='unconf'){if(!unconf(o))unconfirmOrder(o,true)}else if(a==='sched')openSched(o);else if(a==='next')openStage(o,next);else if(a==='cancel')openCancel(o);else if(a==='edit'){closeModal();loadForm(o);switchTab.keep=true;switchTab('new')}else if(a==='nh'){nhOpen.S=null;nhOpen('imo',o.no)}else if(a==='trace')openTraceEdit(o)};
 }
 /* ===== 確定（定期の事前登録 → 発注を受けた） ===== */
 async function confirmOrders(os,after){const at=dts(new Date());
@@ -1376,8 +1379,31 @@ function renderWeek(){
 let F={cat:'青果',item:'さつまいも',lines:[],cust:null,editNo:null,mode:'pick',reg:'継続'};
 function newLine(){const it=ITEMS.find(i=>i.name===F.item);return {item:it.name,size:it.sizes[0],pack:it.packs[0].n,qty:'',per:''}}
 function resetForm(){F={kind:'',cat:'青果',item:'さつまいも',lines:[],cust:null,editNo:null,mode:'pick',reg:'継続'};$('fCustQ').value='';$('fRecTo').value='';$('fRecDowW').innerHTML='';$('fRecFut').checked=false;$('fRecOpt').hidden=true;['nName','nTel','nZip','nAttn','nAddr','nHours','nClosed','fAlt'].forEach(i=>$(i).value='');$('fAltOn').checked=false;$('fAlt').hidden=true;$('fNote').value='';$('fRepOn').checked=false;$('fRepOpt').hidden=true;$('fRepTo').value='';$('fRepFrom').value='';$('fMethod').selectedIndex=0;$('fDeliver').value='';F.carrierTouched=false;}
-function loadForm(o){$('fRecDowW').innerHTML='';$('fRecTo').value='';$('fRecFut').checked=false;F={kind:o.kind||'',cat:o.cat,item:(o.lines[0]||{}).item||'さつまいも',lines:o.lines.map(l=>({item:l.item,size:l.size,pack:PACK_ALIAS[l.pack]||l.pack,qty:l.qty,per:l.per||''})),cust:o.cust,editNo:o.no,mode:'pick',reg:'継続',carrierTouched:true};$('fDeliver').value=ymd(o.deliver);$('fNote').value=o.note;$('fSales').value=o.sales;$('fCustQ').value=custOf(o.cust).name;$('fMethod').value=o.method||'宅配便';setTimeout(()=>{$('fCarrier').value=o.carrier||''},0);$('fAltOn').checked=!!o.addrAlt;$('fAlt').value=o.addrAlt||'';$('fAlt').hidden=!o.addrAlt}
+/* 2026/11/9 編集中の取り違え防止：①編集中は上に大きく出す ③編集中は新規顧客を選べない・顧客を変えるときは確認 */
+function editGuard(){const bar=$('fEditBar'),lock=$('fCustLock'),mode=$('fMode');
+  if(!F.editNo){bar.hidden=true;lock.hidden=true;mode.hidden=false;$('fCustQ').disabled=false;return}
+  const o=ORDERS.find(x=>x.no===F.editNo);const c0=custOf(F.editCust)||{name:F.editCust};
+  bar.hidden=false;bar.innerHTML=`<div><b>✎ ${F.editNo}（${esc(c0.name)}${o?'・③納品 '+mdw(o.deliver):''}）を編集しています</b><br><span>ここで保存すると、この注文が書き換わります。<b>新しい注文を入れるときは「編集をやめる」</b>を押してください。</span></div><button class="btn" id="fEditStop">編集をやめる（新しい注文を入れる）</button>`;
+  $('fEditStop').onclick=()=>{resetForm();renderForm();toast('編集をやめました。新しい注文を入れられます')};
+  if(F.mode==='new')F.mode='pick';mode.hidden=true;
+  lock.hidden=false;
+  if(!F.custUnlock){$('fCustQ').disabled=true;lock.innerHTML=`<div class="custlock">編集中は顧客を変えられません（<b>${esc(c0.name)}</b>）。<button class="btn sm" id="fCustUnlock">この注文の顧客を変える…</button></div>`;
+    $('fCustUnlock').onclick=()=>custUnlockAsk()}
+  else{$('fCustQ').disabled=false;lock.innerHTML=`<div class="custlock warn">${F.editNo} の顧客を変えようとしています（元：${esc(c0.name)}）。新規の顧客は選べません。<button class="btn sm" id="fCustRelock">元の顧客に戻す</button></div>`;
+    $('fCustRelock').onclick=()=>{F.custUnlock=false;F.cust=F.editCust;$('fCustQ').value=c0.name;renderForm()}}}
+function editAsk(){if(!F.editNo)return;const c0=custOf(F.editCust)||{name:F.editCust};const o=ORDERS.find(x=>x.no===F.editNo);
+  modal(`<h2>編集の途中です</h2><p style="margin:8px 0"><b>${F.editNo}（${esc(c0.name)}${o?'・③納品 '+mdw(o.deliver):''}）</b>の編集が、保存されないまま残っています。</p>
+  <button class="btn pri blk" id="eaNew">編集をやめて新しい注文を入れる</button><button class="btn blk" id="eaGo" style="margin-top:8px">${F.editNo} の編集を続ける</button>`);
+  $('eaNew').onclick=()=>{closeModal();resetForm();renderForm();toast('編集をやめました。新しい注文を入れられます')};$('eaGo').onclick=closeModal}
+function custUnlockAsk(){const c0=custOf(F.editCust)||{name:F.editCust};
+  modal(`<h2>この注文の顧客を変えますか？</h2><p style="margin:8px 0">${F.editNo} は <b>${esc(c0.name)}</b> の注文です。顧客を変えると、<b>この注文そのもの</b>が別のお客様の注文になり、${esc(c0.name)} の注文はなくなります。</p>
+  <div class="alert">別のお客様の<b>新しい注文</b>を入れたいときは、「編集をやめて新しい注文を入れる」を押してください。</div>
+  <button class="btn pri blk" id="cuNew">編集をやめて新しい注文を入れる</button><button class="btn blk" id="cuChg" style="margin-top:8px">${F.editNo} の顧客を変える（注文の入れ間違いを直すとき）</button><div class="acts"><button class="btn" id="cuNo">やめる</button></div>`);
+  $('cuNew').onclick=()=>{closeModal();resetForm();renderForm();toast('編集をやめました。新しい注文を入れられます')};
+  $('cuChg').onclick=()=>{closeModal();F.custUnlock=true;renderForm();$('fCustQ').focus()};$('cuNo').onclick=closeModal}
+function loadForm(o){$('fRecDowW').innerHTML='';$('fRecTo').value='';$('fRecFut').checked=false;F={kind:o.kind||'',cat:o.cat,item:(o.lines[0]||{}).item||'さつまいも',lines:o.lines.map(l=>({item:l.item,size:l.size,pack:PACK_ALIAS[l.pack]||l.pack,qty:l.qty,per:l.per||''})),cust:o.cust,editNo:o.no,editCust:o.cust,custUnlock:false,mode:'pick',reg:'継続',carrierTouched:true};$('fDeliver').value=ymd(o.deliver);$('fNote').value=o.note;$('fSales').value=o.sales;$('fCustQ').value=custOf(o.cust).name;$('fMethod').value=o.method||'宅配便';setTimeout(()=>{$('fCarrier').value=o.carrier||''},0);$('fAltOn').checked=!!o.addrAlt;$('fAlt').value=o.addrAlt||'';$('fAlt').hidden=!o.addrAlt}
 function renderForm(){
+  editGuard();
   if(!$('fRepDow'))$('fRepDowW').innerHTML=dowPick('fRepDow',[]);$('fRepBox').hidden=true;$('fKind').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.k===F.kind));recShow();repBadge();if(FV==='rep')renderRep();
   if(!$('fDeliver').value)$('fDeliver').value=ymd(addD(TODAY,3));if(!$('fSales').value)$('fSales').value=ME;
   if(!ITEMS.length){toast('品目マスタが空です');return}if(!ITEMS.find(i=>i.name===F.item)){F.item=(ITEMS.find(i=>i.cat===F.cat)||ITEMS[0]).name;F.cat=ITEMS.find(i=>i.name===F.item).cat}
@@ -1419,7 +1445,7 @@ function renderForm(){
       +(!cands.length?`<div class="dim" style="padding:6px 2px">「${esc(q)}」に当たる顧客はいません。はじめての顧客なら上の「新規」から登録</div>`:'')
       +(!F.cust&&cands.length?'<div class="dim" style="padding:4px 2px">候補を押して選んでください（まだ選ばれていません）</div>':'')}
   $('fSugg').innerHTML=html;
-  $('fSugg').onclick=e=>{if(e.target.closest('[data-all]')){F.sgAll=!F.sgAll;renderForm();return}if(e.target.closest('[data-chg]')){F.cust=null;$('fCustQ').value='';renderForm();$('fCustQ').focus();return}const b=e.target.closest('[data-c]');if(b){F.cust=b.dataset.c;F.sgAll=false;$('fCustQ').value=custOf(F.cust).name;renderForm()}};
+  $('fSugg').onclick=e=>{if(F.editNo&&!F.custUnlock){const cb=e.target.closest('[data-chg],[data-c]');if(cb&&(cb.dataset.chg!==undefined||cb.dataset.c!==F.editCust)){custUnlockAsk();return}}if(e.target.closest('[data-all]')){F.sgAll=!F.sgAll;renderForm();return}if(e.target.closest('[data-chg]')){F.cust=null;$('fCustQ').value='';renderForm();$('fCustQ').focus();return}const b=e.target.closest('[data-c]');if(b){F.cust=b.dataset.c;F.sgAll=false;$('fCustQ').value=custOf(F.cust).name;renderForm()}};
   $('fMode').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.m===F.mode));$('fReg').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.r===F.reg));
   const isNew=F.mode==='new';$('fPick').hidden=isNew;$('fNew').hidden=!isNew;$('fAddrPick').hidden=isNew;$('fAddrNew').hidden=!isNew;
   $('fRegNote').textContent=F.reg==='継続'?'次回から候補に出ます。送り先・配送条件も保存されます':'受注の記録には残りますが、顧客候補には出ません（スポット）';
@@ -1435,6 +1461,8 @@ function nDupRender(){const box=$('nDup');if(F.mode!=='new'){box.innerHTML='';re
   const ok=$('nDupOk');if(ok)ok.onchange=()=>{F.dupOk=ok.checked};
   box.querySelectorAll('[data-usec]').forEach(b=>b.onclick=()=>{const c=custOf(b.dataset.usec);if(c&&c.active===false){toast('この顧客は無効です。顧客タブで有効に戻してから選んでください');return}F.mode='pick';F.cust=b.dataset.usec;$('fCustQ').value=c?c.name:'';$('nName').value='';$('nTel').value='';renderForm();nDupRender();toast(`${c?c.name:''} を選びました`)})}$('fAltOn').onchange=()=>{$('fAlt').hidden=!$('fAltOn').checked};$('fCarrier').onchange=()=>{F.carrierTouched=true;renderForm()};
 $('fSave').onclick=async()=>{
+  if(F.editNo&&F.mode==='new'){toast('編集中は新規の顧客を選べません。新しい注文なら「編集をやめる」を押してください');return}
+  if(F.editNo&&F.cust!==F.editCust&&!F.custUnlock){toast('編集中は顧客を変えられません');return}
   let newCustomer=null;
   if(F.mode==='new'){if(!$('nName').value.trim()){toast('顧客名を入れてください');return}
     {const d=custDupCands($('nName').value,$('nTel').value);nDupRender();if(d.same.length){toast('同じ名前の顧客があります。その顧客を選んでください');return}if(d.near.length&&!F.dupOk){toast('似た顧客があります。同じ会社ならその顧客を選び、別の会社ならチェックを入れてください');return}F._dupOkSend=d.near.length>0}
