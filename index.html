@@ -477,6 +477,9 @@ body.mgonly #grps,body.mgonly #kSw,body.mgonly #askBtn,body.mgonly #gearBtn,body
 .nhst{display:inline-block;font-size:11.5px;font-weight:800;padding:2px 8px;border-radius:999px;white-space:nowrap}.nhst.none{background:var(--bad-soft);color:var(--bad)}.nhst.made{background:var(--warn-soft);color:#8a5a12}.nhst.sent{background:var(--ok-soft);color:var(--ok-ink)}
 .nhh{background:var(--paper2);border-radius:10px;padding:6px 10px;margin:8px 0}
 .mbox.wide{max-width:1180px}
+.dlist{display:flex;flex-direction:column;gap:6px}.dcard{display:flex;gap:8px;align-items:flex-start;border:1px solid var(--line2);border-radius:10px;padding:8px 10px;cursor:pointer;background:#fff;position:relative}.dcard.on{border-color:var(--ok);background:var(--ok-soft)}.dcard input[type=radio]{width:auto;margin-top:3px}.dcard>div{flex:1;min-width:0}.dbody{font-size:12.5px;margin-top:2px;line-height:1.5}.dcard .dedit{position:absolute;right:8px;top:6px}.dcard textarea{margin-top:4px}.dcard.hased{padding-right:62px}
+.dtag{display:inline-block;font-size:11px;font-weight:800;padding:1px 7px;border-radius:999px;vertical-align:1px}.dtag.dest{background:#dbe9f7;color:#1f4f7f}.dtag.alt{background:#fbe6d4;color:#8a4a12}
+.dmini>div{padding:3px 0;border-bottom:1px dashed var(--line);font-size:13px}.dmini>div.off{opacity:.55}
 .bmemo{background:#fff8e1;border:1px solid #e6c95a;border-radius:10px;padding:8px 10px;margin:8px 0;font-size:13px}.bmemo.none{background:var(--paper2);border:1px dashed var(--line2)}.bmtxt{margin-top:4px;line-height:1.6;white-space:normal}
 .bmpop{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;padding:16px}.bmpopin{background:#fff;border-radius:14px;padding:16px;width:min(560px,100%);box-shadow:0 8px 30px rgba(0,0,0,.25)}
 .tplg{display:grid;grid-template-columns:280px minmax(0,1fr);gap:16px;margin-top:8px}.tpll{display:flex;flex-direction:column;gap:6px}.tpli{text-align:left;border:1px solid var(--line2);background:#fff;border-radius:10px;padding:8px 10px;font:inherit;font-weight:700;cursor:pointer}.tpli.on{background:var(--accent-soft);border-color:var(--accent)}
@@ -660,8 +663,8 @@ body.pm .kshare{display:inline-block}
         </div>
         <label class="lbl">営業担当</label><input id="fSales"></section>
       <section class="card" style="margin-bottom:12px"><h3>2 どこへ</h3>
-        <div id="fAddrPick"><div class="sumbox" id="fAddr">顧客を選ぶと送り先が表示されます</div>
-        <label class="lbl"><input type="checkbox" id="fAltOn" style="width:auto"> 今回だけ別の送り先にする</label><textarea id="fAlt" rows="2" placeholder="〒・住所・宛名・電話" hidden></textarea></div>
+        <div id="fAddrPick"><div id="fDest"></div><div class="sumbox" id="fAddr" style="margin-top:8px">顧客を選ぶと送り先が表示されます</div>
+        <input type="checkbox" id="fAltOn" hidden><textarea id="fAlt" hidden></textarea></div>
         <div class="two" style="gap:8px"><div><label class="lbl">運送会社（この受注）</label><select id="fCarrier"></select><span class="dim" id="fCarrierNote"></span></div><div><label class="lbl">配送方法</label><select id="fMethod"><option>宅配便</option><option>自社便</option><option>引取り</option><option>チャーター</option></select></div></div>
         <div id="fAddrNew" hidden>
           <div class="two" style="gap:8px"><div><label class="lbl">郵便番号</label><input id="nZip" placeholder="530-0001"></div><div><label class="lbl">宛名・担当者</label><input id="nAttn"></div></div>
@@ -901,7 +904,7 @@ function build(d){RAW=d;trBuild(d);d.recurring=d.recurring||[];d.formInbox=d.for
   ITEMS=d.items.filter(r=>r['有効']!==false&&r['品目名']).sort((a,b)=>(Number(a['表示順'])||99)-(Number(b['表示順'])||99)).map(r=>({cat:r['カテゴリ']||'青果',name:String(r['品目名']),sizes:splitPipe(r['規格候補']),bagSizes:splitPipe(r['袋詰本数候補']),
     packs:splitPipe(r['荷姿候補']).map(x=>{const p=x.split(':').map(v=>v.trim());const per=p[2]!==undefined&&p[2]!==''?Number(p[2]):'';return {n:p[0],u:p[1]||'kg',per,bag:/袋詰/.test(p[0]),adj:/袋詰|野菜コンテナ/.test(p[0])}})}));
   ITEMS.forEach(it=>{if(!it.sizes.length)it.sizes=['—'];if(!it.packs.length)it.packs=[{n:'バラ',u:'kg',per:''}]});
-  CUST=d.customers.filter(r=>r['コード']).map(r=>({code:String(r['コード']),name:String(r['顧客名']||''),kind:r['区分']||'',cats:splitPipe(r['カテゴリ']),zip:r['郵便番号']||'',addr1:r['住所1']||'',addr2:r['住所2']||'',addr:[r['住所1'],r['住所2']].filter(Boolean).join(' '),attn:r['宛名']||'',tel:r['電話']||'',mail:r['メール']||'',mailCc:r['メールCC']||'',mailName:r['メール宛名']||'',billMemo:r['請求メモ']||'',fax:r['FAX']||'',method:r['配送方法']||'宅配便',carrier:r['標準運送会社']||'',lead:Number(r['配送日数'])||1,hours:r['受入時間']||'',closed:r['受入不可日']||'',pack:r['標準荷姿']||'',active:r['有効']!==false,reg:r['登録区分']||'継続',since:String(r['取引開始']||'').slice(0,7),note:r['備考']||'',src:r['登録元']||'',conf:pdt(r['確認日時']),mgLead:r['ペースト配送日数']===''||r['ペースト配送日数']===undefined||r['ペースト配送日数']===null?'':Number(r['ペースト配送日数'])}));
+  CUST=d.customers.filter(r=>r['コード']).map(r=>({code:String(r['コード']),name:String(r['顧客名']||''),kind:r['区分']||'',cats:splitPipe(r['カテゴリ']),zip:r['郵便番号']||'',addr1:r['住所1']||'',addr2:r['住所2']||'',addr:[r['住所1'],r['住所2']].filter(Boolean).join(' '),attn:r['宛名']||'',tel:r['電話']||'',billName:r['請求宛名']||'',billAttn:r['請求担当']||'',billZip:r['請求郵便番号']||'',billAddr:r['請求住所']||'',mail:r['メール']||'',mailCc:r['メールCC']||'',mailName:r['メール宛名']||'',billMemo:r['請求メモ']||'',fax:r['FAX']||'',method:r['配送方法']||'宅配便',carrier:r['標準運送会社']||'',lead:Number(r['配送日数'])||1,hours:r['受入時間']||'',closed:r['受入不可日']||'',pack:r['標準荷姿']||'',active:r['有効']!==false,reg:r['登録区分']||'継続',since:String(r['取引開始']||'').slice(0,7),note:r['備考']||'',src:r['登録元']||'',conf:pdt(r['確認日時']),mgLead:r['ペースト配送日数']===''||r['ペースト配送日数']===undefined||r['ペースト配送日数']===null?'':Number(r['ペースト配送日数'])}));
   STAFF=d.staff.filter(r=>r['名前']&&r['有効']!==false).sort((a,b)=>(Number(a['表示順'])||99)-(Number(b['表示順'])||99)).map(r=>({n:String(r['名前']),role:r['区分']||'パート',dow:splitPipe(r['曜日']).map(Number),f:Number(r['開始'])||9,t:Number(r['終了'])||15,brk:Number(r['休憩分'])||0,cnt:Number(r['人数'])||1,wage:(r['時給']===''||r['時給']==='min'||r['時給']===undefined)?'min':Number(r['時給'])}));
   SHIFT={};SHIFT_CHANGED=new Set();d.shifts.forEach(r=>{if(!r['日付']||!r['名前'])return;const k=String(r['日付']).slice(0,10)+'|'+r['名前'];
     if(r['開始']===''||r['開始']===null||r['開始']===undefined)SHIFT[k]=null;else{const v=[Number(r['開始']),Number(r['終了']),Number(r['休憩分'])||0];if(r['人数']!==''&&r['人数']!==null&&r['人数']!==undefined)v.push(Number(r['人数']));SHIFT[k]=v}
@@ -914,7 +917,7 @@ function build(d){RAW=d;trBuild(d);d.recurring=d.recurring||[];d.formInbox=d.for
     const lines=(linesBy[r.NO]||[]).sort((a,b)=>(Number(a['行'])||0)-(Number(b['行'])||0)).map(l=>({gyo:l['行']===undefined?'':l['行'],item:String(l['品目']||''),size:String(l['規格']||''),pack:String(l['荷姿']||''),qty:Number(l['数量'])||0,unit:l['単位']||'kg',per:l['入数']===''||l['入数']===undefined?'':Number(l['入数']),boxes:Number(l['箱数'])||''}));
     const deliver=pdt(r['納品日'])||new Date();const lead=Number(c.lead)||1;const it=ITEMS.find(i=>i.name===(lines[0]||{}).item);
     return {no:String(r.NO),date:pdt(r['受注日時'])||new Date(),cust:c.code,cat:r['カテゴリ']||(it&&it.cat)||'青果',lines,kg:lines.reduce((s,l)=>s+lineKg(l),0),boxes:lines.reduce((s,l)=>s+(l.boxes||0),0),deliver,lead,
-      shipFix:pdt(r['発送手配日']),readyFix:pdt(r['用意期限']),shipSug:addD(deliver,-lead),readySug:addD(deliver,-lead-1),kind:r['注文区分']||'',confAt:pdt(r['確定日時']),confBy:r['確定者']||'',status:r['状態']||'受注',sales:r['営業担当']||'',note:r['申し送り']||'',method:r['配送方法']||'宅配便',carrier:r['運送会社']||'',addrAlt:r['送り先別']||'',schedBy:r['日程決定者']||'',
+      shipFix:pdt(r['発送手配日']),readyFix:pdt(r['用意期限']),shipSug:addD(deliver,-lead),readySug:addD(deliver,-lead-1),kind:r['注文区分']||'',confAt:pdt(r['確定日時']),confBy:r['確定者']||'',status:r['状態']||'受注',sales:r['営業担当']||'',note:r['申し送り']||'',method:r['配送方法']||'宅配便',carrier:r['運送会社']||'',addrAlt:r['送り先別']||'',destId:String(r['納品先ID']||''),schedBy:r['日程決定者']||'',
       act:{readyAt:pdt(r['用意完了日時']),readyBy:r['用意担当']||'',readyReason:r['用意理由']||'',readyNote:r['用意メモ']||'',readyBoxes:r['実箱数']!==''&&r['実箱数']!==undefined?Number(r['実箱数']):undefined,shipAt:pdt(r['発送手配日時']),shipBy:r['手配担当']||'',carrier:r['運送会社']||'',waybill:r['伝票No']||'',pieces:Number(r['個口数'])||undefined,shipNote:r['手配メモ']||'',deliverAt:pdt(r['納品確認日時']),deliverBy:r['納品担当']||'',deliverNote:r['納品メモ']||''},
       events:(evBy[r.NO]||[]).map(e=>({t:e['種別']||'',at:pdt(e['日時'])||new Date(),by:e['担当']||'',m:e['内容']||'',late:Number(e['遅れ日数'])||0,plan:pdt(e['予定日'])})).sort((a,b)=>a.at-b.at)};
   });
@@ -1027,7 +1030,7 @@ function lstAct(o){const s=stepOf(o);
   return `<button class="btn sm" data-go="納品済" data-no="${o.no}">納品済にする</button>`}
 function lstRow(o){const c=custOf(o.cust);const ds=dispStatus(o);
   return `<div class="lr ${lateOf(o)?'late':soonOf(o)?'soon':''}" data-no="${o.no}"><div class="lst"></div>
-   <div class="lnm"><div class="nm">${esc(c.name)} ${o.kind==='定期'?'<span class="tag t-定期">定期</span> ':''}${ucTag(o)}${o.cat!=='青果'?`<span class="tag t-cat ${o.cat}">${o.cat}</span>`:''}</div><div class="dim">${o.no}　${esc(itemsTxt(o))}　${o.method}${o.sales?'　営業 '+esc(o.sales):''}${o.note?'　📝'+esc(o.note.slice(0,20)):''}</div></div>
+   <div class="lnm"><div class="nm">${esc(c.name)} ${destTag(o)} ${o.kind==='定期'?'<span class="tag t-定期">定期</span> ':''}${ucTag(o)}${o.cat!=='青果'?`<span class="tag t-cat ${o.cat}">${o.cat}</span>`:''}</div><div class="dim">${o.no}　${esc(itemsTxt(o))}　${o.method}${o.sales?'　営業 '+esc(o.sales):''}${o.note?'　📝'+esc(o.note.slice(0,20)):''}</div></div>
    <div class="lq">${qtyMain(o)}<small>${qtySub(o)}</small></div>
    <div class="stp">${stepSeg(o,'ready')}${stepSeg(o,'ship')}${stepSeg(o,'deliver')}</div>
    <div class="lact"><span class="tag t-${ds}">${ds==='受注'?'日程未定':ds}</span>${lstAct(o)}</div></div>`}
@@ -1088,7 +1091,7 @@ function openOrder(no){
   <div class="meta"><span>${o.no}</span><span class="tag ${o.kind==='定期'?'t-定期':''}">${o.kind||'区分未設定'}</span><span>受注日 ${md(o.date)}</span><span>営業 ${esc(o.sales)}</span><span class="tag t-${dispStatus(o)}">${dispStatus(o)}</span><span>${o.method}${o.carrier?'・'+o.carrier:'・運送会社は流通が選ぶ'}</span><span>③納品 ${mdw(o.deliver)}${active(o)?`　${remDays(o.deliver)}`:''}</span></div>
   ${acts.join('')}<div class="acts" style="margin-bottom:12px">${sub.join('')}</div>
   <div class="kv"><span class="k">明細</span><span>${o.lines.map(l=>`${l.item} ${l.size}　<b>${fmt(l.qty)} ${l.unit}</b>　${l.pack}${l.boxes?`　${l.boxes}箱`:''}`).join('<br>')}${o.kg?`<br><b>計 ${fmt(o.kg)} kg${o.boxes?'・'+o.boxes+'箱':''}</b>`:''}</span></div>
-  <div class="kv"><span class="k">送り先</span><span>〒${c.zip} ${esc(c.addr)}　${esc(c.attn)}　${c.tel}${((RAW.customers.find(x=>String(x['コード'])===c.code)||{})['お客様番号'])?`　<span class="dim">お客様番号 ${esc(RAW.customers.find(x=>String(x['コード'])===c.code)['お客様番号'])}</span>`:''}<br><span class="dim">受入 ${c.hours||'—'}　不可 ${c.closed||'—'}　${esc(c.note)}</span></span></div>
+  <div class="kv"><span class="k">送り先</span><span>${destHtml(o)}${((RAW.customers.find(x=>String(x['コード'])===c.code)||{})['お客様番号'])?`　<span class="dim">お客様番号 ${esc(RAW.customers.find(x=>String(x['コード'])===c.code)['お客様番号'])}</span>`:''}<br><span class="dim">受入 ${c.hours||'—'}　不可 ${c.closed||'—'}　${esc(c.note)}</span></span></div>
   ${o.note?`<div class="kv"><span class="k">申し送り</span><span>${esc(o.note)}</span></div>`:''}
   <div class="kv"><span class="k">配送</span><span><span class="row" style="gap:10px">${shipTxt(o)}${o.status!=='キャンセル'?`<button class="btn sm" data-a="ship">${(o.act.carrier||o.carrier)?'直す':'決める'}</button>`:''}</span><div id="shipEd"></div></span></div>
   ${trNeed(o)?`<div class="kv"><span class="k">圃場</span><span><span class="row" style="gap:10px">${trOf(o.no).length?esc(trTxt(o.no)):'<span style="color:var(--bad);font-weight:700">未記録</span>'}<button class="btn sm" data-a="trace">${trOf(o.no).length?'直す':'入れる'}</button></span></span></div>`:''}
@@ -1416,7 +1419,7 @@ function custUnlockAsk(){const c0=custOf(F.editCust)||{name:F.editCust};
   <button class="btn pri blk" id="cuNew">編集をやめて新しい注文を入れる</button><button class="btn blk" id="cuChg" style="margin-top:8px">${F.editNo} の顧客を変える（注文の入れ間違いを直すとき）</button><div class="acts"><button class="btn" id="cuNo">やめる</button></div>`);
   $('cuNew').onclick=()=>{closeModal();resetForm();renderForm();toast('編集をやめました。新しい注文を入れられます')};
   $('cuChg').onclick=()=>{closeModal();F.custUnlock=true;renderForm();$('fCustQ').focus()};$('cuNo').onclick=closeModal}
-function loadForm(o){$('fRecDowW').innerHTML='';$('fRecTo').value='';$('fRecFut').checked=false;F={kind:o.kind||'',cat:o.cat,item:(o.lines[0]||{}).item||'さつまいも',lines:o.lines.map(l=>({item:l.item,size:l.size,pack:PACK_ALIAS[l.pack]||l.pack,qty:l.qty,per:l.per||''})),cust:o.cust,editNo:o.no,editCust:o.cust,custUnlock:false,mode:'pick',reg:'継続',carrierTouched:true};$('fDeliver').value=ymd(o.deliver);$('fNote').value=o.note;$('fSales').value=o.sales;$('fCustQ').value=custOf(o.cust).name;$('fMethod').value=o.method||'宅配便';setTimeout(()=>{$('fCarrier').value=o.carrier||''},0);$('fAltOn').checked=!!o.addrAlt;$('fAlt').value=o.addrAlt||'';$('fAlt').hidden=!o.addrAlt}
+function loadForm(o){$('fRecDowW').innerHTML='';$('fRecTo').value='';$('fRecFut').checked=false;F={kind:o.kind||'',cat:o.cat,item:(o.lines[0]||{}).item||'さつまいも',lines:o.lines.map(l=>({item:l.item,size:l.size,pack:PACK_ALIAS[l.pack]||l.pack,qty:l.qty,per:l.per||''})),cust:o.cust,editNo:o.no,editCust:o.cust,custUnlock:false,mode:'pick',reg:'継続',carrierTouched:true};$('fDeliver').value=ymd(o.deliver);$('fNote').value=o.note;$('fSales').value=o.sales;$('fCustQ').value=custOf(o.cust).name;$('fMethod').value=o.method||'宅配便';setTimeout(()=>{$('fCarrier').value=o.carrier||''},0);F.dest=o.addrAlt?'alt':(o.destId||'base');F.altTxt=o.addrAlt||'';F.destCust=o.cust;$('fAltOn').checked=!!o.addrAlt;$('fAlt').value=o.addrAlt||''}
 function renderForm(){
   editGuard();
   if(!$('fRepDow'))$('fRepDowW').innerHTML=dowPick('fRepDow',[]);$('fRepBox').hidden=true;$('fKind').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.k===F.kind));recShow();repBadge();if(FV==='rep')renderRep();
@@ -1467,7 +1470,8 @@ function renderForm(){
   const c=isNew?{name:$('nName').value||'（新規顧客）',lead:Number($('nLead').value)||1}:(F.cust&&custOf(F.cust));
   {const sel=$('fCarrier');const cur=sel.value;sel.innerHTML='<option value="">流通に任せる</option>'+CARRIERS.map(x=>`<option>${x}</option>`).join('');const def=(c&&c.carrier)||'';sel.value=F.carrierTouched?cur:def;$('fCarrierNote').textContent=def?`この顧客の標準：${def}`:'標準なし（流通が発送手配時に選ぶ）';if(def==='自社便'&&!F.carrierTouched)$('fMethod').value='自社便'}
   $('fBillMemo').innerHTML=F.mode==='pick'&&c?billMemoHtml(c):'';
-  $('fAddr').innerHTML=c?`〒${c.zip} ${esc(c.addr)}<br>${esc(c.attn)}　${c.tel}<br><span class="dim">受入 ${c.hours||'—'}　不可 ${c.closed||'—'}　配送 ${c.lead}日　${c.carrier?'標準 '+c.carrier:''}　${esc(c.note)}</span>`:'顧客を選ぶと送り先が表示されます';
+  if(!isNew){destPick($('fDest'),F,c||null,renderForm);$('fAltOn').checked=F.dest==='alt';$('fAlt').value=F.altTxt||''}
+  $('fAddr').innerHTML=c&&!isNew?`<span class="dim">受入 ${c.hours||'—'}　不可 ${c.closed||'—'}　配送 ${c.lead}日　${c.carrier?'標準 '+c.carrier:''}　${esc(c.note)}</span>`:'';$('fAddr').hidden=!c||isNew;
   const dv=new Date($('fDeliver').value);
   $('fSummary').innerHTML=c?`<b>${esc(c.name)}</b>${isNew?`<span class="tag t-受注" style="margin-left:6px">新規・${F.reg==='継続'?'マスタ登録':'スポット'}</span>`:''} へ ${F.lines.map(l=>`${l.item} ${l.size} ${l.qty||'?'}`).join('／')}<br>③ 納品 <b>${mdw(dv)}</b>　→ 流通の提案：② 発送 ${md(addD(dv,-c.lead))}　① 用意 ${md(addD(dv,-c.lead-1))}　　${$('fCarrier').value||'運送会社：流通に任せる'}`:'顧客を選んでください';
   $('fSave').textContent=F.editNo?`${F.editNo} を更新する`:'流通部へ渡す（登録）';$('fEditCancel').hidden=!F.editNo;
@@ -1488,7 +1492,8 @@ $('fSave').onclick=async()=>{
   if(F.lines.some(l=>!l.qty)){toast('数量を入れてください');return}
   const lines=F.lines.map(l=>line(l.item,l.size,l.pack,Number(l.qty),l.per));
   const lrows=lines.map(l=>({'品目':l.item,'規格':l.size,'荷姿':l.pack,'数量':l.qty,'単位':l.unit,'入数':l.per,'箱数':l.boxes}));
-  const alt=$('fAltOn').checked?$('fAlt').value:'';
+  const alt=F.dest==='alt'?String(F.altTxt||'').trim():'';const destId=F.mode==='pick'&&F.dest&&F.dest!=='alt'&&F.dest!=='base'?F.dest:'';
+  if(F.mode==='pick'&&F.dest==='alt'&&!alt){toast('「今回だけ別の送り先」の住所を入れてください');return}
   const sales=$('fSales').value||ME;
   if(!F.editNo&&!F.kind){toast('「単発」か「定期」かを選んでください');return}
   let recList=[];
@@ -1499,12 +1504,12 @@ $('fSave').onclick=async()=>{
   try{
     if(F.editNo){const o=ORDERS.find(x=>x.no===F.editNo);const before=o.kg;const tmp={lines};const m=`明細変更：${lines.map(l=>`${l.item} ${l.size} ${fmt(l.qty)}${l.unit}`).join('／')}${before!==lines.filter(l=>l.unit==='kg').reduce((s,l)=>s+l.qty,0)?`　計 ${fmt(before)} → ${fmt(lines.filter(l=>l.unit==='kg').reduce((s,l)=>s+l.qty,0))}kg`:''}`;
       const custChg=newCustomer?`顧客変更：${custOf(o.cust)?custOf(o.cust).name:o.cust} → ${newCustomer['顧客名']}（新規）　`:(F.cust!==o.cust?`顧客変更：${custOf(o.cust)?custOf(o.cust).name:o.cust} → ${custOf(F.cust).name}　`:'');
-      const r=await save('saveOrder',{no:o.no,newCustomer,order:{'顧客コード':newCustomer?'':F.cust,'納品日':$('fDeliver').value,'申し送り':$('fNote').value,'配送方法':$('fMethod').value,'運送会社':$('fCarrier').value,'営業担当':sales,'送り先別':alt,'カテゴリ':F.cat,'注文区分':F.kind||''},lines:lrows,event:{'種別':'内容変更','担当':sales+'（営業）','内容':custChg+m}},`${o.no} を更新しました（変更はタイムラインに残ります）`);mergeOne(r);
+      const r=await save('saveOrder',{no:o.no,newCustomer,order:{'顧客コード':newCustomer?'':F.cust,'納品日':$('fDeliver').value,'申し送り':$('fNote').value,'配送方法':$('fMethod').value,'運送会社':$('fCarrier').value,'営業担当':sales,'送り先別':alt,'納品先ID':destId,'カテゴリ':F.cat,'注文区分':F.kind||''},lines:lrows,event:{'種別':'内容変更','担当':sales+'（営業）','内容':custChg+m}},`${o.no} を更新しました（変更はタイムラインに残ります）`);mergeOne(r);
       if(recList.length){const res=await saveRec(recList,(r&&r.custCode)||F.cust||o.cust,null,sales,alt,lrows);toast(`${o.no} を更新し、先の分 ${res.created.length}件を作りました${res.skipped.length?`（${res.skipped.length}件はすでにあるので作らず）`:''}`)}
       build(RAW);render()}
     else if(F.kind==='定期'){const res=await saveRec([$('fDeliver').value,...recList.filter(x=>x!==$('fDeliver').value)],F.cust||'',newCustomer,sales,alt,lrows);build(RAW);render();
       toast(`定期 ${res.created.length}件を登録しました（${md(new Date($('fDeliver').value+'T00:00:00'))}〜${md(new Date($('fRecTo').value+'T00:00:00'))}）${res.skipped.length?`　${res.skipped.length}件はすでにあるので作らず`:''}`)}
-    else{const r=await save('saveOrder',{order:{'顧客コード':F.cust||'','カテゴリ':F.cat,'納品日':$('fDeliver').value,'配送方法':$('fMethod').value,'運送会社':$('fCarrier').value,'営業担当':sales,'申し送り':$('fNote').value,'送り先別':alt,'状態':'受注','注文区分':F.kind,'確定日時':dts(new Date()),'確定者':sales},lines:lrows,newCustomer,recurring,event:{'種別':'受注','担当':sales+'（営業）','内容':`新規登録　③納品 ${$('fDeliver').value.slice(5).replace('-','/')}${$('fNote').value?`　申し送り「${$('fNote').value}」`:''}`}},null);
+    else{const r=await save('saveOrder',{order:{'顧客コード':F.cust||'','カテゴリ':F.cat,'納品日':$('fDeliver').value,'配送方法':$('fMethod').value,'運送会社':$('fCarrier').value,'営業担当':sales,'申し送り':$('fNote').value,'送り先別':alt,'納品先ID':destId,'状態':'受注','注文区分':F.kind,'確定日時':dts(new Date()),'確定者':sales},lines:lrows,newCustomer,recurring,event:{'種別':'受注','担当':sales+'（営業）','内容':`新規登録　③納品 ${$('fDeliver').value.slice(5).replace('-','/')}${$('fNote').value?`　申し送り「${$('fNote').value}」`:''}`}},null);
       mergeSaved(r);toast(`${r.no} を登録しました${r.recurring&&r.recurring.length?'（定期にも追加）':''} → 流通の「週間」に日程未定として出ます`)}
     resetForm();
     switchTab('list');
@@ -1523,7 +1528,7 @@ function mergeOne(r){if(!RAW||!r||!r.no)return;
 $('fKind').onclick=e=>{const b=e.target.closest('[data-k]');if(!b)return;F.kind=b.dataset.k;$('fKind').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));recShow()};
 async function saveRec(dates,cust,newCustomer,sales,alt,lrows){
   busy(true);toast(`${dates.length}件を作成中…`);
-  const base={'顧客コード':cust,'カテゴリ':F.cat,'配送方法':$('fMethod').value,'運送会社':$('fCarrier').value,'営業担当':sales,'申し送り':$('fNote').value,'送り先別':alt,'状態':'受注','注文区分':'定期'};
+  const base={'顧客コード':cust,'カテゴリ':F.cat,'配送方法':$('fMethod').value,'運送会社':$('fCarrier').value,'営業担当':sales,'申し送り':$('fNote').value,'送り先別':alt,'納品先ID':destId,'状態':'受注','注文区分':'定期'};
   const tag=`定期（${dowStr(dowGet('fRecDow'))}　〜${md(new Date($('fRecTo').value+'T00:00:00'))}）から作成`;
   const orders=dates.map(dt=>({order:Object.assign({},base,{'納品日':dt}),lines:lrows,event:{'種別':'受注','担当':sales+'（営業）','内容':tag}}));
   const res=await save('saveOrders',{orders,newCustomer},null);
@@ -1588,7 +1593,7 @@ $('rpGo').onclick=async()=>{
   const orders=Object.values(grp).map(cs=>{const r=cs[0].r;const cu=custOf(r.cust);const it=ITEMS.find(i=>i.name===r.item);
     const lines=cs.map(c=>line(c.r.item,c.r.size,c.r.pack,Number(c.qty),c.r.per)).map(l=>({'品目':l.item,'規格':l.size,'荷姿':l.pack,'数量':l.qty,'単位':l.unit,'入数':l.per,'箱数':l.boxes}));
     const note=['定期',...new Set(cs.map(c=>c.r.note).filter(Boolean))].join('　');
-    return {order:{'顧客コード':r.cust,'カテゴリ':(it&&it.cat)||'青果','納品日':cs[0].date,'配送方法':r.method||cu.method,'運送会社':r.carrier||cu.carrier||'','営業担当':r.by||ME,'申し送り':note,'送り先別':'','状態':'受注','注文区分':'定期'},lines,event:{'種別':'受注','担当':ME,'内容':`定期からまとめて作成（${cs.map(c=>c.r.id).join(',')}）`}}});
+    return {order:{'顧客コード':r.cust,'カテゴリ':(it&&it.cat)||'青果','納品日':cs[0].date,'配送方法':r.method||cu.method,'運送会社':r.carrier||cu.carrier||'','営業担当':r.by||ME,'申し送り':note,'送り先別':'','納品先ID':(destDefault(r.cust)==='base'?'':destDefault(r.cust)),'状態':'受注','注文区分':'定期'},lines,event:{'種別':'受注','担当':ME,'内容':`定期からまとめて作成（${cs.map(c=>c.r.id).join(',')}）`}}});
   $('rpGo').disabled=true;
   try{const res=await save('createFromRecurring',{orders},null);
     res.created.forEach(r=>mergeOne(r));build(RAW);render();renderRep();
@@ -1678,6 +1683,8 @@ function renderCust(){
   $('cdetail').innerHTML=`<div class="card"><h3>${esc(c.name)} ${c.cats.map(x=>`<span class="tag t-cat ${x}">${x}</span>`).join(' ')}<span>${c.reg}　取引開始 ${c.since}</span></h3>
     <div class="kpis"><div class="kpi"><small>受注（累計）</small><b>${ok.length}</b><span class="u"> 件</span></div><div class="kpi"><small>さつまいも</small><b>${fmt(kg)}</b><span class="u"> kg</span></div><div class="kpi"><small>加工品</small><b>${fmt(kako)}</b><span class="u"> 袋・本</span></div><div class="kpi ${late?'bad':''}"><small>遅れ</small><b>${late}</b><span class="u"> 件</span></div></div>
     <div class="kv"><span class="k">送り先</span><span>〒${c.zip} ${esc(c.addr)}　${esc(c.attn)}　${c.tel}<br><span class="dim">受入 ${c.hours||'—'}　不可 ${c.closed||'—'}　配送${c.lead}日　標準運送会社 ${c.carrier||'—'}　${esc(c.note)}</span></span></div>
+    <div class="kv"><span class="k">請求先</span><span>${c.billName||c.billAddr||c.billAttn?`<b>${esc(c.billName||c.name)}</b>${c.billAttn?'　'+esc(c.billAttn):''}<br>${c.billZip?'〒'+esc(c.billZip)+' ':''}${esc(c.billAddr||c.addr)}`:'<span class="dim">顧客名・基本の住所と同じ</span>'}</span></div>
+    <div class="kv"><span class="k">納品先</span><span><div class="dmini">${destsOf(c.code,true).map(d=>`<div class="${d.on?'':'off'}"><b>${esc(d.name)}</b>${d.def?' <span class="dtag dest">いつもここ</span>':''}${d.on?'':' <span class="dtag alt">使わない設定</span>'}　${d.zip?'〒'+esc(d.zip)+' ':''}${esc(d.addr)}　${esc(d.attn)}　${esc(d.tel)}${d.memo?`　<span class="dim">${esc(d.memo)}</span>`:''} <button class="btn sm" data-cde="${esc(d.id)}">直す</button></div>`).join('')||'<span class="dim">登録した納品先はありません（基本の住所に送ります）</span>'}</div><button class="btn sm" id="cdDestAdd" style="margin-top:6px">＋ 納品先を登録する</button></span></div>
     <h3 style="margin-top:12px">受注履歴（新しい順）<span>タップで詳細</span></h3>
     <div class="tw"><table><tr><th>受注No.</th><th>受注</th><th>明細</th><th>① 用意</th><th>② 発送</th><th>③ 納品</th><th>状態</th></tr>
     ${os.map(o=>`<tr class="click" data-no="${o.no}"><td>${o.no}</td><td>${md(o.date)}</td><td>${lineSummary(o)}</td><td>${o.status==='キャンセル'?'—':cell(o.act.readyAt,o.readyFix,'期限')}</td><td>${o.status==='キャンセル'?'—':cell(o.act.shipAt,o.shipFix,'予定')}</td><td>${o.status==='キャンセル'?'—':cell(o.act.deliverAt,o.deliver,'予定')}</td><td><span class="tag t-${o.status}">${o.status}</span></td></tr>`).join('')}</table></div>
@@ -1691,6 +1698,7 @@ function renderCust(){
      ${r.flag==='sleep'?`<div class="cnote">${diffD(TODAY,r.last)}日注文がありません${gap?`（いつもは${gap}日ごと）`:''}。声かけの候補です</div>`:''}${r.flag==='none'?'<div class="cnote">登録だけで注文がありません。二重登録か、見込み客のまま止まっていないか確認</div>':''}`;
    const kp=$('cdetail').querySelector('.kpis');if(kp)kp.after(box)}
   $('cdetail').onclick=async e=>{if(e.target.id==='cEdit'){openCustEdit(c);return}
+    if(e.target.id==='cdDestAdd'){destEdit(c,null,()=>renderCust());return}if(e.target.dataset&&e.target.dataset.cde){destEdit(c,destById(c.code,e.target.dataset.cde),()=>renderCust());return}
     if(e.target.id==='cLink'){if(!e.target.disabled)openFormLink(c);return}
     if(e.target.id==='cSpot'||e.target.id==='cOff'){const row=RAW.customers.find(x=>String(x['コード'])===c.code);if(!row)return;const upd=Object.assign({},row);delete upd._row;
       if(e.target.id==='cSpot')upd['登録区分']=c.reg==='スポット'?'継続':'スポット';else upd['有効']=c.active===false;
@@ -1809,13 +1817,15 @@ function openCustEdit(c){
     <label>配送方法</label><select id="ce_method">${(OPT['配送方法']||['宅配便','自社便','引取り','チャーター']).map(x=>`<option ${x===c.method?'selected':''}>${esc(x)}</option>`).join('')}</select>
     <label>標準運送会社</label><select id="ce_carrier"><option value="">—</option>${CARRIERS.map(x=>`<option ${x===c.carrier?'selected':''}>${esc(x)}</option>`).join('')}</select>
     ${f('lead','配送日数',c.lead)}${f('hours','受入時間',c.hours,'8:00-11:00')}${f('closed','受入不可日',c.closed,'日祝')}${f('pack','標準荷姿',c.pack)}${f('note','備考（毎回の申し送り）',c.note)}${ivAllowed()?`<label>請求メモ<br><span class="dim" style="font-weight:400;font-size:11px">送料・単価・個別対応</span></label><textarea id="ce_billMemo" rows="3" placeholder="請求を使える人だけに見えます">${esc(c.billMemo)}</textarea>`:''}
+    <label style="grid-column:1/-1;font-weight:800;margin-top:6px;border-top:1px solid var(--line);padding-top:8px">請求先 <span class="dim" style="font-weight:400;font-size:12px">空のところは、顧客名・基本の住所を使います（請求書の宛先になります）</span></label>
+    ${f('billName','請求先の宛名',c.billName,'例：株式会社○○ 経理部')}${f('billAttn','請求の担当者',c.billAttn,'例：経理ご担当 佐藤様')}${f('billZip','請求先 〒',c.billZip)}${f('billAddr','請求先 住所',c.billAddr,'基本の住所と違うときだけ')}
     <label>有効</label><select id="ce_active"><option value="1" ${c.active?'selected':''}>はい</option><option value="0" ${!c.active?'selected':''}>いいえ（候補に出さない）</option></select></div>
     <p class="dim" id="ceErr" style="color:var(--bad)"></p><button class="btn acc blk" id="ceOk">保存する</button><div class="acts"><button class="btn" id="ceNo">閉じる</button></div>`);
   $('ce_cats').onclick=e=>{const b=e.target.closest('.chip');if(b)b.classList.toggle('on')};$('ceNo').onclick=closeModal;
   $('ceOk').onclick=async()=>{const g=id=>$('ce_'+id).value;const cats=[...$('ce_cats').querySelectorAll('.on')].map(b=>b.dataset.c);
     const bad=mailBad(g('mail')).concat(mailBad(g('mailCc')));if(bad.length){$('ceErr').textContent='メールアドレスの形が正しくありません：'+bad.join('、');return}
-    const row={'コード':c.code,'顧客名':g('name'),'区分':g('kind'),'カテゴリ':cats.join('|'),'郵便番号':g('zip'),'住所1':g('addr1'),'住所2':g('addr2'),'宛名':g('attn'),'電話':g('tel'),'メール':mailNorm(g('mail')),'メールCC':mailNorm(g('mailCc')),'メール宛名':g('mailName').trim(),'FAX':g('fax'),'配送方法':g('method'),'標準運送会社':g('carrier'),'配送日数':Number(g('lead'))||1,'受入時間':g('hours'),'受入不可日':g('closed'),'標準荷姿':g('pack'),'有効':g('active')==='1','登録区分':g('reg'),'備考':g('note')};if($('ce_billMemo'))row['請求メモ']=$('ce_billMemo').value.trim();
-    Object.assign(c,{name:row['顧客名'],kind:row['区分'],cats,reg:row['登録区分'],zip:row['郵便番号'],addr1:row['住所1'],addr2:row['住所2'],addr:[row['住所1'],row['住所2']].filter(Boolean).join(' '),attn:row['宛名'],tel:row['電話'],mail:row['メール'],mailCc:row['メールCC'],mailName:row['メール宛名'],billMemo:row['請求メモ']!==undefined?row['請求メモ']:c.billMemo,fax:row['FAX'],method:row['配送方法'],carrier:row['標準運送会社'],lead:row['配送日数'],hours:row['受入時間'],closed:row['受入不可日'],pack:row['標準荷姿'],note:row['備考'],active:row['有効']});
+    const row={'コード':c.code,'顧客名':g('name'),'区分':g('kind'),'カテゴリ':cats.join('|'),'郵便番号':g('zip'),'住所1':g('addr1'),'住所2':g('addr2'),'宛名':g('attn'),'電話':g('tel'),'メール':mailNorm(g('mail')),'メールCC':mailNorm(g('mailCc')),'メール宛名':g('mailName').trim(),'FAX':g('fax'),'配送方法':g('method'),'標準運送会社':g('carrier'),'配送日数':Number(g('lead'))||1,'受入時間':g('hours'),'受入不可日':g('closed'),'標準荷姿':g('pack'),'有効':g('active')==='1','登録区分':g('reg'),'備考':g('note'),'請求宛名':g('billName').trim(),'請求担当':g('billAttn').trim(),'請求郵便番号':g('billZip').trim(),'請求住所':g('billAddr').trim()};if($('ce_billMemo'))row['請求メモ']=$('ce_billMemo').value.trim();
+    Object.assign(c,{name:row['顧客名'],kind:row['区分'],cats,reg:row['登録区分'],zip:row['郵便番号'],addr1:row['住所1'],addr2:row['住所2'],addr:[row['住所1'],row['住所2']].filter(Boolean).join(' '),attn:row['宛名'],tel:row['電話'],mail:row['メール'],mailCc:row['メールCC'],mailName:row['メール宛名'],billName:row['請求宛名'],billAttn:row['請求担当'],billZip:row['請求郵便番号'],billAddr:row['請求住所'],billMemo:row['請求メモ']!==undefined?row['請求メモ']:c.billMemo,fax:row['FAX'],method:row['配送方法'],carrier:row['標準運送会社'],lead:row['配送日数'],hours:row['受入時間'],closed:row['受入不可日'],pack:row['標準荷姿'],note:row['備考'],active:row['有効']});
     closeModal();renderCust();await save('saveCustomer',{customer:row},'顧客情報を保存しました')};
 }
 
@@ -2348,7 +2358,7 @@ function buildMg(d){MG_VER++;d.mgOrders=d.mgOrders||[];d.mgLines=d.mgLines||[];d
   const ls={},ev={};d.mgLines.forEach(r=>{if(r.NO)(ls[r.NO]=ls[r.NO]||[]).push(r)});d.mgEvents.forEach(r=>{if(r.NO)(ev[r.NO]=ev[r.NO]||[]).push(r)});
   MGO=d.mgOrders.filter(r=>r.NO).map(r=>{const c=custOf(String(r['顧客コード']));
     const lines=(ls[r.NO]||[]).sort((a,b)=>(Number(a['行'])||0)-(Number(b['行'])||0)).map(l=>{const it=String(l['品目']||'');const box=Number(l['箱数'])||0,bara=Number(l['ばら'])||0;const pc=box*MG_PER+bara;return {gyo:String(l['行']),item:it,spec:String(l['規格']||mgProd(it).spec||''),box,bara,pc,kg:pc*(mgProd(it).kg||0)}});
-    return {no:String(r.NO),date:pdt(r['受注日時'])||new Date(),cust:String(r['顧客コード']||''),custName:c?c.name:'（未登録 '+(r['顧客コード']||'')+'）',deliver:pdt(r['納品日'])||new Date(),carrier:r['運送会社']||'',sales:r['営業担当']||'',status:r['状態']||'受注',addrAlt:r['送り先別']||'',note:r['申し送り']||'',
+    return {no:String(r.NO),date:pdt(r['受注日時'])||new Date(),cust:String(r['顧客コード']||''),custName:c?c.name:'（未登録 '+(r['顧客コード']||'')+'）',deliver:pdt(r['納品日'])||new Date(),carrier:r['運送会社']||'',sales:r['営業担当']||'',status:r['状態']||'受注',addrAlt:r['送り先別']||'',destId:String(r['納品先ID']||''),note:r['申し送り']||'',
       reqAt:pdt(r['依頼日時']),reqBy:r['依頼者']||'',reqMemo:r['依頼メモ']||'',shipAt:pdt(r['発送日時']),shipBy:r['発送者']||'',waybill:String(r['伝票No']||''),pieces:Number(r['個口数'])||'',dlvAt:pdt(r['納品確認日時']),dlvBy:r['納品担当']||'',dlvNote:r['納品メモ']||'',why:r['キャンセル理由']||'',src:r['登録元']||'',flag:r['マグチ変更']||'',plan:pdt(r['発送予定日']),lines,
       events:(ev[r.NO]||[]).map(e=>({t:e['種別']||'',at:pdt(e['日時'])||new Date(),by:e['担当']||'',m:e['内容']||''})).sort((a,b)=>a.at-b.at)}});
 }
@@ -2428,9 +2438,7 @@ function mgForm(){const F=MGF;if(!F.sales)F.sales=ME;const v=$('v-mg');const c=c
   v.innerHTML=mgBand(F.no?`${F.no} を直しています`:'登録')+(F.no?`<div class="editbar"><div><b>✎ ${F.no}（${esc(c0.name)}${mo?'・③納品 '+mdw(mo.deliver):''}）を編集しています</b><br><span>ここで保存すると、この注文が書き換わります。<b>新しい注文を入れるときは「編集をやめる」</b>を押してください。</span></div><button class="btn" id="mgEdStop">編集をやめる（新しい注文を入れる）</button></div>`:'')+`<div class="two"><div>
     <section class="card" style="margin-bottom:12px"><h3>1 誰から <span class="dim mgin" style="font-weight:500;font-size:12px">顧客はさつまいもと共通</span></h3>${pick}${c?billMemoHtml(c):''}</section>
     <section class="card" style="margin-bottom:12px"><h3>2 どこへ <span class="dim" style="font-weight:500;font-size:12px">発送はマグチフードプロセスから</span></h3>
-      <div class="sumbox">${c?esc([c.zip?'〒'+c.zip:'',c.addr,c.attn].filter(Boolean).join('　')||'（顧客マスタに住所がありません）'):'顧客を選ぶと送り先が表示されます'}</div>
-      <label class="lbl"><input type="checkbox" id="mgAlt" style="width:auto" ${F.alt?'checked':''}> 今回だけ別の送り先にする（工場宛てなど）</label>
-      ${F.alt?`<textarea id="mgAltT" rows="2" placeholder="〒・住所・宛名・電話">${esc(F.altTxt)}</textarea>`:''}
+      <div id="mgDest"></div>
       <div class="two" style="gap:8px"><div><label class="lbl">運送会社（分かれば）</label><select id="mgCar">${carOpts(F.car,'あとで決める')}</select></div>
       <div><label class="lbl">温度帯</label><div class="sumbox" style="margin:0"><b style="color:#2f6f8f">冷凍</b>（固定）</div></div></div></section>
   </div><div>
@@ -2461,7 +2469,7 @@ function mgForm(){const F=MGF;if(!F.sales)F.sales=ME;const v=$('v-mg');const c=c
   v.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{const x=F.it[b.dataset.k];x.box=Math.max(0,x.box+ +b.dataset.d);re()});
   v.querySelectorAll('[data-kb]').forEach(i=>i.onchange=()=>{F.it[i.dataset.kb].box=Math.max(0,parseInt(i.value.replace(/[^\d]/g,''))||0);re()});
   v.querySelectorAll('[data-bara]').forEach(b=>b.onclick=()=>{F.it[b.dataset.k].bara=+b.dataset.bara;re()});
-  $('mgAlt').onchange=e=>{F.alt=e.target.checked;re()};if($('mgAltT'))$('mgAltT').oninput=e=>{F.altTxt=e.target.value};
+  destPick($('mgDest'),F,c||null,()=>{F.alt=F.dest==='alt';re()});F.alt=F.dest==='alt';
   $('mgCar').onchange=e=>{F.car=e.target.value};$('mgDl').onchange=e=>{F.dl=e.target.value;if(F.planAuto)F.plan=mgPlanOf(F.dl,F.cust);re()};$('mgPl2').onchange=e=>{F.plan=e.target.value;F.planAuto=!F.plan;if(!F.plan&&F.dl&&false)F.plan='';re()};$('mgNote').oninput=e=>{F.note=e.target.value};$('mgSales').oninput=e=>{F.sales=e.target.value};
   if($('mgEdX'))$('mgEdX').onclick=()=>{MGF=mgNewF();re()};
   if($('mgEdStop'))$('mgEdStop').onclick=()=>{MGF=mgNewF();re();toast('編集をやめました。新しい注文を入れられます')};
@@ -2474,9 +2482,9 @@ async function mgSaveForm(){const F=MGF;const err=m=>{$('mgErr').textContent=m};
   if(F.no&&F.editCust&&F.cust!==F.editCust&&!F.custUnlock)return err('編集中は顧客を変えられません');
   if(!F.cust&&!(F.nc&&F.nc.name))return err(F.nc?'顧客名を入れてください':'顧客を選んでください');
   if(!F.cust&&F.nc){const d=custDupCands(F.nc.name,F.nc.tel);if(d.same.length)return err('同じ名前の顧客があります。その顧客を選んでください');if(d.near.length&&!F.nc.dupOk)return err('似た顧客があります。同じ会社ならその顧客を選び、別の会社なら「別の会社です」にチェックしてください');F.nc.dupOkSend=d.near.length>0}const lines=Object.keys(MGP).map(k=>({'品目':k,'箱数':F.it[k].box,'ばら':F.it[k].bara})).filter(l=>l['箱数']||l['ばら']);
-  if(!lines.length)return err('箱数かばらを入れてください');if(!F.dl)return err('③納品日を入れてください');if(F.alt&&!F.altTxt.trim())return err('別の送り先を入れてください（使わないならチェックを外す）');
+  if(!lines.length)return err('箱数かばらを入れてください');if(!F.dl)return err('③納品日を入れてください');if(F.dest==='alt'&&!String(F.altTxt||'').trim())return err('別の送り先を入れてください（使わないならチェックを外す）');
   if(F.plan&&F.dl&&F.plan>F.dl)return err('発送予定日が納品日より後になっています');
-  const order={'発送予定日':F.plan||'','顧客コード':F.cust,'納品日':F.dl,'運送会社':F.car,'営業担当':F.sales||ME,'送り先別':F.alt?F.altTxt.trim():'','申し送り':F.note.trim()};
+  const order={'発送予定日':F.plan||'','顧客コード':F.cust,'納品日':F.dl,'運送会社':F.car,'営業担当':F.sales||ME,'送り先別':F.dest==='alt'?String(F.altTxt||'').trim():'','納品先ID':F.dest&&F.dest!=='alt'&&F.dest!=='base'&&!F.nc?F.dest:'','申し送り':F.note.trim()};
   let payload={order,lines};if(!F.cust&&F.nc)payload.newCustomer={'顧客名':F.nc.name,'郵便番号':F.nc.zip,'住所1':F.nc.addr,'宛名':F.nc.attn,'電話':F.nc.tel,'区分':'その他','カテゴリ':'加工品','登録区分':'継続',_dupOk:!!F.nc.dupOkSend};if(F.no){payload.no=F.no;payload.expect=F.expect}else payload.rid=ridOf('mgSave',payload);
   busy(true);try{const r=await api('mgSave',payload);if(r.customer){RAW.customers.push(r.customer);build(RAW)}mgPatchRaw(r.no,r.order,r.lines,r.event);toast(F.no?`${r.no} を直しました`:`${r.no} を登録しました`+(MGONLY()?'（オオサカポテトにも見えています）':''));MGF=mgNewF();switchTab('list')}
   catch(e){err('保存できませんでした：'+e.message);errBar('保存できませんでした：'+e.message+'　入力内容は残っています')}finally{busy(false)}}
@@ -2529,7 +2537,7 @@ function mgDraw(no){const o=MGO.find(x=>x.no===no);const ov=$('mgDt');if(!o||!ov
   const cr=[...new Set((CANCEL_REASONS||[]).concat(['マグチ側で対応できない']))];
   ov.innerHTML=`<div class="mgds"><div class="mgdh"><b>${o.no}　${esc(o.custName)}</b>${mgTag(o)}<button class="btn sm" id="mgX" style="margin-left:auto">閉じる</button></div>
   <div class="mgsteps">${step(0,'受注')}${step(1,'マグチへ依頼')}${step(2,'発送')}${step(3,'納品')}</div>
-  <div class="mggrid"><div><small>③納品日</small>${mdw(o.deliver)}</div><div><small>合計</small>${fmt(mgKg(o))}kg・${mgPc(o)}pc</div><div><small>製造・発送</small>マグチフードプロセス（前山さん）</div><div><small>送り先</small>${o.addrAlt?esc(o.addrAlt):'登録住所'}</div></div>
+  <div class="mggrid"><div><small>③納品日</small>${mdw(o.deliver)}</div><div><small>合計</small>${fmt(mgKg(o))}kg・${mgPc(o)}pc</div><div><small>製造・発送</small>マグチフードプロセス（前山さん）</div><div><small>送り先</small>${destHtml(o)}</div></div>
   ${o.seenNow?`<div class="mgflag">前山さん（マグチ）が<b>${esc(o.seenNow)}</b>しました。下の記録で中身を確かめてください（開いたので「確認済み」にしました）</div>`:''}
   <div class="sumbox">${mgItTxt(o)}${o.note?`<div class="dim" style="margin-top:4px">申し送り：${esc(o.note)}</div>`:''}<div class="dim">営業：${o.sales?esc(o.sales):o.src==='マグチ'?'—（マグチで受付）':'—'}</div></div>
   <section class="mgact">${act}<p class="dim" id="mgErr2" style="color:var(--bad);margin-top:6px"></p></section>
@@ -2549,7 +2557,7 @@ function mgDraw(no){const o=MGO.find(x=>x.no===no);const ov=$('mgDt');if(!o||!ov
   if($('mgDsave'))$('mgDsave').onclick=()=>{const d=$('mgD2').value.trim();if(!d)return E('伝票No.を入れてください');send({no:o.no,den:d},'伝票No.を保存しました')};
   if($('mgBack'))$('mgBack').onclick=()=>{if(!confirmInline($('mgBack'),'もう一度押すと戻します'))return;send({no:o.no,expect:o.status,to:'戻す'},`${o.no}：ひとつ前に戻しました`)};
   if($('mgCn'))$('mgCn').onclick=()=>{const r=$('mgCr').value;if(!r){$('mgCr').style.borderColor='var(--bad)';return E('キャンセルの理由を選んでください')}if(!confirmInline($('mgCn'),'もう一度押すとキャンセル'))return;send({no:o.no,expect:o.status,to:'キャンセル',reason:r},`${o.no} をキャンセルしました`)};
-  if($('mgEd'))$('mgEd').onclick=()=>{const F=mgNewF();F.no=o.no;F.expect=o.status;F.cust=o.cust;F.dl=ymd(o.deliver);F.plan=o.plan?ymd(o.plan):'';F.planAuto=!o.plan;F.car=o.carrier;F.note=o.note;F.sales=o.sales||ME;F.alt=!!o.addrAlt;F.altTxt=o.addrAlt;o.lines.forEach(l=>{if(F.it[l.item]){F.it[l.item].box=l.box;F.it[l.item].bara=l.bara}});F.editCust=o.cust;F.custUnlock=false;MGF=F;$('mgDt').remove();if(PM!=='paste')mgSetPM('paste');switchTab.keep=true;switchTab('new')}}
+  if($('mgEd'))$('mgEd').onclick=()=>{const F=mgNewF();F.no=o.no;F.expect=o.status;F.cust=o.cust;F.dl=ymd(o.deliver);F.plan=o.plan?ymd(o.plan):'';F.planAuto=!o.plan;F.car=o.carrier;F.note=o.note;F.sales=o.sales||ME;F.alt=!!o.addrAlt;F.altTxt=o.addrAlt;F.dest=o.addrAlt?'alt':(o.destId||'base');F.destCust=o.cust;o.lines.forEach(l=>{if(F.it[l.item]){F.it[l.item].box=l.box;F.it[l.item].bara=l.bara}});F.editCust=o.cust;F.custUnlock=false;MGF=F;$('mgDt').remove();if(PM!=='paste')mgSetPM('paste');switchTab.keep=true;switchTab('new')}}
 /* 取り返しのつかない操作は2回押し（ダイアログは出さない） */
 function confirmInline(btn,msg){if(btn.dataset.armed)return true;btn.dataset.armed='1';const t=btn.textContent;btn.textContent=msg;setTimeout(()=>{if(btn.isConnected){btn.textContent=t;delete btn.dataset.armed}},3000);return false}
 
@@ -2588,6 +2596,59 @@ const nhLabel=(kind,no)=>{const rs=nhRows(nhNum(kind,no));if(!rs.length)return '
 const nhMe=()=>{const r=((RAW&&RAW.settings)||[]).find(x=>String(x['キー'])==='通知先_'+ME);return r?String(r['値']||''):''};
 function nhInfo(kind,no){if(kind==='paste'){const o=MGO.find(x=>x.no===no);return o&&{name:o.custName,cust:o.cust,deliver:o.deliver,status:o.status}}
   const o=ORDERS.find(x=>x.no===no);const c=o&&custOf(o.cust);return o&&{name:c?c.name:o.cust,cust:o.cust,deliver:o.deliver,status:o.status}}
+
+
+/* ===== 2026/11/13 改修2段目：納品先（顧客ごとに複数）と請求先 =====
+   RAW.dests：シート「納品先」 [{納品先ID,顧客コード,名前,郵便番号,住所1,住所2,宛名,電話,メモ,既定,有効}]
+   注文の送り先は ①今回だけ別の送り先（送り先別・自由記入）②登録した納品先（納品先ID）③顧客の基本の住所 の順に決まる */
+const tf=v=>v===true||String(v).toUpperCase()==='TRUE';
+function destsOf(code,all){return (RAW.dests||[]).filter(d=>String(d['顧客コード'])===String(code)&&(all||d['有効']===undefined||d['有効']===''||tf(d['有効']))).map(d=>({id:String(d['納品先ID']),cust:String(d['顧客コード']),name:String(d['名前']||''),zip:String(d['郵便番号']||''),addr:[d['住所1'],d['住所2']].filter(Boolean).join(' '),a1:String(d['住所1']||''),a2:String(d['住所2']||''),attn:String(d['宛名']||''),tel:String(d['電話']||''),memo:String(d['メモ']||''),def:tf(d['既定']),on:d['有効']===undefined||d['有効']===''||tf(d['有効'])}))}
+const destById=(code,id)=>destsOf(code,true).find(d=>d.id===String(id));
+const destDefault=code=>{const d=destsOf(code).find(x=>x.def);return d?d.id:'base'};
+/* 注文の送り先を1つに決める。x={cust,destId,addrAlt} */
+function destInfo(x){const c=custOf(x.cust)||{};
+  if(x.addrAlt)return {kind:'alt',label:'今回だけ別の送り先',text:String(x.addrAlt)};
+  const d=x.destId&&destById(x.cust,x.destId);
+  if(d)return {kind:'dest',label:d.name,zip:d.zip,addr:d.addr,attn:d.attn,tel:d.tel,memo:d.memo,off:!d.on};
+  return {kind:'base',label:'基本の住所',zip:c.zip||'',addr:c.addr||'',attn:c.attn||'',tel:c.tel||''}}
+const destLine=i=>i.kind==='alt'?esc(i.text).replace(/\n/g,'<br>'):`${i.zip?'〒'+esc(i.zip)+' ':''}${esc(i.addr)}　${esc(i.attn)}　${esc(i.tel)}${i.memo?`<br><span class="dim">${esc(i.memo)}</span>`:''}`;
+function destHtml(x){const i=destInfo(x);return i.kind==='base'?destLine(i):`<span class="dtag ${i.kind}">${i.kind==='alt'?'今回だけ別の送り先':'納品先：'+esc(i.label)}</span> ${destLine(i)}<div class="dim" style="font-size:11.5px">※顧客の基本の住所とは別の送り先です</div>`}
+const destTag=x=>{const i=destInfo(x);return i.kind==='base'?'':`<span class="dtag ${i.kind}" title="${i.kind==='alt'?esc(i.text):esc(i.addr)}">${i.kind==='alt'?'別の送り先':'→ '+esc(i.label)}</span>`};
+/* 登録画面の「どこへ」：S.dest＝'base'／納品先ID／'alt'、S.altTxt。on()＝選び直したあとに呼ぶ */
+function destPick(host,S,c,on){if(!c){host.innerHTML='<div class="sumbox">顧客を選ぶと送り先が表示されます</div>';return}
+  if(S.destCust!==c.code){S.destCust=c.code;if(S.dest===undefined||S.destKeep!==c.code){S.dest=destDefault(c.code);S.altTxt=S.altTxt||''}S.destKeep=null}
+  const ds=destsOf(c.code);if(S.dest!=='base'&&S.dest!=='alt'&&!ds.some(d=>d.id===S.dest)){const old=destById(c.code,S.dest);if(old)ds.push(old);else S.dest='base'}
+  const card=(v,title,body,extra)=>`<label class="dcard ${S.dest===v?'on':''}${/dedit/.test(extra||'')?' hased':''}"><input type="radio" name="dp_${host.id}" value="${esc(v)}" ${S.dest===v?'checked':''}><div><b>${title}</b>${extra||''}<div class="dbody">${body}</div></div></label>`;
+  host.innerHTML=`<div class="dlist">${card('base','基本の住所 <span class="dim" style="font-weight:400">（顧客マスタ）</span>',`${c.zip?'〒'+esc(c.zip)+' ':''}${esc(c.addr)||'<span style="color:var(--bad)">住所が入っていません</span>'}　${esc(c.attn)}　${esc(c.tel)}`)}
+    ${ds.map(d=>card(d.id,esc(d.name)+(d.def?' <span class="dtag dest">いつもここ</span>':'')+(d.on?'':' <span class="dtag alt">使わない設定</span>'),`${d.zip?'〒'+esc(d.zip)+' ':''}${esc(d.addr)}　${esc(d.attn)}　${esc(d.tel)}${d.memo?`<br><span class="dim">${esc(d.memo)}</span>`:''}`,`<button type="button" class="btn sm dedit" data-de="${esc(d.id)}">直す</button>`)).join('')}
+    ${card('alt','今回だけ別の送り先 <span class="dim" style="font-weight:400">（登録しない）</span>',S.dest==='alt'?`<textarea id="${host.id}Alt" rows="2" placeholder="〒・住所・宛名・電話">${esc(S.altTxt||'')}</textarea>`:'<span class="dim">この注文だけの送り先を手で入れる</span>')}</div>
+   <button type="button" class="btn sm" id="${host.id}Add" style="margin-top:6px">＋ 納品先を登録する</button> <span class="dim" style="font-size:12px">店舗・工場など、何度も送る先は登録しておくと次から選ぶだけです</span>`;
+  host.querySelectorAll('input[type=radio]').forEach(r=>r.onchange=()=>{S.dest=r.value;on()});
+  const ta=$(host.id+'Alt');if(ta)ta.oninput=()=>{S.altTxt=ta.value};
+  host.querySelectorAll('[data-de]').forEach(b=>b.onclick=e=>{e.preventDefault();destEdit(c,destById(c.code,b.dataset.de),on)});
+  $(host.id+'Add').onclick=()=>destEdit(c,null,d=>{S.dest=d.id;on()})}
+/* 納品先を足す・直す（小さい窓。どの画面の上にも出せる） */
+function destEdit(c,d,after){const host=document.createElement('div');host.className='bmpop';const v=k=>d?esc(d[k]):'';
+  host.innerHTML=`<div class="bmpopin"><h3 style="margin:0 0 6px">${d?'納品先を直す':'納品先を登録する'}　<span class="dim" style="font-weight:400;font-size:13px">${esc(c.name)}</span></h3>
+   <div class="form"><label>名前</label><input id="de_name" value="${v('name')}" placeholder="例：○○店／第2工場／物流センター">
+   <label>郵便番号</label><input id="de_zip" value="${v('zip')}" placeholder="581-0000" inputmode="numeric">
+   <label>住所</label><input id="de_a1" value="${v('a1')}" placeholder="都道府県から番地まで">
+   <label>建物・階</label><input id="de_a2" value="${v('a2')}">
+   <label>宛名</label><input id="de_attn" value="${v('attn')}" placeholder="例：青果担当 山田様">
+   <label>電話</label><input id="de_tel" value="${v('tel')}" inputmode="tel">
+   <label>メモ</label><input id="de_memo" value="${v('memo')}" placeholder="例：受入 8:00-11:00／裏口から搬入">
+   <label>いつもここ</label><label style="display:flex;gap:6px;align-items:center;font-weight:400"><input type="checkbox" id="de_def" style="width:auto" ${d&&d.def?'checked':''}> この顧客の注文は、最初からこの納品先を選んでおく</label>
+   ${d?`<label>使う</label><select id="de_on"><option value="1" ${d.on?'selected':''}>はい</option><option value="0" ${d.on?'':'selected'}>いいえ（候補に出さない）</option></select>`:''}</div>
+   <p class="dim" id="de_err" style="color:var(--bad);margin-top:4px"></p>
+   <div class="row" style="gap:8px;margin-top:8px;justify-content:flex-end"><button class="btn" id="de_no">やめる</button><button class="btn pri" id="de_ok">保存</button></div></div>`;
+  document.body.appendChild(host);const close=()=>host.remove();$('de_no').onclick=close;$('de_name').focus();
+  $('de_ok').onclick=async()=>{const g=id=>$('de_'+id).value.trim();const err=m=>{$('de_err').textContent=m};
+    if(!g('name'))return err('名前を入れてください');if(!g('a1'))return err('住所を入れてください');
+    if(destsOf(c.code,true).some(x=>x.name===g('name')&&(!d||x.id!==d.id)))return err('同じ名前の納品先がすでにあります');
+    const row={'納品先ID':d?d.id:'','顧客コード':c.code,'名前':g('name'),'郵便番号':g('zip'),'住所1':g('a1'),'住所2':g('a2'),'宛名':g('attn'),'電話':g('tel'),'メモ':g('memo'),'既定':$('de_def').checked,'有効':$('de_on')?$('de_on').value==='1':true};
+    busy(true);try{const r=await api('destSave',{dest:row});const saved=r.dest;RAW.dests=(RAW.dests||[]).filter(x=>String(x['納品先ID'])!==String(saved['納品先ID']));
+      if(tf(saved['既定']))RAW.dests.forEach(x=>{if(String(x['顧客コード'])===c.code)x['既定']=false});RAW.dests.push(saved);close();toast('納品先を保存しました');if(after)after(destById(c.code,saved['納品先ID']))}
+    catch(e){err('保存できませんでした：'+e.message)}finally{busy(false)}}}
 
 /* ===== 2026/11/12 改修1段目：請求メモ（顧客ごと・請求を使える人だけ）／メールのテンプレート／TO・CC 複数 ===== */
 const MAIL_RE=/^[^\s@,;、]+@[^\s@,;、]+\.[^\s@,;、]+$/;
