@@ -2644,18 +2644,20 @@ function destEdit(c,d,after){const host=document.createElement('div');host.class
   document.body.appendChild(host);const close=()=>host.remove();$('de_no').onclick=close;$('de_name').focus();
   /* 削除：1回目は確かめ、2回目で実行。注文で使われている納品先は消さずに候補から外す（サーバーが決める） */
   if(d)$('de_del').onclick=async()=>{const b=$('de_del');if(!b.dataset.sure){b.dataset.sure='1';b.textContent='本当に削除する';b.className='btn pri warn';b.style.color='';$('de_err').textContent=`「${d.name}」を削除します。元に戻せません。よければもう一度押してください（注文で使われている場合は、消さずに候補から外します）`;return}
+    if(host.dataset.going)return;host.dataset.going='1';b.disabled=true;b.textContent='削除中…';$('de_ok').disabled=true;
     busy(true);try{const r=await api('destDelete',{id:d.id,cust:c.code});
       if(r.deleted)RAW.dests=(RAW.dests||[]).filter(x=>String(x['納品先ID'])!==String(d.id));
       else RAW.dests.forEach(x=>{if(String(x['納品先ID'])===String(d.id)){x['有効']=false;x['既定']=false}});
       close();toast(r.deleted?'納品先を削除しました':`注文 ${r.used}件で使われているので、消さずに候補から外しました`,r.deleted?undefined:6000);if(after)after(null)}
-    catch(e){$('de_err').textContent='削除できませんでした：'+e.message}finally{busy(false)}};
+    catch(e){if(host.isConnected)$('de_err').textContent='削除できませんでした：'+e.message}finally{busy(false);delete host.dataset.going;if(host.isConnected){b.disabled=false;b.textContent='本当に削除する';$('de_ok').disabled=false}}};
   $('de_ok').onclick=async()=>{const g=id=>$('de_'+id).value.trim();const err=m=>{$('de_err').textContent=m};
     if(!g('name'))return err('名前を入れてください');if(!g('a1'))return err('住所を入れてください');
     if(destsOf(c.code,true).some(x=>x.name===g('name')&&(!d||x.id!==d.id)))return err('同じ名前の納品先がすでにあります');
     const row={'納品先ID':d?d.id:'','顧客コード':c.code,'名前':g('name'),'郵便番号':g('zip'),'住所1':g('a1'),'住所2':g('a2'),'宛名':g('attn'),'電話':g('tel'),'メモ':g('memo'),'既定':$('de_def').checked,'有効':$('de_on')?$('de_on').value==='1':true};
+    if(host.dataset.going)return;host.dataset.going='1';$('de_ok').disabled=true;$('de_ok').textContent='保存中…';if($('de_del'))$('de_del').disabled=true;err('');
     busy(true);try{const r=await api('destSave',{dest:row});const saved=r.dest;RAW.dests=(RAW.dests||[]).filter(x=>String(x['納品先ID'])!==String(saved['納品先ID']));
       if(tf(saved['既定']))RAW.dests.forEach(x=>{if(String(x['顧客コード'])===c.code)x['既定']=false});RAW.dests.push(saved);close();toast('納品先を保存しました');if(after)after(destById(c.code,saved['納品先ID']))}
-    catch(e){err('保存できませんでした：'+e.message)}finally{busy(false)}}}
+    catch(e){err('保存できませんでした：'+e.message)}finally{busy(false);delete host.dataset.going;if($('de_ok')&&host.isConnected){$('de_ok').disabled=false;$('de_ok').textContent='保存';if($('de_del'))$('de_del').disabled=false}}}}
 
 /* ===== 2026/11/12 改修1段目：請求メモ（顧客ごと・請求を使える人だけ）／メールのテンプレート／TO・CC 複数 ===== */
 const MAIL_RE=/^[^\s@,;、]+@[^\s@,;、]+\.[^\s@,;、]+$/;
