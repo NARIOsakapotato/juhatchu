@@ -55,6 +55,7 @@ textarea{resize:vertical}
 .seg button{border:none;background:none;padding:8px 14px;font-size:13px;font-weight:700;color:#777}
 .seg button.on{background:var(--head);color:#fff}
 .chips{display:flex;gap:6px;flex-wrap:wrap}
+.tag.t-bill{background:#e8eef7;color:#2a4f86;border:1px solid #b9cbe6}.it-g{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);gap:14px;align-items:start}.it-g>*{min-width:0}#itForm .iv-in{table-layout:fixed;width:100%;min-width:540px}#itForm .iv-in th:nth-child(2){width:46px}#itForm .iv-in th:nth-child(3){width:60px}#itForm .iv-in th:nth-child(4){width:112px}#itForm .iv-in th:nth-child(5){width:80px}#itForm .iv-in th:nth-child(6){width:64px}#itForm .iv-in td{overflow-wrap:anywhere}#itForm .iv-pin{width:76px!important}#itForm .iv-in td,#itForm .iv-in th{padding:6px 5px}#itForm .iv-in select{padding:4px 2px}.it-pv{position:sticky;top:8px}.itpaper{position:relative;background:#fff;border:1px solid var(--line2);box-shadow:0 2px 10px rgba(0,0,0,.08);overflow:hidden;width:100%}.itpaper iframe.itdoc{position:absolute;left:0;top:0;width:794px;height:1123px;border:0;background:#fff;transform-origin:0 0}.it-h{display:grid;grid-template-columns:96px minmax(0,1fr);gap:8px 10px;align-items:center;margin:10px 0}.it-h label{font-size:12.5px;font-weight:700;color:var(--mute)}.it-to{background:var(--paper2);border-radius:10px;padding:8px 12px;font-size:13px;margin-top:8px}.it-nm{width:100%;min-width:110px}.it-foot{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:14px;border-top:1px solid var(--line);padding-top:12px}.it-t{width:100%;border-collapse:collapse;margin-top:8px}.it-t th{font-size:11px;color:var(--mute);text-align:left;padding:5px 8px;border-bottom:1px solid var(--line)}.it-t td{padding:7px 8px;border-bottom:1px solid var(--line);font-size:13px;vertical-align:top}.it-t tr[data-o]{cursor:pointer}.it-t tr.on td{background:var(--ok-soft)}.it-t tr.off td{opacity:.5}.it-t .r{text-align:right}.it-c{margin-bottom:12px}.it-how{font-size:11px;font-weight:800;border-radius:999px;padding:1px 9px;border:1px solid var(--line2);color:var(--ink2)}.it-how.m{background:#fbf1df;border-color:#d9a64a;color:#8a5a12}.it-dr{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center;border-top:1px solid var(--line);padding:8px 0 0;margin-top:8px}@media(max-width:1180px){.it-g{grid-template-columns:1fr}.it-pv{position:static}}
 .cidx{display:flex;flex-wrap:wrap;gap:4px;margin:0 0 8px}.cidx button{border:1px solid var(--line2);background:var(--paper);border-radius:8px;padding:5px 0;min-width:38px;font-size:13px;font-weight:800;color:var(--ink2);line-height:1.1}.cidx button small{display:block;font-size:10px;font-weight:600;color:var(--mute)}.cidx button.on,.sugg .cidx button.on{background:var(--ink);color:#fff;border-color:var(--ink)}.cidx button.on small,.sugg .cidx button.on small{color:#ddd}.sugg .cidx button{width:auto;text-align:center;padding:5px 0}.cidx button:disabled{opacity:.35}.chit{display:block;font-size:12px;font-weight:500;color:var(--accent);margin-top:2px}.cnote{font-size:12px;color:var(--mute);margin:-2px 0 8px}
 .chip{padding:6px 12px;border-radius:999px;border:1px solid var(--line2);background:var(--paper);font-size:13px;font-weight:700;color:var(--ink2)}
 .chip.on{background:var(--head);color:#fff;border-color:var(--head)}
@@ -767,7 +768,9 @@ body.pm .kshare{display:inline-block}
 <main class="wrap" id="v-nh" hidden></main>
 <main class="wrap" id="v-trace" hidden></main>
 <main class="wrap" id="v-inv" hidden>
-  <section class="card" style="margin-bottom:12px"><div class="row" style="gap:10px;flex-wrap:wrap"><label for="ivYm" style="font-weight:700">請求月</label><select id="ivYm" style="width:auto"></select><span class="dim">対象：その月に納品日があり、発送手配済・納品済になった注文（キャンセルは除く）</span><span class="dim" id="ivProg" style="margin-left:auto"></span></div></section>
+  <div class="row mb" id="ivModeRow"><span class="seg" id="ivMode"><button data-m="each" class="on">都度の請求書（11月納品分から）</button><button data-m="month">月ごとの請求書（10月分まで）</button></span></div>
+  <div id="itMain"></div>
+  <section class="card" id="ivMonthCard" style="margin-bottom:12px" hidden><div class="row" style="gap:10px;flex-wrap:wrap"><label for="ivYm" style="font-weight:700">請求月</label><select id="ivYm" style="width:auto"></select><span class="dim">対象：その月に納品日があり、発送手配済・納品済になった注文（キャンセルは除く）</span><span class="dim" id="ivProg" style="margin-left:auto"></span></div></section>
   <div id="ivMain"></div>
 </main>
 
@@ -921,7 +924,7 @@ function build(d){RAW=d;trBuild(d);d.recurring=d.recurring||[];d.formInbox=d.for
   ITEMS=d.items.filter(r=>r['有効']!==false&&r['品目名']).sort((a,b)=>(Number(a['表示順'])||99)-(Number(b['表示順'])||99)).map(r=>({cat:r['カテゴリ']||'青果',name:String(r['品目名']),sizes:splitPipe(r['規格候補']),bagSizes:splitPipe(r['袋詰本数候補']),
     packs:splitPipe(r['荷姿候補']).map(x=>{const p=x.split(':').map(v=>v.trim());const per=p[2]!==undefined&&p[2]!==''?Number(p[2]):'';return {n:p[0],u:p[1]||'kg',per,bag:/袋詰/.test(p[0]),adj:/袋詰|野菜コンテナ/.test(p[0])}})}));
   ITEMS.forEach(it=>{if(!it.sizes.length)it.sizes=['—'];if(!it.packs.length)it.packs=[{n:'バラ',u:'kg',per:''}]});
-  CUST=d.customers.filter(r=>r['コード']).map(r=>({code:String(r['コード']),name:String(r['顧客名']||''),kind:r['区分']||'',cats:splitPipe(r['カテゴリ']),zip:r['郵便番号']||'',addr1:r['住所1']||'',addr2:r['住所2']||'',addr:[r['住所1'],r['住所2']].filter(Boolean).join(' '),attn:r['宛名']||'',tel:r['電話']||'',billName:r['請求宛名']||'',billAttn:r['請求担当']||'',billZip:r['請求郵便番号']||'',billAddr:r['請求住所']||'',mail:r['メール']||'',mailCc:r['メールCC']||'',mailName:r['メール宛名']||'',billMemo:r['請求メモ']||'',fax:r['FAX']||'',method:r['配送方法']||'宅配便',carrier:r['標準運送会社']||'',lead:Number(r['配送日数'])||1,hours:r['受入時間']||'',closed:r['受入不可日']||'',pack:r['標準荷姿']||'',active:r['有効']!==false,reg:r['登録区分']||'継続',since:String(r['取引開始']||'').slice(0,7),note:r['備考']||'',src:r['登録元']||'',conf:pdt(r['確認日時']),mgLead:r['ペースト配送日数']===''||r['ペースト配送日数']===undefined||r['ペースト配送日数']===null?'':Number(r['ペースト配送日数'])}));
+  CUST=d.customers.filter(r=>r['コード']).map(r=>({code:String(r['コード']),name:String(r['顧客名']||''),kind:r['区分']||'',cats:splitPipe(r['カテゴリ']),zip:r['郵便番号']||'',addr1:r['住所1']||'',addr2:r['住所2']||'',addr:[r['住所1'],r['住所2']].filter(Boolean).join(' '),attn:r['宛名']||'',tel:r['電話']||'',billName:r['請求宛名']||'',billAttn:r['請求担当']||'',billZip:r['請求郵便番号']||'',billAddr:r['請求住所']||'',mail:r['メール']||'',mailCc:r['メールCC']||'',mailName:r['メール宛名']||'',billMemo:r['請求メモ']||'',billHow:r['請求方法']==='月末まとめ'?'月末まとめ':'都度',taxMode:r['税の既定']==='内税'?'内税':'外税',fax:r['FAX']||'',method:r['配送方法']||'宅配便',carrier:r['標準運送会社']||'',lead:Number(r['配送日数'])||1,hours:r['受入時間']||'',closed:r['受入不可日']||'',pack:r['標準荷姿']||'',active:r['有効']!==false,reg:r['登録区分']||'継続',since:String(r['取引開始']||'').slice(0,7),note:r['備考']||'',src:r['登録元']||'',conf:pdt(r['確認日時']),mgLead:r['ペースト配送日数']===''||r['ペースト配送日数']===undefined||r['ペースト配送日数']===null?'':Number(r['ペースト配送日数'])}));
   STAFF=d.staff.filter(r=>r['名前']&&r['有効']!==false).sort((a,b)=>(Number(a['表示順'])||99)-(Number(b['表示順'])||99)).map(r=>({n:String(r['名前']),role:r['区分']||'パート',dow:splitPipe(r['曜日']).map(Number),f:Number(r['開始'])||9,t:Number(r['終了'])||15,brk:Number(r['休憩分'])||0,cnt:Number(r['人数'])||1,wage:(r['時給']===''||r['時給']==='min'||r['時給']===undefined)?'min':Number(r['時給'])}));
   SHIFT={};SHIFT_CHANGED=new Set();d.shifts.forEach(r=>{if(!r['日付']||!r['名前'])return;const k=String(r['日付']).slice(0,10)+'|'+r['名前'];
     if(r['開始']===''||r['開始']===null||r['開始']===undefined)SHIFT[k]=null;else{const v=[Number(r['開始']),Number(r['終了']),Number(r['休憩分'])||0];if(r['人数']!==''&&r['人数']!==null&&r['人数']!==undefined)v.push(Number(r['人数']));SHIFT[k]=v}
@@ -1047,7 +1050,7 @@ function lstAct(o){const s=stepOf(o);
   return `<button class="btn sm" data-go="納品済" data-no="${o.no}">納品済にする</button>`}
 function lstRow(o){const c=custOf(o.cust);const ds=dispStatus(o);
   return `<div class="lr ${lateOf(o)?'late':soonOf(o)?'soon':''}" data-no="${o.no}"><div class="lst"></div>
-   <div class="lnm"><div class="nm">${esc(c.name)} ${destTag(o)} ${o.kind==='定期'?'<span class="tag t-定期">定期</span> ':''}${ucTag(o)}${o.cat!=='青果'?`<span class="tag t-cat ${o.cat}">${o.cat}</span>`:''}</div><div class="dim">${o.no}　${esc(itemsTxt(o))}　${o.method}${o.sales?'　営業 '+esc(o.sales):''}${o.note?'　📝'+esc(o.note.slice(0,20)):''}</div></div>
+   <div class="lnm"><div class="nm">${esc(c.name)} ${destTag(o)} ${billTag(o)}${o.kind==='定期'?'<span class="tag t-定期">定期</span> ':''}${ucTag(o)}${o.cat!=='青果'?`<span class="tag t-cat ${o.cat}">${o.cat}</span>`:''}</div><div class="dim">${o.no}　${esc(itemsTxt(o))}　${o.method}${o.sales?'　営業 '+esc(o.sales):''}${o.note?'　📝'+esc(o.note.slice(0,20)):''}</div></div>
    <div class="lq">${qtyMain(o)}<small>${qtySub(o)}</small></div>
    <div class="stp">${stepSeg(o,'ready')}${stepSeg(o,'ship')}${stepSeg(o,'deliver')}</div>
    <div class="lact"><span class="tag t-${ds}">${ds==='受注'?'日程未定':ds}</span>${lstAct(o)}</div></div>`}
@@ -1108,7 +1111,7 @@ function openOrder(no){
   <div class="meta"><span>${o.no}</span><span class="tag ${o.kind==='定期'?'t-定期':''}">${o.kind||'区分未設定'}</span><span>受注日 ${md(o.date)}</span><span>営業 ${esc(o.sales)}</span><span class="tag t-${dispStatus(o)}">${dispStatus(o)}</span><span>${o.method}${o.carrier?'・'+o.carrier:'・運送会社は流通が選ぶ'}</span><span>③納品 ${mdw(o.deliver)}${active(o)?`　${remDays(o.deliver)}`:''}</span></div>
   ${acts.join('')}<div class="acts" style="margin-bottom:12px">${sub.join('')}</div>
   <div class="kv"><span class="k">明細</span><span>${o.lines.map(l=>`${l.item} ${l.size}　<b>${fmt(l.qty)} ${l.unit}</b>　${l.pack}${l.boxes?`　${l.boxes}箱`:''}`).join('<br>')}${o.kg?`<br><b>計 ${fmt(o.kg)} kg${o.boxes?'・'+o.boxes+'箱':''}</b>`:''}</span></div>
-  <div class="kv"><span class="k">送り先</span><span>${destHtml(o)}${((RAW.customers.find(x=>String(x['コード'])===c.code)||{})['お客様番号'])?`　<span class="dim">お客様番号 ${esc(RAW.customers.find(x=>String(x['コード'])===c.code)['お客様番号'])}</span>`:''}<br><span class="dim">受入 ${c.hours||'—'}　不可 ${c.closed||'—'}　${esc(c.note)}</span></span></div>
+  ${billTag(o)?`<div class="kv"><span class="k">請求</span><span>${billTag(o)}</span></div>`:''}<div class="kv"><span class="k">送り先</span><span>${destHtml(o)}${((RAW.customers.find(x=>String(x['コード'])===c.code)||{})['お客様番号'])?`　<span class="dim">お客様番号 ${esc(RAW.customers.find(x=>String(x['コード'])===c.code)['お客様番号'])}</span>`:''}<br><span class="dim">受入 ${c.hours||'—'}　不可 ${c.closed||'—'}　${esc(c.note)}</span></span></div>
   ${o.note?`<div class="kv"><span class="k">申し送り</span><span>${esc(o.note)}</span></div>`:''}
   <div class="kv"><span class="k">配送</span><span><span class="row" style="gap:10px">${shipTxt(o)}${o.status!=='キャンセル'?`<button class="btn sm" data-a="ship">${(o.act.carrier||o.carrier)?'直す':'決める'}</button>`:''}</span><div id="shipEd"></div></span></div>
   ${trNeed(o)?`<div class="kv"><span class="k">圃場</span><span><span class="row" style="gap:10px">${trOf(o.no).length?esc(trTxt(o.no)):'<span style="color:var(--bad);font-weight:700">未記録</span>'}<button class="btn sm" data-a="trace">${trOf(o.no).length?'直す':'入れる'}</button></span></span></div>`:''}
@@ -1839,14 +1842,15 @@ function openCustEdit(c){
     <label>標準運送会社</label><select id="ce_carrier"><option value="">—</option>${CARRIERS.map(x=>`<option ${x===c.carrier?'selected':''}>${esc(x)}</option>`).join('')}</select>
     ${f('lead','配送日数',c.lead)}${f('hours','受入時間',c.hours,'8:00-11:00')}${f('closed','受入不可日',c.closed,'日祝')}${f('pack','標準荷姿',c.pack)}${f('note','備考（毎回の申し送り）',c.note)}${ivAllowed()?`<label>請求メモ<br><span class="dim" style="font-weight:400;font-size:11px">送料・単価・個別対応</span></label><textarea id="ce_billMemo" rows="3" placeholder="請求を使える人だけに見えます">${esc(c.billMemo)}</textarea>`:''}
     <label style="grid-column:1/-1;font-weight:800;margin-top:6px;border-top:1px solid var(--line);padding-top:8px">請求先 <span class="dim" style="font-weight:400;font-size:12px">空のところは、顧客名・基本の住所を使います（請求書の宛先になります）</span></label>
+    <label>請求書の出し方</label><select id="ce_billHow"><option ${c.billHow!=='月末まとめ'?'selected':''}>都度</option><option ${c.billHow==='月末まとめ'?'selected':''}>月末まとめ</option></select><label>消費税の既定</label><select id="ce_taxMode"><option value="外税" ${c.taxMode!=='内税'?'selected':''}>外税（単価は税抜）</option><option value="内税" ${c.taxMode==='内税'?'selected':''}>内税（単価は税込）</option></select>
     ${f('billName','請求先の宛名',c.billName,'例：株式会社○○ 経理部')}${f('billAttn','請求の担当者',c.billAttn,'例：経理ご担当 佐藤様')}${f('billZip','請求先 〒',c.billZip)}${f('billAddr','請求先 住所',c.billAddr,'基本の住所と違うときだけ')}
     <label>有効</label><select id="ce_active"><option value="1" ${c.active?'selected':''}>はい</option><option value="0" ${!c.active?'selected':''}>いいえ（候補に出さない）</option></select></div>
     <p class="dim" id="ceErr" style="color:var(--bad)"></p><button class="btn acc blk" id="ceOk">保存する</button><div class="acts"><button class="btn" id="ceNo">閉じる</button></div>`);
   $('ce_cats').onclick=e=>{const b=e.target.closest('.chip');if(b)b.classList.toggle('on')};$('ceNo').onclick=closeModal;
   $('ceOk').onclick=async()=>{const g=id=>$('ce_'+id).value;const cats=[...$('ce_cats').querySelectorAll('.on')].map(b=>b.dataset.c);
     const bad=mailBad(g('mail')).concat(mailBad(g('mailCc')));if(bad.length){$('ceErr').textContent='メールアドレスの形が正しくありません：'+bad.join('、');return}
-    const row={'コード':c.code,'顧客名':g('name'),'区分':g('kind'),'カテゴリ':cats.join('|'),'郵便番号':g('zip'),'住所1':g('addr1'),'住所2':g('addr2'),'宛名':g('attn'),'電話':g('tel'),'メール':mailNorm(g('mail')),'メールCC':mailNorm(g('mailCc')),'メール宛名':g('mailName').trim(),'FAX':g('fax'),'配送方法':g('method'),'標準運送会社':g('carrier'),'配送日数':Number(g('lead'))||1,'受入時間':g('hours'),'受入不可日':g('closed'),'標準荷姿':g('pack'),'有効':g('active')==='1','登録区分':g('reg'),'備考':g('note'),'請求宛名':g('billName').trim(),'請求担当':g('billAttn').trim(),'請求郵便番号':g('billZip').trim(),'請求住所':g('billAddr').trim()};if($('ce_billMemo'))row['請求メモ']=$('ce_billMemo').value.trim();
-    Object.assign(c,{name:row['顧客名'],kind:row['区分'],cats,reg:row['登録区分'],zip:row['郵便番号'],addr1:row['住所1'],addr2:row['住所2'],addr:[row['住所1'],row['住所2']].filter(Boolean).join(' '),attn:row['宛名'],tel:row['電話'],mail:row['メール'],mailCc:row['メールCC'],mailName:row['メール宛名'],billName:row['請求宛名'],billAttn:row['請求担当'],billZip:row['請求郵便番号'],billAddr:row['請求住所'],billMemo:row['請求メモ']!==undefined?row['請求メモ']:c.billMemo,fax:row['FAX'],method:row['配送方法'],carrier:row['標準運送会社'],lead:row['配送日数'],hours:row['受入時間'],closed:row['受入不可日'],pack:row['標準荷姿'],note:row['備考'],active:row['有効']});
+    const row={'コード':c.code,'顧客名':g('name'),'区分':g('kind'),'カテゴリ':cats.join('|'),'郵便番号':g('zip'),'住所1':g('addr1'),'住所2':g('addr2'),'宛名':g('attn'),'電話':g('tel'),'メール':mailNorm(g('mail')),'メールCC':mailNorm(g('mailCc')),'メール宛名':g('mailName').trim(),'FAX':g('fax'),'配送方法':g('method'),'標準運送会社':g('carrier'),'配送日数':Number(g('lead'))||1,'受入時間':g('hours'),'受入不可日':g('closed'),'標準荷姿':g('pack'),'有効':g('active')==='1','登録区分':g('reg'),'備考':g('note'),'請求宛名':g('billName').trim(),'請求担当':g('billAttn').trim(),'請求郵便番号':g('billZip').trim(),'請求住所':g('billAddr').trim(),'請求方法':g('billHow'),'税の既定':g('taxMode')};if($('ce_billMemo'))row['請求メモ']=$('ce_billMemo').value.trim();
+    Object.assign(c,{name:row['顧客名'],kind:row['区分'],cats,reg:row['登録区分'],zip:row['郵便番号'],addr1:row['住所1'],addr2:row['住所2'],addr:[row['住所1'],row['住所2']].filter(Boolean).join(' '),attn:row['宛名'],tel:row['電話'],mail:row['メール'],mailCc:row['メールCC'],mailName:row['メール宛名'],billName:row['請求宛名'],billAttn:row['請求担当'],billZip:row['請求郵便番号'],billAddr:row['請求住所'],billHow:row['請求方法'],taxMode:row['税の既定'],billMemo:row['請求メモ']!==undefined?row['請求メモ']:c.billMemo,fax:row['FAX'],method:row['配送方法'],carrier:row['標準運送会社'],lead:row['配送日数'],hours:row['受入時間'],closed:row['受入不可日'],pack:row['標準荷姿'],note:row['備考'],active:row['有効']});
     closeModal();renderCust();await save('saveCustomer',{customer:row},'顧客情報を保存しました')};
 }
 
@@ -2266,6 +2270,10 @@ async function ivSave(c){if(!IV.dirty[c])return;delete IV.dirty[c];const el=$('i
   try{await api('invoiceSave',{ym:IV.ym,cust:c,items:ivItems(c),final:ivFinal(c)});if(!IV.heads[c])IV.heads[c]={'状態':'下書き'};if($('ivSaveSt')&&IV.sel===c)$('ivSaveSt').textContent='保存しました '+new Date().toTimeString().slice(0,5)}
   catch(e){IV.dirty[c]=1;errBar('請求の下書きを保存できませんでした：'+e.message);if($('ivSaveSt'))$('ivSaveSt').textContent='保存できていません'}}
 function renderInv(){
+  const each=IT.mode==='each';$('itMain').hidden=!each;$('ivMonthCard').hidden=each;$('ivMain').hidden=each;
+  [...$('ivMode').children].forEach(b=>b.classList.toggle('on',b.dataset.m===IT.mode));
+  $('ivMode').onclick=e=>{const b=e.target.closest('[data-m]');if(b&&b.dataset.m!==IT.mode){IT.mode=b.dataset.m;renderInv()}};
+  if(each){itRender();return}
   if(!ivAllowed()){$('ivMain').innerHTML='<div class="card"><span class="dim">請求は設定「請求タブ_使える人」に入っている人だけが使えます。</span></div>';return}
   const sel=$('ivYm');if(!sel.options.length){const t=new Date(TODAY.getFullYear(),TODAY.getMonth(),1);sel.innerHTML=[0,1,2].map(i=>{const d=new Date(t.getFullYear(),t.getMonth()-i,1);const v=`${d.getFullYear()}-${pad(d.getMonth()+1)}`;return `<option value="${v}">${d.getFullYear()}年${d.getMonth()+1}月分</option>`}).join('');IV.ym=sel.value}
   if(!IV.data||IV.data.ym!==IV.ym){if(!IV.loading){IV.loading=true;ivLoad().finally(()=>IV.loading=false)}$('ivMain').innerHTML='<div class="card"><span class="dim">読み込み中…</span></div>';return}
@@ -2604,9 +2612,10 @@ function histWithPm(){$('hPm').querySelectorAll('button').forEach(b=>b.classList
 /* 同じ月・同じデータなら同じ物を返す（画面の行と計算の行を突き合わせるため） */
 let MG_VER=0,MG_IVC={k:'',v:[]};
 function mgInvOrders(){const k=IV.ym+'|'+MG_VER;if(MG_IVC.k===k)return MG_IVC.v;MG_IVC={k,v:mgInvOrders0()};return MG_IVC.v}
-function mgInvOrders0(){return MGO.filter(o=>o.status!=='キャンセル'&&o.shipAt&&ymd(o.deliver).slice(0,7)===IV.ym).map(o=>{
+function mgInvOrders0(){return MGO.filter(o=>o.status!=='キャンセル'&&o.shipAt&&ymd(o.deliver).slice(0,7)===IV.ym).map(mgInvMap)}
+function mgInvMap(o){{
   const lines=[];o.lines.forEach(l=>{if(l.box)lines.push({gyo:l.gyo,item:l.item,size:l.spec+'×'+MG_PER+'pc',pack:'',qty:l.box,unit:'箱',boxes:l.box});if(l.bara)lines.push({gyo:l.gyo+'b',item:l.item,size:l.spec+' ばら',pack:'',qty:l.bara,unit:'pc',boxes:0})});
-  return {no:o.no,mg:o,sec:'paste',cust:o.cust,deliver:o.deliver,status:mgStLabel(o.status),carrier:o.carrier,method:methodOf(o.carrier),boxes:mgFeeBoxes(o),lines,act:{shipAt:o.shipAt,carrier:o.carrier,waybill:o.waybill,pieces:o.pieces}}})}
+  return {no:o.no,mg:o,sec:'paste',cust:o.cust,deliver:o.deliver,status:mgStLabel(o.status),carrier:o.carrier,method:methodOf(o.carrier),boxes:mgFeeBoxes(o),lines,act:{shipAt:o.shipAt,carrier:o.carrier,waybill:o.waybill,pieces:o.pieces}}}}
 const IV_SEC={imo:'青果（さつまいも）',paste:'ペースト・ダイスカット（冷凍）'};
 
 
@@ -2680,6 +2689,185 @@ function destEdit(c,d,after){const host=document.createElement('div');host.class
       if(tf(saved['既定']))RAW.dests.forEach(x=>{if(String(x['顧客コード'])===c.code)x['既定']=false});RAW.dests.push(saved);close();toast('納品先を保存しました');if(after)after(destById(c.code,saved['納品先ID']))}
     catch(e){err('保存できませんでした：'+e.message)}finally{busy(false);delete host.dataset.going;if($('de_ok')&&host.isConnected){$('de_ok').disabled=false;$('de_ok').textContent='保存';if($('de_del'))$('de_del').disabled=false}}}}
 
+/* ===== 2026/11/13 改修3段目：都度の請求書（選んだ注文を1枚に／内税・外税／件名／連番／マネーフォワードの並び） =====
+   inv2Calc・inv2Html は、サーバー（invoice2.js）にも同じ文字のまま入れる（画面の見本＝PDF にするため）。ここを直したら必ず両方 */
+function inv2Calc(rows,mode){let a8=0,a10=0;(rows||[]).forEach(function(r){if(r.kind==='文言')return;const a=Number(r.amt)||0;if(Number(r.rate)===10)a10+=a;else a8+=a});
+  const inn=mode==='内税';
+  const t8=inn?Math.floor(a8*8/108):Math.floor(a8*0.08),t10=inn?Math.floor(a10*10/110):Math.floor(a10*0.10);
+  const n8=inn?a8-t8:a8,n10=inn?a10-t10:a10,g8=inn?a8:a8+t8,g10=inn?a10:a10+t10;
+  return {mode:inn?'内税':'外税',n8:n8,t8:t8,g8:g8,n10:n10,t10:t10,g10:g10,has8:a8!==0,has10:a10!==0,net:n8+n10,tax:t8+t10,total:g8+g10,sub:inn?g8+g10:n8+n10}}
+function inv2Html(v){
+  const e=function(s){return String(s===undefined||s===null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})};
+  const f=function(n){n=Number(n)||0;const neg=n<0;n=Math.abs(n);const i=Math.floor(n);const d=Math.round((n-i)*100)/100;const s=String(i).replace(/\B(?=(\d{3})+(?!\d))/g,',')+(d?String(d).slice(1):'');return (neg?'-':'')+s};
+  const dt=function(s){return String(s||'').slice(0,10).replace(/-/g,'/')};
+  const c=inv2Calc(v.rows,v.mode);const to=v.to||{},me=v.me||{};
+  const th='border-bottom:1px solid #777;padding:5px 6px;font-size:9pt;font-weight:normal;';
+  const td='border-bottom:1px solid #d0d0d0;padding:7px 6px;font-size:9.5pt;vertical-align:top;';
+  const R='text-align:right;';
+  const body=(v.rows||[]).map(function(r){
+    if(r.kind==='文言')return '<tr><td style="'+td+'"></td><td colspan="5" style="'+td+'color:#444;font-size:9pt">'+e(r.text)+'</td></tr>';
+    const nm=e(r.name)+(Number(r.rate)===8?'　※':'')+(r.nh?'<br><span style="font-size:8pt;color:#555">納品書番号 '+e(r.nh)+'</span>':'');
+    const blank=r.kind==='値引き';
+    return '<tr><td style="'+td+'white-space:nowrap">'+dt(r.d)+'</td><td style="'+td+'">'+nm+'</td><td style="'+td+R+'">'+(blank?'':f(r.price))+'</td><td style="'+td+R+'">'+(blank?'':f(r.qty))+'</td><td style="'+td+'">'+(blank?'':e(r.unit))+'</td><td style="'+td+R+'">'+f(r.amt)+'</td></tr>'}).join('');
+  const tx='border-bottom:1px solid #d0d0d0;padding:4px 6px;font-size:8pt;';
+  const rate=function(l,n,t,g){return '<tr><td style="'+tx+'border-right:1px solid #d0d0d0">'+l+'</td><td style="'+tx+R+'">'+f(n)+'</td><td style="'+tx+R+'">'+f(t)+'</td><td style="'+tx+R+'">'+f(g)+'</td></tr>'};
+  const sm='padding:6px 6px;font-size:10pt;';
+  const box='border:1px solid #999;padding:10px 12px;font-size:9.5pt;line-height:1.35;';
+  const toAddr=[to.zip?'〒'+e(to.zip):'',e(to.addr1),e(to.addr2)].filter(String).join('<br>');
+  return '\x3chtml>\x3chead>\x3cmeta charset="utf-8">\x3cstyle>@page{size:A4;margin:13mm 12mm}body{font-family:sans-serif;color:#111;font-size:10pt;margin:0}table{border-collapse:collapse}\x3c/style>\x3c/head>\x3cbody>'
+    +(v.draft?'<div style="text-align:center;font-size:9pt;color:#a33;border:1px solid #a33;padding:2px;margin-bottom:6px">下書き（まだ発行していません）</div>':'')
+    +'<div style="text-align:center;font-size:21pt;margin:0 0 26px">請求書</div>'
+    +'<table style="width:100%"><tr><td style="vertical-align:top;width:60%"><div style="font-size:12.5pt;margin-bottom:8px">'+e(to.name)+' 御中</div>'
+    +(to.attn?'<div style="font-size:10pt;margin-bottom:6px">'+e(to.attn)+'</div>':'')
+    +'<div style="font-size:10pt;line-height:1.4">'+toAddr+'</div></td>'
+    +'<td style="vertical-align:top;font-size:10pt;line-height:1.4"><div>'+e(me.name)+'</div><div>登録番号：'+e(me.reg)+'</div><div style="margin-top:8px">〒'+e(me.zip)+'<br>'+e(me.addr)+(me.rep?'<br>'+e(me.rep):'')+'</div>'
+    +'<table style="margin-top:14px;font-size:10pt"><tr><td style="padding:0 6px 0 0">請求書番号：</td><td>'+e(v.num||'（発行すると入ります）')+'</td></tr><tr><td style="padding:0 6px 0 0">請求日：</td><td>'+dt(v.date)+'</td></tr><tr><td style="padding:0 6px 0 0">お支払期限：</td><td>'+dt(v.due)+'</td></tr></table></td></tr></table>'
+    +'<div style="font-size:11pt;margin:34px 0 26px">件名： '+e(v.subject)+'</div>'
+    +'<div style="border:2px solid #aaa;border-bottom-width:3px;padding:12px 18px;margin-bottom:22px"><b style="font-size:12.5pt">ご請求金額</b><span style="font-size:13pt;margin-left:26px">'+f(c.total)+' 円</span></div>'
+    +'<table style="width:100%"><tr><th style="'+th+'text-align:left;width:13%">納品日</th><th style="'+th+'text-align:left">品目･納品書番号</th><th style="'+th+R+'width:13%">単価</th><th style="'+th+R+'width:10%">数量</th><th style="'+th+'text-align:left;width:7%">単位</th><th style="'+th+R+'width:15%">価格</th></tr>'+body+'</table>'
+    +(c.has8?'<div style="font-size:8pt;margin-top:8px">「※」は軽減税率対象品目です。</div>':'')
+    +'<table style="width:100%;margin-top:12px"><tr><td style="vertical-align:bottom;width:50%;padding-right:40px"><div style="font-size:8pt;padding:0 6px 3px">税率別内訳</div><table style="width:100%;border-top:1px solid #d0d0d0"><tr><td style="'+tx+'border-right:1px solid #d0d0d0"></td><td style="'+tx+R+'">税抜金額</td><td style="'+tx+R+'">消費税額</td><td style="'+tx+R+'">税込金額</td></tr>'
+    +(c.has8?rate('8%(軽減税率)',c.n8,c.t8,c.g8):'')+(c.has10?rate('10%',c.n10,c.t10,c.g10):'')+'</table></td>'
+    +'<td style="vertical-align:top"><table style="width:100%;border-top:1px solid #777"><tr><td style="'+sm+'">小計</td><td style="'+sm+R+'">'+f(c.sub)+'</td></tr><tr><td style="'+sm+'border-bottom:1px solid #777">'+(c.mode==='内税'?'うち消費税額合計':'消費税額合計')+'</td><td style="'+sm+R+'border-bottom:1px solid #777">'+f(c.tax)+'</td></tr>'
+    +'<tr><td style="'+sm+'font-size:11.5pt;padding-top:9px;padding-bottom:9px;border-bottom:1px solid #777">合計</td><td style="'+sm+R+'font-size:12.5pt;padding-top:9px;padding-bottom:9px;border-bottom:1px solid #777">'+f(c.total)+'</td></tr></table></td></tr></table>'
+    +'<div style="font-size:9.5pt;margin:28px 0 4px">振込先</div><div style="'+box+'">'+e(v.bank||'').replace(/\n/g,'<br>')+'</div>'
+    +(v.note?'<div style="font-size:9.5pt;margin:20px 0 4px">備考</div><div style="'+box+'">'+e(v.note).replace(/\n/g,'<br>')+'</div>':'')
+    +'\x3c/body>\x3c/html>'}
+
+let IT_FROM=window.__IT_FROM||'2026-11-01';
+/** 請求済みの印（発行済みの請求書に入っている注文）。起動のときに全員に届く {注文No: 請求書番号} */
+const billTag=o=>{const n=RAW&&RAW.billed&&RAW.billed[o.no];return n?`<span class="tag t-bill">請求済 ${esc(n)}</span> `:''};
+const IT_NOTE0='恐れ入りますが、振込手数料は貴社ご負担にてお願いいたします。';
+const IT_ME={name:'株式会社オオサカポテト',reg:'T8122001038883',zip:'581-0010',addr:'大阪府八尾市都塚北2-12',rep:'代表取締役 渡邊博文'};
+const IT={mode:'each',view:'todo',sel:{},doc:null,invs:null,loading:false,q:''};
+const itK=(no,g)=>no+'|'+g;
+const itLive=v=>v.status!=='取消';
+function itMgOrders(){return (typeof MGO==='undefined'?[]:MGO).filter(o=>o.status!=='キャンセル'&&o.shipAt).map(mgInvMap)}
+/** 対象の注文：出荷済み（発送手配済・納品済）・キャンセルでない・納品日が切り替え日（11/1）以降 */
+function itOrders(){return ORDERS.filter(o=>o.status!=='キャンセル'&&o.act.shipAt).concat(itMgOrders()).filter(o=>o.deliver&&ymd(o.deliver)>=IT_FROM)}
+const itOrder=no=>itOrders().find(o=>o.no===no);
+/** どの請求書に入っているか（取り消したものは除く）：{注文No: 請求書} */
+function itBilled(){const m={};(IT.invs||[]).filter(itLive).forEach(v=>(v.nos||[]).forEach(no=>{m[no]=v}));return m}
+function itTodo(){const b=itBilled();return itOrders().filter(o=>!b[o.no])}
+const itHow=c=>c&&c.billHow==='月末まとめ'?'月末まとめ':'都度';
+const itEom=(s,add)=>{const d=pdt(s)||TODAY;return ymd(new Date(d.getFullYear(),d.getMonth()+1+add,0))};
+function itSubject(os){if(!os.length)return '';const its=[...new Set(os.flatMap(o=>o.lines.map(l=>l.item)))];const ds=[...new Set(os.map(o=>ymd(o.deliver)))].sort();const p=s=>{const d=pdt(s);return md(d)};
+  return `${its.slice(0,2).join('・')}${its.length>2?' ほか':''} ${ds.length>1?p(ds[0])+'〜'+p(ds[ds.length-1]):p(ds[0])}納品分`}
+/** 品名の候補：登録した候補（シート「請求品名」）＋ 受発注の品名そのまま */
+function itNames(l){const reg=(RAW.invNames||[]).filter(r=>String(r['品目'])===l.item&&r['有効']!==false).map(r=>String(r['品名']));return [...new Set([ivName(l),...reg])]}
+/** この顧客に前回使った品名・単位・単価（発行済みの請求書から） */
+function itLast(cust,key){let hit=null;(IT.invs||[]).filter(v=>v.status==='発行済'&&v.cust===cust).sort((a,b)=>String(a.issuedAt||'').localeCompare(String(b.issuedAt||''))).forEach(v=>(v.rows||[]).forEach(r=>{if(r.kind==='明細'&&r.key===key)hit=r}));return hit}
+function itNewDoc(cust,nos){const c=custOf(cust);const os=nos.map(itOrder).filter(Boolean);const date=ymd(TODAY);
+  return {id:'',num:'',status:'下書き',cust,nos:nos.slice(),date,due:itEom(date,1),subject:itSubject(os),mode:c&&c.taxMode==='内税'?'内税':'外税',note:IT_NOTE0,P:{},FEE:{},DISC:{},MEMO:{},touch:{}}}
+function itSt(doc,o,l){const k=itK(o.no,l.gyo);if(!doc.P[k]){const key=ivName(l);const last=itLast(doc.cust,key);const us=ivUnits(l);
+    doc.P[k]=last&&(us.includes(last.unit)||!us.length)?{name:last.name,u:last.unit,p:String(last.price),r:Number(last.rate)===10?10:8,pre:true}:{name:itNames(l)[0],u:ivDefUnit(l),p:'',r:ivDefRate(l)}}return doc.P[k]}
+function itDocOrders(doc){return doc.nos.map(itOrder).filter(Boolean).sort((a,b)=>a.deliver-b.deliver||a.no.localeCompare(b.no))}
+/** 入力から、請求書の行を作る（見本・保存・発行で同じものを使う） */
+function itBuild(doc){const rows=[];let miss=0,feeMiss=0;const nh=no=>{const o=itOrder(no);if(!o||typeof nhNum!=='function'||typeof nhRows!=='function')return '';try{const n=nhNum(o.mg?'paste':'imo',no);return nhRows(n).length?n:''}catch(e){return ''}};
+  itDocOrders(doc).forEach(o=>{const d=ymd(o.deliver);const n=nh(o.no);
+    o.lines.forEach((l,i)=>{const st=itSt(doc,o,l);const q=ivQty(l,st.u);const p=st.p===''?null:Number(st.p);if(p===null)miss++;rows.push({kind:'明細',no:o.no,gyo:l.gyo,d,key:ivName(l),name:st.name||ivName(l),price:p,qty:q,unit:st.u,rate:st.r,amt:p===null?0:Math.floor(q*p),nh:i===0?n:''})});
+    if(carKind(ivCar(o))!=='引取り'){const fv=doc.FEE[o.no];if(fv===undefined)feeMiss++;else if(Number(fv))rows.push({kind:'送料',no:o.no,d,name:'送料',price:Number(fv),qty:1,unit:'式',rate:10,amt:Number(fv)})}
+    const dc=doc.DISC[o.no];if(dc&&dc.a)rows.push({kind:'値引き',no:o.no,d,name:'値引き',rate:dc.r,amt:-dc.a});
+    if(doc.MEMO[o.no])rows.push({kind:'文言',no:o.no,d,text:doc.MEMO[o.no]})});
+  return {rows,miss,feeMiss,todo:miss+feeMiss,calc:inv2Calc(rows,doc.mode)}}
+function itTo(c){return {name:c.billName||c.name,attn:c.billAttn||'',zip:c.billAddr?c.billZip:(c.billZip||c.zip),addr1:c.billAddr||c.addr1,addr2:c.billAddr?'':c.addr2}}
+function itView(doc,rows){const c=custOf(doc.cust)||{};return {num:doc.num,date:doc.date,due:doc.due,subject:doc.subject,mode:doc.mode,to:doc.to||itTo(c),me:IT_ME,rows,note:doc.note,bank:IT.bank||'（振込先は、発行するときに設定シートの内容が入ります）',draft:doc.status!=='発行済'}}
+function itSerial(doc){const b=itBuild(doc);return {id:doc.id,cust:doc.cust,nos:doc.nos,date:doc.date,due:doc.due,subject:doc.subject.trim(),mode:doc.mode,note:doc.note,rows:b.rows,fee:doc.FEE,to:itTo(custOf(doc.cust)||{})}}
+/** 保存してある請求書を、入力の形に戻す（下書きの続き） */
+function itOpenSaved(v){const doc={id:v.id,num:v.num||'',status:v.status,cust:v.cust,nos:(v.nos||[]).slice(),date:String(v.date).slice(0,10),due:String(v.due).slice(0,10),subject:v.subject||'',mode:v.mode==='内税'?'内税':'外税',note:v.note||'',P:{},FEE:Object.assign({},v.fee||{}),DISC:{},MEMO:{},touch:{subject:1,due:1}};
+  (v.rows||[]).forEach(r=>{if(r.kind==='明細')doc.P[itK(r.no,r.gyo)]={name:r.name,u:r.unit,p:String(r.price),r:Number(r.rate)===10?10:8};else if(r.kind==='送料')doc.FEE[r.no]=Number(r.amt)||0;else if(r.kind==='値引き')doc.DISC[r.no]={a:-Number(r.amt)||0,r:Number(r.rate)===10?10:8};else if(r.kind==='文言')doc.MEMO[r.no]=r.text||''});return doc}
+async function itLoad(){IT.loading=true;busy(true);try{const r=await api('inv2List',{});IT.invs=r.invs||[];IT.bank=r.bank||'';if(r.from&&!window.__IT_FROM)IT_FROM=r.from;itMarks()}catch(e){IT.invs=IT.invs||[];errBar('請求書の一覧を読めませんでした：'+e.message)}finally{IT.loading=false;busy(false);if(TAB==='inv')renderInv()}}
+/** 請求済みの印を、手元の一覧から作り直す（発行・取り消しのあと） */
+function itMarks(){const m={};(IT.invs||[]).filter(v=>v.status==='発行済').forEach(v=>(v.nos||[]).forEach(n=>{m[n]=v.num}));if(RAW)RAW.billed=m}
+/** 紙の見本：A4（794×1123）を、枠の幅に合わせて縮める */
+function itPaper(host,html){host.innerHTML='<iframe class="itdoc" title="請求書の見本"></iframe>';const f=host.firstChild;f.srcdoc=html.replace('\x3cbody>','\x3cbody style="padding:49px 45px">');
+  const fit=()=>{const w=host.clientWidth||600;const s=w/794;let h=1123;try{h=Math.max(1123,f.contentDocument.documentElement.scrollHeight)}catch(e){}f.style.height=h+'px';f.style.transform=`scale(${s})`;host.style.height=Math.round(h*s)+'px'};f.onload=fit;fit()}
+function itRender(){const host=$('itMain');
+  if(!ivAllowed()){host.innerHTML='<div class="card"><span class="dim">請求は設定「請求タブ_使える人」に入っている人だけが使えます。</span></div>';return}
+  if(!IT.invs){if(!IT.loading)itLoad();host.innerHTML='<div class="card"><span class="dim">読み込み中…</span></div>';return}
+  if(IT.view==='edit'&&IT.doc){itRenderEdit();return}
+  const todo=itTodo();const live=IT.invs.filter(itLive);
+  host.innerHTML=`<div class="row mb" style="gap:10px;flex-wrap:wrap"><span class="seg" id="itView"><button data-v="todo" class="${IT.view!=='list'?'on':''}">まだ請求していない注文（${todo.length}）</button><button data-v="list" class="${IT.view==='list'?'on':''}">請求書の一覧（${live.length}）</button></span><span class="dim">対象：${IT_FROM.replace(/-/g,'/')} 以降に納品した、発送手配済・納品済の注文</span></div><div id="itBody"></div>`;
+  $('itView').onclick=e=>{const b=e.target.closest('[data-v]');if(b){IT.view=b.dataset.v;itRender()}};
+  IT.view==='list'?itRenderList():itRenderTodo(todo)}
+function itRenderTodo(todo){const by={};todo.forEach(o=>{(by[o.cust]=by[o.cust]||[]).push(o)});const drafts=IT.invs.filter(v=>v.status==='下書き');
+  let cs=Object.keys(by).map(custOf).filter(Boolean).sort((a,b)=>Math.min(...by[a.code].map(o=>+o.deliver))-Math.min(...by[b.code].map(o=>+o.deliver)));
+  const q=IT.q.trim();if(q)cs=cs.filter(c=>custFind(c,q));
+  const dHtml=drafts.length?`<div class="card" style="margin-bottom:12px"><b>下書き（${drafts.length}）</b><span class="dim">　途中まで入れた請求書です。入れた注文は、下の一覧には出ません</span>${drafts.map(v=>`<div class="it-dr"><span><b>${esc((custOf(v.cust)||{}).name||v.cust)}</b>　${esc(v.subject)}　<span class="dim">${(v.nos||[]).length}件・${ivYen(v.total||0)}</span></span><span class="row" style="gap:6px"><button class="btn sm pri" data-dopen="${esc(v.id)}">続きを入れる</button><button class="btn sm" data-ddel="${esc(v.id)}">下書きを消す</button></span></div>`).join('')}</div>`:'';
+  $('itBody').innerHTML=dHtml+`<div class="row mb"><input type="search" id="itQ" placeholder="顧客を探す（名前・住所・電話）" value="${esc(IT.q)}" style="max-width:320px"></div>`+(cs.map(c=>{const os=by[c.code].sort((a,b)=>a.deliver-b.deliver||a.no.localeCompare(b.no));const sel=IT.sel[c.code]||(IT.sel[c.code]={});const n=os.filter(o=>sel[o.no]).length;const how=itHow(c);
+    return `<div class="card it-c" data-cu="${c.code}"><div class="row" style="gap:8px;flex-wrap:wrap"><b style="font-size:15px">${esc(c.name)}</b><span class="it-how ${how==='都度'?'':'m'}">${how}</span><span class="dim">まだ請求していない注文 ${os.length}件</span><span style="margin-left:auto" class="row" style="gap:6px"><button class="btn sm" data-all="${c.code}">${n===os.length?'全部はずす':'全部選ぶ'}</button><button class="btn sm pri" data-mk="${c.code}" ${n?'':'disabled'}>${n?`選んだ ${n}件で請求書を作る`:'注文を選んでください'}</button></span></div>
+    <div class="tw"><table class="it-t"><tr><th></th><th>③納品日</th><th>No.</th><th>中身</th><th>受け渡し</th><th>状態</th></tr>${os.map(o=>`<tr class="${sel[o.no]?'on':''}" data-o="${esc(o.no)}"><td><input type="checkbox" ${sel[o.no]?'checked':''} style="width:auto"></td><td>${mdw(o.deliver)}</td><td>${esc(o.no)}</td><td>${o.lines.map(l=>esc(ivName(l))+' '+fmt(l.qty)+esc(l.unit)).join('、')}</td><td>${esc(ivCar(o)||'—')}</td><td>${esc(o.status)}</td></tr>`).join('')}</table></div></div>`}).join('')||`<div class="card"><span class="dim">${q?'当たる顧客はいません':'まだ請求していない注文はありません'}</span></div>`);
+  const qe=$('itQ');imeIn(qe,()=>{const p=qe.selectionStart;IT.q=qe.value;itRender();const x=$('itQ');x.focus();x.setSelectionRange(p,p)});
+  $('itBody').onclick=async e=>{const t=e.target;const cu=t.closest('[data-cu]');
+    const dop=t.closest('[data-dopen]');if(dop){const v=IT.invs.find(x=>x.id===dop.dataset.dopen);if(v){IT.doc=itOpenSaved(v);IT.view='edit';itRender()}return}
+    const dd=t.closest('[data-ddel]');if(dd){if(!dd.dataset.sure){dd.dataset.sure='1';dd.textContent='本当に消す';dd.classList.add('pri','warn');return}if(dd.disabled)return;dd.disabled=true;busy(true);try{await api('inv2Cancel',{id:dd.dataset.ddel});IT.invs=IT.invs.filter(x=>x.id!==dd.dataset.ddel);toast('下書きを消しました。注文は「まだ請求していない注文」に戻りました');itRender()}catch(x){errBar('消せませんでした：'+x.message);dd.disabled=false}finally{busy(false)}return}
+    if(!cu)return;const code=cu.dataset.cu;const sel=IT.sel[code]||(IT.sel[code]={});const os=by[code]||[];
+    const all=t.closest('[data-all]');if(all){const on=os.some(o=>!sel[o.no]);os.forEach(o=>{if(on)sel[o.no]=1;else delete sel[o.no]});itRender();return}
+    const mk=t.closest('[data-mk]');if(mk){const nos=os.filter(o=>sel[o.no]).map(o=>o.no);if(!nos.length)return;IT.doc=itNewDoc(code,nos);IT.view='edit';itRender();window.scrollTo(0,0);return}
+    const tr=t.closest('[data-o]');if(tr){const no=tr.dataset.o;if(sel[no])delete sel[no];else sel[no]=1;itRender()}}}
+function itRenderList(){const vs=IT.invs.slice().sort((a,b)=>String(b.issuedAt||b.updatedAt||'').localeCompare(String(a.issuedAt||a.updatedAt||'')));
+  $('itBody').innerHTML=`<div class="card"><div class="tw"><table class="it-t"><tr><th>請求書番号</th><th>請求日</th><th>顧客</th><th>件名</th><th class="r">ご請求金額</th><th>状態</th><th></th></tr>${vs.map(v=>`<tr class="${v.status==='取消'?'off':''}"><td>${esc(v.num||'—')}</td><td>${esc(String(v.date||'').slice(0,10).replace(/-/g,'/'))}</td><td>${esc((custOf(v.cust)||{}).name||v.cust)}</td><td>${esc(v.subject)}<div class="dim">${(v.nos||[]).join('・')}</div></td><td class="r">${ivYen(v.total||0)}</td><td><span class="iv-st ${v.status==='発行済'?'i':v.status==='取消'?'n':'p'}">${esc(v.status)}</span></td><td><button class="btn sm" data-see="${esc(v.id)}">${v.status==='下書き'?'続きを入れる':'見る'}</button></td></tr>`).join('')||'<tr><td colspan="7"><span class="dim">まだ請求書はありません</span></td></tr>'}</table></div></div>`;
+  $('itBody').onclick=e=>{const b=e.target.closest('[data-see]');if(!b)return;const v=IT.invs.find(x=>x.id===b.dataset.see);if(!v)return;if(v.status==='下書き'){IT.doc=itOpenSaved(v);IT.view='edit';itRender()}else itSee(v)}}
+/** 発行済み・取消の請求書を見る（中身は発行したときのまま） */
+function itSee(v){const host=document.createElement('div');host.className='bmpop';const c=custOf(v.cust)||{};
+  host.innerHTML=`<div class="bmpopin" style="max-width:860px;width:100%;max-height:94vh;overflow:auto"><div class="row" style="gap:8px;flex-wrap:wrap;margin-bottom:8px"><b style="font-size:15px">請求書 ${esc(v.num||'')}</b><span class="dim">${esc(c.name||v.cust)}</span><span class="iv-st ${v.status==='発行済'?'i':'n'}">${esc(v.status)}</span><span style="margin-left:auto" class="row" style="gap:6px">${v.status==='発行済'?'<button class="btn sm" id="itPdf">PDFを保存</button><button class="btn sm" id="itCan" style="color:var(--bad)">取り消す</button>':''}<button class="btn sm" id="itClose">閉じる</button></span></div>
+    <p class="dim" id="itSeeMsg" style="color:var(--bad)">${v.status==='取消'?'取り消した請求書です（番号は欠番です）。入っていた注文は、もう一度請求書を作れます':''}</p><div class="itpaper" id="itSeeP"></div></div>`;
+  document.body.appendChild(host);const close=()=>host.remove();$('itClose').onclick=close;
+  itPaper($('itSeeP'),inv2Html({num:v.num,date:v.date,due:v.due,subject:v.subject,mode:v.mode,to:v.to||itTo(c),me:IT_ME,rows:v.rows,note:v.note,bank:IT.bank||'（振込先は設定シートの内容が入ります）',draft:false}));
+  if($('itPdf'))$('itPdf').onclick=async()=>{const b=$('itPdf');if(b.disabled)return;b.disabled=true;b.textContent='用意しています…';try{const r=await api('inv2File',{id:v.id});if(r&&r.b64){const a=document.createElement('a');a.href='data:application/pdf;base64,'+r.b64;a.download=r.name||('請求書_'+v.num+'.pdf');document.body.appendChild(a);a.click();a.remove()}else toast(r&&r.msg||'PDFを用意できませんでした',5000)}catch(e){$('itSeeMsg').textContent='PDFを用意できませんでした：'+e.message}finally{b.disabled=false;b.textContent='PDFを保存'}};
+  if($('itCan'))$('itCan').onclick=async()=>{const b=$('itCan');if(!b.dataset.sure){b.dataset.sure='1';b.textContent='本当に取り消す';b.classList.add('pri','warn');b.style.color='';$('itSeeMsg').textContent=`請求書 ${v.num} を取り消します。番号は欠番になり、入っていた注文は「まだ請求していない注文」に戻ります。よければもう一度押してください`;return}
+    if(b.disabled)return;b.disabled=true;b.textContent='取り消し中…';busy(true);try{const r=await api('inv2Cancel',{id:v.id});Object.assign(v,r.inv||{status:'取消'});itMarks();close();toast(`請求書 ${v.num} を取り消しました`);itRender()}catch(e){$('itSeeMsg').textContent='取り消せませんでした：'+e.message;b.disabled=false;b.textContent='本当に取り消す'}finally{busy(false)}}}
+function itRenderEdit(){const doc=IT.doc;const c=custOf(doc.cust);const os=itDocOrders(doc);const host=$('itMain');const to=itTo(c);
+  host.innerHTML=`<div class="row mb" style="gap:10px;flex-wrap:wrap"><button class="btn sm" id="itBack">← 一覧へ戻る</button><b style="font-size:16px">${esc(c.name)}</b><span class="it-how ${itHow(c)==='都度'?'':'m'}">${itHow(c)}</span><span class="dim">${doc.id?'下書き '+esc(doc.id):'新しい請求書'}・注文 ${os.length}件</span><span class="dim" id="itSaveSt"></span></div>
+  <div class="it-g"><div class="card" id="itForm">
+    ${billMemoHtml(c)}
+    <div class="it-to"><b>請求先</b>　${esc(to.name)} 御中${to.attn?'　'+esc(to.attn):''}<br><span class="dim">${to.zip?'〒'+esc(to.zip)+' ':''}${esc([to.addr1,to.addr2].filter(Boolean).join(' '))||'<span style="color:var(--bad)">住所が入っていません（顧客タブの編集で入れられます）</span>'}</span></div>
+    <div class="it-h"><label>件名</label><input id="itSub" value="${esc(doc.subject)}"><label>請求日</label><input type="date" id="itDate" value="${esc(doc.date)}"><label>お支払期限</label><input type="date" id="itDue" value="${esc(doc.due)}"><label>消費税</label><span class="seg" id="itMode"><button data-m="外税" class="${doc.mode==='外税'?'on':''}">外税（単価は税抜）</button><button data-m="内税" class="${doc.mode==='内税'?'on':''}">内税（単価は税込）</button></span></div>
+    ${os.map(o=>{const ck=carKind(ivCar(o));const fv=doc.FEE[o.no];const dc=doc.DISC[o.no]||{};return `<div class="iv-ord"><div class="iv-oh"><b>③納品 ${mdw(o.deliver)}</b><span class="dim">${esc(o.no)}　${esc(o.status)}</span><span class="dim">受け渡し ${esc(ivCar(o)||'—')}</span><button class="btn sm" data-rm="${esc(o.no)}" style="margin-left:auto" ${os.length<2?'disabled':''}>この注文をはずす</button></div>
+     <div class="tw"><table class="iv-in"><tr><th>請求書に載せる品名</th><th class="r">数量</th><th>単位</th><th class="r">単価（${doc.mode==='内税'?'税込':'税抜'}）</th><th class="r">価格</th><th>税率</th></tr>
+     ${o.lines.map(l=>{const st=itSt(doc,o,l);const k=itK(o.no,l.gyo);const q=ivQty(l,st.u);const us=ivUnits(l);const lid='itdl_'+k.replace(/[^\w]/g,'_');
+       return `<tr><td><input class="it-nm" data-nm="${esc(k)}" list="${lid}" value="${esc(st.name)}"><datalist id="${lid}">${itNames(l).map(n=>`<option value="${esc(n)}">`).join('')}</datalist><div class="dim">注文：${esc(ivName(l))}　${fmt(l.qty)} ${esc(l.unit)}${l.boxes?'・'+l.boxes+'箱':''}</div></td><td class="r"><b>${fmt(q)}</b></td>
+       <td><select data-u="${esc(k)}">${(us.length?us:['箱','袋','kg']).map(u=>`<option ${u===st.u?'selected':''}>${u}</option>`).join('')}</select></td>
+       <td class="r">¥ <input class="iv-pin ${st.p===''?'miss':st.pre?'pre':''}" inputmode="numeric" data-p="${esc(k)}" value="${esc(st.p)}" placeholder="未入力">${st.pre&&st.p!==''?'<div class="dim">前回の単価</div>':''}</td><td class="r" data-a="${esc(k)}">${st.p===''?'—':ivYen(Math.floor(q*Number(st.p)))}</td>
+       <td><select data-r="${esc(k)}"><option value="8" ${st.r!==10?'selected':''}>8%</option><option value="10" ${st.r===10?'selected':''}>10%</option></select></td></tr>`}).join('')}
+     ${ck==='引取り'?`<tr style="opacity:.75"><td>送料</td><td colspan="4" class="r">引取りのため送料なし</td><td><span class="iv-tx t10">10%</span></td></tr>`
+      :`<tr ${fv===undefined?'style="outline:2px solid #e3c78e;outline-offset:-2px"':''}><td>送料<div class="dim">入れるか「送料なし」を選ぶ</div></td><td class="r" colspan="2"><label style="font-size:12px;white-space:nowrap"><input type="checkbox" data-fnone="${esc(o.no)}" ${fv===0?'checked':''} style="width:auto"> 送料なし</label></td><td class="r">¥ <input class="iv-pin ${fv===undefined?'miss':''}" inputmode="numeric" data-f="${esc(o.no)}" value="${fv?fv:''}" placeholder="${fv===0?'なし':'未入力'}" ${fv===0?'disabled':''}></td><td class="r" data-fa="${esc(o.no)}">${fv?ivYen(fv):'—'}</td><td><span class="iv-tx t10">10%</span></td></tr>`}
+     <tr><td>値引き<div class="dim">あるときだけ</div></td><td colspan="2"></td><td class="r">−¥ <input class="iv-pin" inputmode="numeric" data-d="${esc(o.no)}" value="${dc.a||''}" placeholder="0"></td><td class="r" data-da="${esc(o.no)}">${dc.a?ivYen(-dc.a):'—'}</td><td><select data-dr="${esc(o.no)}"><option value="8" ${dc.r!==10?'selected':''}>8%</option><option value="10" ${dc.r===10?'selected':''}>10%</option></select></td></tr>
+     <tr><td>文言<div class="dim">空なら載せない</div></td><td colspan="5"><input data-m="${esc(o.no)}" value="${esc(doc.MEMO[o.no]||'')}" placeholder="例：店舗名、発注番号 など" style="width:100%"></td></tr></table></div></div>`}).join('')}
+    <label class="lbl" style="margin-top:12px">備考（請求書の下に載ります）</label><textarea id="itNote" rows="2">${esc(doc.note)}</textarea>
+    <div class="it-foot"><span id="itSum"></span><span class="row" style="gap:8px;margin-left:auto"><button class="btn" id="itSaveB">下書き保存</button><button class="btn pri" id="itIssue">発行する</button></span></div><p class="dim" id="itErr" style="color:var(--bad)"></p></div>
+   <div class="it-pv"><div class="dim" style="margin-bottom:4px">請求書の見本（発行すると、この見た目のPDFになります）</div><div class="itpaper" id="itP"></div></div></div>`;
+  let tm=0;const refresh=now=>{const b=itBuild(doc);$('itSum').innerHTML=`ご請求金額 <b style="font-size:17px">${ivYen(b.calc.total)}</b>　<span class="dim">${doc.mode}・${doc.mode==='内税'?'うち':''}消費税 ${ivYen(b.calc.tax)}</span>${b.todo?`　<span style="color:#8a5a12;font-weight:700">未入力 ${b.todo}か所</span>`:''}`;
+    $('itIssue').disabled=!!b.todo;clearTimeout(tm);const go=()=>itPaper($('itP'),inv2Html(itView(doc,b.rows)));if(now)go();else tm=setTimeout(go,250)};
+  refresh(true);
+  const F=$('itForm');const num=v=>{const s=String(v).normalize('NFKC').replace(/[^\d.]/g,'');return s};
+  F.oninput=e=>{const t=e.target,d=t.dataset;if(e.isComposing)return;
+    if(t.id==='itSub'){doc.subject=t.value;doc.touch.subject=1}else if(t.id==='itNote')doc.note=t.value;
+    else if(d.nm){doc.P[d.nm].name=t.value}
+    else if(d.p){const st=doc.P[d.p];st.p=num(t.value);st.pre=false;t.classList.toggle('miss',st.p==='');const [no,g]=d.p.split('|');const o=itOrder(no);const l=o.lines.find(x=>String(x.gyo)===g);F.querySelector(`[data-a="${CSS.escape(d.p)}"]`).textContent=st.p===''?'—':ivYen(Math.floor(ivQty(l,st.u)*Number(st.p)))}
+    else if(d.f){const v=num(t.value);if(v==='')delete doc.FEE[d.f];else doc.FEE[d.f]=Number(v);t.classList.toggle('miss',v==='');F.querySelector(`[data-fa="${CSS.escape(d.f)}"]`).textContent=v?ivYen(Number(v)):'—'}
+    else if(d.d){const v=Number(num(t.value))||0;doc.DISC[d.d]=Object.assign(doc.DISC[d.d]||{r:8},{a:v});F.querySelector(`[data-da="${CSS.escape(d.d)}"]`).textContent=v?ivYen(-v):'—'}
+    else if(d.m!==undefined&&t.tagName==='INPUT'){doc.MEMO[d.m]=t.value}else return;
+    doc.dirty=true;refresh()};
+  F.onchange=e=>{const t=e.target,d=t.dataset;
+    if(t.id==='itDate'){doc.date=t.value;if(!doc.touch.due)doc.due=itEom(doc.date,1)}else if(t.id==='itDue'){doc.due=t.value;doc.touch.due=1}
+    else if(d.u){doc.P[d.u].u=t.value}else if(d.r){doc.P[d.r].r=Number(t.value)===10?10:8}
+    else if(d.fnone){if(t.checked)doc.FEE[d.fnone]=0;else delete doc.FEE[d.fnone]}
+    else if(d.dr){doc.DISC[d.dr]=Object.assign(doc.DISC[d.dr]||{a:0},{r:Number(t.value)===10?10:8})}else return;
+    doc.dirty=true;itRenderEdit()};
+  F.onclick=e=>{const m=e.target.closest('#itMode [data-m]');if(m){if(doc.mode!==m.dataset.m){doc.mode=m.dataset.m;doc.dirty=true;itRenderEdit()}return}
+    const rm=e.target.closest('[data-rm]');if(rm&&!rm.disabled){doc.nos=doc.nos.filter(n=>n!==rm.dataset.rm);if(!doc.touch.subject)doc.subject=itSubject(itDocOrders(doc));doc.dirty=true;itRenderEdit()}};
+  const pack=()=>itSerial(doc);const chk=()=>{if(!doc.subject.trim())return '件名を入れてください';if(!doc.date)return '請求日を入れてください';if(!doc.due)return 'お支払期限を入れてください';if(doc.due<doc.date)return 'お支払期限が請求日より前になっています';return ''};
+  const lock=on=>{['itSaveB','itIssue','itBack'].forEach(id=>{if($(id))$(id).disabled=on})};
+  const put=v=>{const i=IT.invs.findIndex(x=>x.id===v.id);if(i>=0)IT.invs[i]=v;else IT.invs.push(v)};
+  $('itSaveB').onclick=async()=>{const m=chk();if(m){$('itErr').textContent=m;return}if(IT.busy)return;IT.busy=true;lock(true);$('itSaveB').textContent='保存中…';busy(true);
+    try{const r=await api('inv2Save',{doc:pack()});put(r.inv);doc.id=r.inv.id;doc.dirty=false;itRenderEdit();$('itSaveSt').textContent='下書きを保存しました';toast('下書きを保存しました')}catch(e){$('itErr').textContent='保存できませんでした：'+e.message;lock(false);$('itSaveB').textContent='下書き保存';refresh()}finally{IT.busy=false;busy(false)}};
+  $('itIssue').onclick=async()=>{const b=$('itIssue');const m=chk();if(m){$('itErr').textContent=m;return}const bd=itBuild(doc);if(bd.todo){$('itErr').textContent='単価か送料が入っていない所があります';return}
+    if(!b.dataset.sure){b.dataset.sure='1';b.textContent='本当に発行する';b.classList.add('warn');$('itErr').textContent=`${c.name} あてに ${ivYen(bd.calc.total)} の請求書を発行します。発行すると請求書番号が付き、中身は変えられなくなります（直すときは取り消して作り直し）。よければもう一度押してください`;return}
+    if(IT.busy)return;IT.busy=true;lock(true);b.textContent='発行中…';busy(true);
+    try{const r=await api('inv2Issue',{doc:pack()});put(r.inv);itMarks();IT.sel[doc.cust]={};IT.doc=null;IT.view='list';itRender();toast(`請求書 ${r.inv.num} を発行しました`,4000);itSee(r.inv)}catch(e){$('itErr').textContent='発行できませんでした：'+e.message;lock(false);b.textContent='発行する';delete b.dataset.sure;b.classList.remove('warn');refresh()}finally{IT.busy=false;busy(false)}};
+  $('itBack').onclick=()=>{const b=$('itBack');if(doc.dirty&&!b.dataset.sure){b.dataset.sure='1';b.textContent='保存せずに戻る';$('itSaveSt').textContent='まだ保存していない入力があります。残すなら「下書き保存」を押してください';return}IT.doc=null;IT.view='todo';itRender()}}
+
 /* ===== 2026/11/12 改修1段目：請求メモ（顧客ごと・請求を使える人だけ）／メールのテンプレート／TO・CC 複数 ===== */
 const MAIL_RE=/^[^\s@,;、]+@[^\s@,;、]+\.[^\s@,;、]+$/;
 const mailList=v=>String(v||'').split(/[\s,;、，；]+/).map(x=>x.trim()).filter(Boolean);
@@ -2689,7 +2877,7 @@ const mailNorm=v=>mailList(v).join(', ');
 function billMemoHtml(c){if(!c||!ivAllowed())return '';
   return `<div class="bmemo ${c.billMemo?'':'none'}"><div class="row" style="justify-content:space-between;gap:8px"><b>請求メモ <span class="dim" style="font-weight:400;font-size:11px">送料・単価・個別対応（請求を使える人だけに見えます）</span></b><button type="button" class="btn sm" data-bmemo="${esc(c.code)}">${c.billMemo?'直す':'入れる'}</button></div>${c.billMemo?`<div class="bmtxt">${esc(c.billMemo).replace(/\n/g,'<br>')}</div>`:'<div class="dim" style="font-size:12px">まだ入っていません</div>'}</div>`}
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-bmemo]');if(!b)return;e.preventDefault();e.stopPropagation();
-  billMemoEdit(custOf(b.dataset.bmemo),()=>{if(TAB==='new'){PM==='paste'?mgForm():renderForm()}else if(TAB==='inv')ivRenderEdit()})});
+  billMemoEdit(custOf(b.dataset.bmemo),()=>{if(TAB==='new'){PM==='paste'?mgForm():renderForm()}else if(TAB==='inv'){if(IT.mode==='each'){if(IT.view==='edit'&&IT.doc)itRenderEdit()}else ivRenderEdit()}})});
 function billMemoEdit(c,after){if(!c)return;
   const host=document.createElement('div');host.className='bmpop';host.innerHTML=`<div class="bmpopin"><h3 style="margin:0 0 6px">請求メモ　<span class="dim" style="font-weight:400;font-size:13px">${esc(c.name)}</span></h3>
    <textarea id="bmTxt" rows="6" placeholder="例：送料は元払い（請求しない）／大 1kg 280円・中 250円／請求書は月末にまとめて郵送も">${esc(c.billMemo)}</textarea>
