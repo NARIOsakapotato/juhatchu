@@ -55,6 +55,7 @@ textarea{resize:vertical}
 .seg button{border:none;background:none;padding:8px 14px;font-size:13px;font-weight:700;color:#777}
 .seg button.on{background:var(--head);color:#fff}
 .chips{display:flex;gap:6px;flex-wrap:wrap}
+.cidx{display:flex;flex-wrap:wrap;gap:4px;margin:0 0 8px}.cidx button{border:1px solid var(--line2);background:var(--paper);border-radius:8px;padding:5px 0;min-width:38px;font-size:13px;font-weight:800;color:var(--ink2);line-height:1.1}.cidx button small{display:block;font-size:10px;font-weight:600;color:var(--mute)}.cidx button.on,.sugg .cidx button.on{background:var(--ink);color:#fff;border-color:var(--ink)}.cidx button.on small,.sugg .cidx button.on small{color:#ddd}.sugg .cidx button{width:auto;text-align:center;padding:5px 0}.cidx button:disabled{opacity:.35}.chit{display:block;font-size:12px;font-weight:500;color:var(--accent);margin-top:2px}.cnote{font-size:12px;color:var(--mute);margin:-2px 0 8px}
 .chip{padding:6px 12px;border-radius:999px;border:1px solid var(--line2);background:var(--paper);font-size:13px;font-weight:700;color:var(--ink2)}
 .chip.on{background:var(--head);color:#fff;border-color:var(--head)}
 .chip.late.on{background:var(--bad);border-color:var(--bad)}
@@ -652,7 +653,7 @@ body.pm .kshare{display:inline-block}
     <div>
       <section class="card" style="margin-bottom:12px"><h3>1 誰から</h3>
         <div class="seg" id="fMode" style="margin-bottom:8px"><button class="on" data-m="pick">既存の顧客</button><button data-m="new">新規の顧客</button></div><div id="fCustLock" hidden></div>
-        <div id="fPick"><input type="search" id="fCustQ" placeholder="顧客名を入力すると候補が出ます"><div class="sugg" id="fSugg"></div><div id="fBillMemo"></div></div>
+        <div id="fPick"><input type="search" id="fCustQ" placeholder="名前・住所・電話・備考で探す"><div class="sugg" id="fSugg"></div><div id="fBillMemo"></div></div>
         <div id="fNew" hidden>
           <div class="two" style="gap:8px"><div><label class="lbl">顧客名 <span style="color:var(--bad)">必須</span></label><input id="nName"></div><div><label class="lbl">電話（伝票用）</label><input id="nTel"></div></div>
           <div id="nDup"></div>
@@ -723,7 +724,7 @@ body.pm .kshare{display:inline-block}
     <span class="cb"><label>カテゴリ</label><span class="seg" id="cCat"><button data-v="all" class="on">すべて</button><button data-v="青果">青果</button><button data-v="加工品">加工品</button></span></span></div>
   <div class="ckpi" id="cKpi"></div>
   <div class="cust">
-    <div><input type="search" id="cQ" placeholder="顧客名で検索" style="margin-bottom:8px"><div class="cl" id="clist"></div></div>
+    <div><input type="search" id="cQ" placeholder="名前・住所・電話・備考で検索" style="margin-bottom:8px"><div id="cIdx"></div><div class="cl" id="clist"></div></div>
     <div id="cdetail"><div class="card"><p class="dim">左から顧客を選ぶと、受注履歴とサマリーが出ます</p></div></div>
   </div>
 </main>
@@ -826,6 +827,22 @@ let SETTINGS={targetKg:5000,workdays:'月〜土',from:'',to:''};
 let REASONS=[],CARRIERS=[],CANCEL_REASONS=[],DELIVER_HOW=[],STAFF_NAMES=[],SETTING_ROWS=[],OPT={};
 let ITEMS=[],CUST=[],ORDERS=[];
 const custOf=c=>CUST.find(x=>x.code===c);
+/* ===== 2026/11/13 顧客を探す：名前以外（別名・宛名・電話・住所・備考・コード）でも当たる／空白で区切ると絞り込み／あかさたな =====
+   custFind(c,q) … 当たらなければ null。当たれば {where:'住所：…'}（名前で当たったときは where は空） */
+const custRawOf=c=>(RAW.customers||[]).find(x=>String(x['コード'])===c.code)||{};
+function custFind(c,q){const toks=String(q||'').normalize('NFKC').split(/\s+/).filter(Boolean);if(!toks.length)return{where:''};
+  const r=custRawOf(c);const FL=[['',c.name],['別名',r['別名']],['宛名',c.attn],['電話',c.tel],['住所',[c.zip,c.addr].filter(Boolean).join(' ')],['備考',r['備考']],['コード',c.code]].filter(f=>f[1]!==undefined&&f[1]!==null&&String(f[1])!=='').map(f=>[f[0],String(f[1]),custNorm(f[1]),String(f[1]).normalize('NFKC').replace(/\D/g,'')]);
+  let where='';
+  for(const t of toks){const n=custNorm(t);if(!n)continue;const dg=/^[\d\-ー－()（）\s]+$/.test(t)?t.replace(/\D/g,''):'';
+    const hit=FL.find(f=>f[2].includes(n)||(dg.length>=3&&(f[0]==='電話'||f[0]==='住所')&&f[3].includes(dg)));
+    if(!hit)return null;if(hit[0]&&!where)where=hit[0]+'：'+(hit[1].length>34?hit[1].slice(0,34)+'…':hit[1])}
+  return{where}}
+const CIDX=[['あ','ぁ-お'],['か','か-ご'],['さ','さ-ぞ'],['た','た-ど'],['な','な-の'],['は','は-ぽ'],['ま','ま-も'],['や','ゃ-よ'],['ら','ら-ろ'],['わ','ゎ-ん']].map(x=>[x[0],new RegExp('^['+x[1]+']')]);
+/** 頭文字の行：名前の最初の1文字で決める（かなは行・英字と数字は「英数」・それ以外は「漢字」） */
+function custIdx(c){const n=custNorm(c.name);const h=CIDX.find(x=>x[1].test(n));return h?h[0]:/^[a-z0-9]/.test(n)?'英数':'漢字'}
+function custIdxBar(pool,cur,attr){const cnt={};pool.forEach(c=>{const k=custIdx(c);cnt[k]=(cnt[k]||0)+1});
+  return `<div class="cidx"><button ${attr}="all" class="${cur==='all'?'on':''}">すべて</button>${CIDX.map(x=>x[0]).concat(['英数','漢字']).map(k=>`<button ${attr}="${k}" class="${cur===k?'on':''}" ${cnt[k]?'':'disabled'}>${k}${cnt[k]?`<small>${cnt[k]}</small>`:''}</button>`).join('')}</div>`}
+const custWhere=h=>h&&h.where?`<span class="chit">${esc(h.where)}</span>`:'';
 /* 顧客の二重登録を防ぐ（2026/11/2）：名前が同じ→作らせない。電話が同じ・名前の一部が重なる→「別の会社です」と確かめてから。サーバーも同じきまりで止める */
 function custDupCands(name,tel){const n=custNorm(name),t=String(tel||'').replace(/\D/g,'');if(n.length<2&&t.length<9)return {same:[],near:[]};
   const same=CUST.filter(c=>custNorm(c.name)===n);const near=CUST.filter(c=>{if(same.includes(c))return false;const cn=custNorm(c.name),ct=String(c.tel||'').replace(/\D/g,'');return (t.length>=9&&ct===t)||(n.length>=2&&cn.length>=2&&(cn.includes(n)||n.includes(cn)))}).slice(0,6);return {same,near}}
@@ -1451,19 +1468,19 @@ function renderForm(){
   const nq=custNorm(q);
   // カテゴリが違う顧客・スポット顧客も、名前を入れれば候補に出す（カテゴリが合う継続顧客を先頭に）
   // 候補は短く：選んだ後はその1社だけ／入力なし＝最近取引の多い顧客8社（この人が営業の注文で直近60日に多い順）／入力あり＝当たる顧客を8件まで
-  const item=c=>`<button class="${F.cust===c.code?'on':''}" data-c="${c.code}"><b>${esc(c.name)}</b> <span class="dim">${c.kind}　配送${c.lead}日${c.hours?'　'+esc(c.hours):''}</span>${!c.cats.includes(F.cat)?` <span class="tag t-cat">${esc(c.cats.join('・')||'カテゴリなし')}</span>`:''}${c.reg!=='継続'?' <span class="tag t-cat">スポット</span>':''}</button>`;
+  const fHit={};const item=c=>`<button class="${F.cust===c.code?'on':''}" data-c="${c.code}"><b>${esc(c.name)}</b> <span class="dim">${c.kind}　配送${c.lead}日${c.hours?'　'+esc(c.hours):''}</span>${!c.cats.includes(F.cat)?` <span class="tag t-cat">${esc(c.cats.join('・')||'カテゴリなし')}</span>`:''}${c.reg!=='継続'?' <span class="tag t-cat">スポット</span>':''}${custWhere(fHit[c.code])}</button>`;
   const LIM=8;let html='';
   if(F.cust&&custOf(F.cust)&&custOf(F.cust).name===q){html=`<div class="sgsel">${item(custOf(F.cust))}<button class="sgchg" data-chg="1">別の顧客にする</button></div>`}
   else if(!q){const since=addD(TODAY,-60);const cnt={},cntMe={};ORDERS.forEach(o=>{if(o.date>=since){cnt[o.cust]=(cnt[o.cust]||0)+1;if(o.sales===ME)cntMe[o.cust]=(cntMe[o.cust]||0)+1}});
     const pool=CUST.filter(c=>c.active!==false);const score=c=>(cntMe[c.code]||0)*100+(cnt[c.code]||0);
-    const all=F.sgAll;const list=all?pool.slice().sort((a,b)=>a.name.localeCompare(b.name,'ja')):pool.filter(c=>score(c)>0).sort((a,b)=>score(b)-score(a)).slice(0,LIM);
-    html=`<div class="sghd"><span class="dim">${all?`すべての顧客（${pool.length}社・名前順）`:'最近取引の多い顧客（直近60日・自分の担当分が多い順）'}</span><button class="sgchg" data-all="1">${all?'最近取引の多い顧客に戻す':`すべて表示（${pool.length}社）`}</button></div><div class="sggrid ${all?'sgscroll':''}">${list.map(item).join('')}</div>`}
-  else{const cands=CUST.filter(c=>c.active!==false&&custNorm(c.name).includes(nq)).sort((a,b)=>(b.cats.includes(F.cat)-a.cats.includes(F.cat))||((a.reg==='継続'?0:1)-(b.reg==='継続'?0:1)));
+    const all=F.sgAll;const ix=F.sgIdx||'all';const list=all?pool.filter(c=>ix==='all'||custIdx(c)===ix).sort((a,b)=>a.name.localeCompare(b.name,'ja')):pool.filter(c=>score(c)>0).sort((a,b)=>score(b)-score(a)).slice(0,LIM);
+    html=`<div class="sghd"><span class="dim">${all?`すべての顧客（${pool.length}社・名前順）`:'最近取引の多い顧客（直近60日・自分の担当分が多い順）'}</span><button class="sgchg" data-all="1">${all?'最近取引の多い顧客に戻す':`すべて表示（${pool.length}社）`}</button></div>${all?custIdxBar(pool,ix,'data-six'):''}<div class="sggrid ${all?'sgscroll':''}">${list.map(item).join('')}</div>`}
+  else{const cands=CUST.filter(c=>c.active!==false&&(fHit[c.code]=custFind(c,q))).sort((a,b)=>(b.cats.includes(F.cat)-a.cats.includes(F.cat))||((a.reg==='継続'?0:1)-(b.reg==='継続'?0:1)));
     html=`<div class="sggrid">${cands.slice(0,LIM).map(item).join('')}</div>`+(cands.length>LIM?`<div class="dim" style="padding:4px 2px">ほか ${cands.length-LIM}件。もう少し入力すると絞り込めます</div>`:'')
-      +(!cands.length?`<div class="dim" style="padding:6px 2px">「${esc(q)}」に当たる顧客はいません。はじめての顧客なら上の「新規」から登録</div>`:'')
+      +(!cands.length?`<div class="dim" style="padding:6px 2px">「${esc(q)}」に当たる顧客はいません（名前・住所・電話・備考で探しました）。はじめての顧客なら上の「新規」から登録</div>`:'')
       +(!F.cust&&cands.length?'<div class="dim" style="padding:4px 2px">候補を押して選んでください（まだ選ばれていません）</div>':'')}
   $('fSugg').innerHTML=html;
-  $('fSugg').onclick=e=>{if(F.editNo&&!F.custUnlock){const cb=e.target.closest('[data-chg],[data-c]');if(cb&&(cb.dataset.chg!==undefined||cb.dataset.c!==F.editCust)){custUnlockAsk();return}}if(e.target.closest('[data-all]')){F.sgAll=!F.sgAll;renderForm();return}if(e.target.closest('[data-chg]')){F.cust=null;$('fCustQ').value='';renderForm();$('fCustQ').focus();return}const b=e.target.closest('[data-c]');if(b){F.cust=b.dataset.c;F.sgAll=false;$('fCustQ').value=custOf(F.cust).name;renderForm()}};
+  $('fSugg').onclick=e=>{if(F.editNo&&!F.custUnlock){const cb=e.target.closest('[data-chg],[data-c]');if(cb&&(cb.dataset.chg!==undefined||cb.dataset.c!==F.editCust)){custUnlockAsk();return}}{const sx=e.target.closest('[data-six]');if(sx){if(!sx.disabled){F.sgIdx=sx.dataset.six;renderForm()}return}}if(e.target.closest('[data-all]')){F.sgAll=!F.sgAll;F.sgIdx='all';renderForm();return}if(e.target.closest('[data-chg]')){F.cust=null;$('fCustQ').value='';renderForm();$('fCustQ').focus();return}const b=e.target.closest('[data-c]');if(b){F.cust=b.dataset.c;F.sgAll=false;$('fCustQ').value=custOf(F.cust).name;renderForm()}};
   $('fMode').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.m===F.mode));$('fReg').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.r===F.reg));
   const isNew=F.mode==='new';$('fPick').hidden=isNew;$('fNew').hidden=!isNew;$('fAddrPick').hidden=isNew;$('fAddrNew').hidden=!isNew;
   $('fRegNote').textContent=F.reg==='継続'?'次回から候補に出ます。送り先・配送条件も保存されます':'受注の記録には残りますが、顧客候補には出ません（スポット）';
@@ -1658,21 +1675,25 @@ function custStats(){const from=cPer==='all'?new Date(2000,0,1):cPer==='season'?
     r.flag=!os.length?'none':(!next&&last&&diffD(TODAY,last)>=SLEEP_DAYS)?'sleep':(first&&diffD(TODAY,first)<=30)?'new':'';return r})}
 ['cPer','cSort','cCat'].forEach(id=>$(id).addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;[...$(id).children].forEach(x=>x.classList.toggle('on',x===b));if(id==='cPer')cPer=b.dataset.v;if(id==='cSort')cSort=b.dataset.v;if(id==='cCat')cCatF=b.dataset.v;renderCust()}));
 $('cQ').oninput=renderCust;
+let cIdxF='all';
 function renderCust(){
   const q=$('cQ').value.trim();
   const st=custStats();const key=cSort==='old'||cSort==='name'?'kg':cSort;
-  let rs=st.filter(r=>(r.c.active!==false||q)&&(cCatF==='all'||r.c.cats.includes(cCatF))&&(!q||custNorm(r.c.name).includes(custNorm(q))));
+  // 文字を入れたら、カテゴリ・A／休眠・頭文字の絞り込みを外して全顧客から探す（絞ったままで「いるはずの顧客が出ない」をなくす）
+  const hitOf={};let rs=q?st.filter(r=>(hitOf[r.c.code]=custFind(r.c,q))):st.filter(r=>r.c.active!==false&&(cCatF==='all'||r.c.cats.includes(cCatF)));
+  $('cIdx').innerHTML=q?`<p class="cnote">「${esc(q)}」で全顧客から探しています（${rs.length}件・絞り込みは外しています）。空白で区切ると、さらに絞れます</p>`:custIdxBar(rs.map(r=>r.c),cIdxF,'data-ix');
+  $('cIdx').onclick=e=>{const b=e.target.closest('[data-ix]');if(b&&!b.disabled){cIdxF=b.dataset.ix;renderCust()}};
   const tot=rs.reduce((a,r)=>a+r[key],0);
   [...rs].sort((a,b)=>b[key]-a[key]).reduce((cum,r)=>{r.share=tot?r[key]/tot:0;r.abc=!r[key]?'':cum<0.7?'A':cum<0.9?'B':'C';return cum+r.share},0);
   const aN=rs.filter(r=>r.abc==='A'),aSh=aN.reduce((a,r)=>a+r.share,0);
   $('cKpi').innerHTML=[['all','顧客',rs.length,'件',''],['A',`A（${key==='kg'?'さつまいも':key==='kako'?'加工品':'注文回数'}の7割）`,aN.length,`件で ${Math.round(aSh*100)}%`,''],['sleep',`休眠（${SLEEP_DAYS}日注文なし）`,rs.filter(r=>r.flag==='sleep').length,'件','warn'],['none','注文なし（登録だけ）',rs.filter(r=>r.flag==='none').length,'件','bad']]
     .map(([k,l,v,u,c])=>`<button class="ckp ${c} ${cFlt===k?'on':''}" data-f="${k}"><small>${l}</small><b>${v}</b> <span>${u}</span></button>`).join('');
-  if(cFlt==='A')rs=rs.filter(r=>r.abc==='A');if(cFlt==='sleep')rs=rs.filter(r=>r.flag==='sleep');if(cFlt==='none')rs=rs.filter(r=>r.flag==='none');
+  if(!q){if(cFlt==='A')rs=rs.filter(r=>r.abc==='A');if(cFlt==='sleep')rs=rs.filter(r=>r.flag==='sleep');if(cFlt==='none')rs=rs.filter(r=>r.flag==='none');if(cIdxF!=='all')rs=rs.filter(r=>custIdx(r.c)===cIdxF)}
   rs.sort(cSort==='old'?(a,b)=>(a.last||0)-(b.last||0):cSort==='name'?(a,b)=>a.c.name.localeCompare(b.c.name,'ja'):(a,b)=>b[key]-a[key]||b.n-a.n);
   const mx=Math.max(1,...rs.map(r=>r[key]));const unit=key==='kg'?'kg':key==='kako'?'袋・本':'回';
   $('clist').innerHTML=rs.map((r,i)=>{const c=r.c;return `<div class="ci cr ${cSel===c.code?'on':''}" data-c="${c.code}"><div class="rk">${cSort==='old'||cSort==='name'?'':i+1}</div>
     <div><b>${esc(c.name)}</b>${r.abc?`<span class="tg tg${r.abc}">${r.abc}</span>`:''}${r.flag==='sleep'?'<span class="tg tgS">休眠</span>':r.flag==='none'?'<span class="tg tgN">注文なし</span>':r.flag==='new'?'<span class="tg tgW">新規</span>':''}${c.reg==='スポット'?'<span class="tg tgC">スポット</span>':''}${c.active===false?'<span class="tg tgC">無効</span>':''}
-      <br><span class="dim">${c.cats.join('・')}　${r.n}回　${r.last?'最終 '+md(r.last)+'（'+diffD(TODAY,r.last)+'日前）':'注文なし'}${r.next?'　次 '+md(r.next):''}</span></div>
+      <br><span class="dim">${c.cats.join('・')}　${r.n}回　${r.last?'最終 '+md(r.last)+'（'+diffD(TODAY,r.last)+'日前）':'注文なし'}${r.next?'　次 '+md(r.next):''}</span>${custWhere(hitOf[c.code])}</div>
     <div><div class="vol">${fmt(r[key])} <small>${unit}${r.share?'・'+Math.round(r.share*100)+'%':''}</small></div><div class="mt"><i style="width:${r[key]/mx*100}%"></i></div></div></div>`}).join('')||'<p class="dim">該当なし</p>';
   $('cKpi').onclick=e=>{const b=e.target.closest('[data-f]');if(b){cFlt=cFlt===b.dataset.f?'all':b.dataset.f;renderCust()}};
   $('clist').onclick=e=>{const b=e.target.closest('[data-c]');if(b){cSel=b.dataset.c;renderCust()}};
@@ -2430,9 +2451,9 @@ function mgForm(){const F=MGF;if(!F.sales)F.sales=ME;const v=$('v-mg');const c=c
       <label class="lbl">住所</label><input id="mgNcA" value="${esc(F.nc.addr)}"><label class="lbl">宛名・ご担当</label><input id="mgNcP" value="${esc(F.nc.attn)}">
       <p class="dim" style="margin-top:6px">この注文を登録すると、顧客マスタにも登録されます（区分：その他・取扱：加工品。あとで顧客タブで直せます）</p>`}
     const q=F.q.trim();let list,head;
-    if(q){const n=custNorm(q);list=CUST.filter(x=>x.active!==false&&custNorm(x.name).includes(n));head=`${list.length}件`}else{list=mgPasteCusts();head=list.length?'ペーストの取引が多い顧客（直近60日）':'まだペーストの取引がありません。名前を入力すると全顧客から探せます'}
+    const mHit={};if(q){list=CUST.filter(x=>x.active!==false&&(mHit[x.code]=custFind(x,q)));head=`${list.length}件`}else{list=mgPasteCusts();head=list.length?'ペーストの取引が多い顧客（直近60日）':'まだペーストの取引がありません。名前を入力すると全顧客から探せます'}
     const kp=new Set(MGO.map(o=>o.cust));
-    return `<input type="search" id="mgQ" placeholder="顧客名を入力（さつまいもの顧客も含めて全社から探せます）" value="${esc(F.q)}"><div class="dim" style="margin:8px 0 4px">${head}</div><div class="chips">${list.slice(0,8).map(x=>`<button class="chip" data-cu="${x.code}">${esc(x.name)}${kp.has(x.code)?'':' <span class="dim">（ペースト初）</span>'}</button>`).join('')}${list.length>8?`<span class="dim">ほか${list.length-8}件</span>`:''}</div>
+    return `<input type="search" id="mgQ" placeholder="名前・住所・電話で探せます（さつまいもの顧客も含めて全社から）" value="${esc(F.q)}"><div class="dim" style="margin:8px 0 4px">${head}</div><div class="chips">${list.slice(0,8).map(x=>`<button class="chip" data-cu="${x.code}">${esc(x.name)}${kp.has(x.code)?'':' <span class="dim">（ペースト初）</span>'}${mHit[x.code]&&mHit[x.code].where?` <span class="dim" style="font-weight:500">${esc(mHit[x.code].where)}</span>`:''}</button>`).join('')}${list.length>8?`<span class="dim">ほか${list.length-8}件</span>`:''}</div>
       ${F.no?`<div class="custlock warn" style="margin-top:6px">${F.no} の顧客を変えようとしています（元：${esc(c0.name)}）。新規の顧客は選べません。<button class="btn sm" id="mgCuRelock">元の顧客に戻す</button></div>`:`<p class="dim" style="margin-top:6px">${MGONLY()?'見つからない新しいお客様は、オオサカポテトの営業に登録を頼んでください（お客様の登録はオオサカポテトが行います）':'見つからない新しいお客様は <button class="btn sm" id="mgNc">＋ 新しい顧客を登録</button>（ここで登録した顧客は、さつまいも側でも同じ顧客として使えます）'}</p>`}`})();
   const mo=F.no?MGO.find(x=>x.no===F.no):null;
   v.innerHTML=mgBand(F.no?`${F.no} を直しています`:'登録')+(F.no?`<div class="editbar"><div><b>✎ ${F.no}（${esc(c0.name)}${mo?'・③納品 '+mdw(mo.deliver):''}）を編集しています</b><br><span>ここで保存すると、この注文が書き換わります。<b>新しい注文を入れるときは「編集をやめる」</b>を押してください。</span></div><button class="btn" id="mgEdStop">編集をやめる（新しい注文を入れる）</button></div>`:'')+`<div class="two"><div>
@@ -2493,12 +2514,12 @@ async function mgSaveForm(){const F=MGF;const err=m=>{$('mgErr').textContent=m};
 const MGC={all:true,q:'',sel:''};// 顧客は共通。最初からすべて出す（ペーストの取引ありだけに絞ることもできる）
 function mgCust(){const v=$('v-mg');const cnt={};MGO.forEach(o=>{if(o.status!=='キャンセル')cnt[o.cust]=(cnt[o.cust]||0)+1});
   const imoN={};ORDERS.forEach(o=>{if(o.status!=='キャンセル')imoN[o.cust]=(imoN[o.cust]||0)+1});
-  let list=MGC.all?CUST.filter(c=>c.active!==false):CUST.filter(c=>cnt[c.code]||(c.src==='マグチ'&&!c.conf));if(MGC.q){const n=custNorm(MGC.q);list=list.filter(c=>custNorm(c.name).includes(n))}
+  let list=MGC.all?CUST.filter(c=>c.active!==false):CUST.filter(c=>cnt[c.code]||(c.src==='マグチ'&&!c.conf));const cHit={};if(MGC.q){list=CUST.filter(c=>c.active!==false&&(cHit[c.code]=custFind(c,MGC.q)))}
   const uc=c=>c.src==='マグチ'&&!c.conf?1:0;list.sort((a,b)=>uc(b)-uc(a)||(cnt[b.code]||0)-(cnt[a.code]||0)||a.name.localeCompare(b.name,'ja'));
   const tags=c=>`${c.src==='マグチ'&&!c.conf&&!MGONLY()?'<span class="mgnew">マグチで登録・未確認</span> ':''}${imoN[c.code]&&!MGONLY()?'<span class="mgst s3">青果</span> ':''}${cnt[c.code]?'<span class="mgst pz">ペースト</span>':''}`;
   const sc=custOf(MGC.sel);const os=sc?MGO.filter(o=>o.cust===sc.code).sort((a,b)=>b.deliver-a.deliver):[];
-  v.innerHTML=mgBand(MGONLY()?'お客様':'顧客はさつまいもと共通（1社1件）。さつまいもの顧客も、ペーストの顧客も、ここで全部見られます')+`<div class="row mb"><span class="seg"><button data-a="0" class="${MGC.all?'':'on'}">ペーストの取引あり（${Object.keys(cnt).length}社）</button><button data-a="1" class="${MGC.all?'on':''}">すべて（${CUST.filter(c=>c.active!==false).length}社）</button></span><input type="search" id="mgCQ" placeholder="顧客名で検索" value="${esc(MGC.q)}" style="width:220px"></div>
-  <div class="cust"><div><div class="cl">${list.slice(0,300).map(c=>`<div class="mgci ${c.code===MGC.sel?'on':''}" data-s="${c.code}"><b>${esc(c.name)}</b><br>${tags(c)}</div>`).join('')||'<p class="dim" style="padding:8px">該当なし</p>'}</div></div>
+  v.innerHTML=mgBand(MGONLY()?'お客様':'顧客はさつまいもと共通（1社1件）。さつまいもの顧客も、ペーストの顧客も、ここで全部見られます')+`<div class="row mb"><span class="seg"><button data-a="0" class="${MGC.all?'':'on'}">ペーストの取引あり（${Object.keys(cnt).length}社）</button><button data-a="1" class="${MGC.all?'on':''}">すべて（${CUST.filter(c=>c.active!==false).length}社）</button></span><input type="search" id="mgCQ" placeholder="名前・住所・電話で検索" value="${esc(MGC.q)}" style="width:220px"></div>
+  <div class="cust"><div><div class="cl">${list.slice(0,300).map(c=>`<div class="mgci ${c.code===MGC.sel?'on':''}" data-s="${c.code}"><b>${esc(c.name)}</b><br>${tags(c)}${custWhere(cHit[c.code])}</div>`).join('')||'<p class="dim" style="padding:8px">該当なし</p>'}</div></div>
   <div>${sc?`<section class="card"><h3>${esc(sc.name)} <span class="dim" style="font-weight:500;font-size:12px">${sc.code}</span></h3>
     ${sc.src==='マグチ'&&!sc.conf&&!MGONLY()?`<div class="mgflag">前山さん（マグチ）が登録したお客様です。名前・住所を確かめて、すでにある顧客と同じ会社でなければ「確認した」を押してください。同じ会社だったときは、顧客タブ（さつまいも側）で片方を無効にしてください。<div style="margin-top:6px"><button class="btn sm pri" id="mgCok">確認した</button></div></div>`:''}<div class="sumbox">${esc([sc.zip?'〒'+sc.zip:'',sc.addr,sc.attn,sc.tel].filter(Boolean).join('　')||'住所未登録')}</div>
     <div class="row" style="gap:6px;margin-bottom:10px"><b style="font-size:13px">ペーストの配送日数</b><span class="dim">マグチから</span>${MGONLY()?`<b>${sc.mgLead!==''?sc.mgLead+' 営業日':'未設定（1営業日として計算）'}</b>`:`<input id="mgLd" inputmode="numeric" value="${sc.mgLead}" placeholder="1" style="width:60px">営業日<button class="btn sm" id="mgLdS">保存</button><span class="dim">発送予定日の自動入力に使います（さつまいもの配送日数とは別）</span>`}</div>
