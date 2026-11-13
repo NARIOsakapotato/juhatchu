@@ -991,7 +991,7 @@ $('tabs').addEventListener('click',e=>{const b=e.target.closest('.tab');if(b)swi
 $('grps').addEventListener('click',e=>{const b=e.target.closest('.grp');if(b)switchTab(GRP_LAST[b.dataset.g])});
 function render(){if(PM==='paste'&&tabGroup(TAB)==='sales'&&['list','week','new','cust','mghist'].includes(TAB)){renderBadge();const vv=$('v-'+TAB);if(vv)vv.hidden=true;mgRender();return}$('v-mg').hidden=true;$('v-'+TAB).hidden=false;if(TAB==='hist'){renderBadge();histWithPm();return}renderBadge();({list:renderList,week:renderWeek,new:renderForm,form:renderInbox,cust:renderCust,shift:renderShift,bag:renderBag,wash:renderWash,hist:renderHist,inv:renderInv,nh:renderNh,trace:renderTrace})[TAB]()}
 function renderBadge(){const n=ORDERS.filter(o=>o.status==='受注').length;$('bdWeek').hidden=!n;$('bdWeek').textContent=n;const f=fiOpenN();$('bdForm').hidden=!f;$('bdForm').textContent=f;const gs=n+f+mgUnseen();{const m=mgUnseen();$('bdMg').hidden=!m;$('bdMg').textContent=m}$('bdGsales').hidden=!gs||tabGroup(TAB)==='sales';$('bdGsales').textContent=gs}
-function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('on'),2200)}
+function toast(m,ms){const t=$('toast');t.textContent=m;t.classList.add('on');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('on'),ms||2200)}
 
 /* ===== 一覧 ===== */
 let lstStatus='all';
@@ -2625,7 +2625,7 @@ function destPick(host,S,c,on){if(!c){host.innerHTML='<div class="sumbox">顧客
    <button type="button" class="btn sm" id="${host.id}Add" style="margin-top:6px">＋ 納品先を登録する</button> <span class="dim" style="font-size:12px">店舗・工場など、何度も送る先は登録しておくと次から選ぶだけです</span>`;
   host.querySelectorAll('input[type=radio]').forEach(r=>r.onchange=()=>{S.dest=r.value;on()});
   const ta=$(host.id+'Alt');if(ta)ta.oninput=()=>{S.altTxt=ta.value};
-  host.querySelectorAll('[data-de]').forEach(b=>b.onclick=e=>{e.preventDefault();destEdit(c,destById(c.code,b.dataset.de),on)});
+  host.querySelectorAll('[data-de]').forEach(b=>b.onclick=e=>{e.preventDefault();destEdit(c,destById(c.code,b.dataset.de),x=>{if(!x&&S.dest===b.dataset.de)S.dest=destDefault(c.code);on()})});
   $(host.id+'Add').onclick=()=>destEdit(c,null,d=>{S.dest=d.id;on()})}
 /* 納品先を足す・直す（小さい窓。どの画面の上にも出せる） */
 function destEdit(c,d,after){const host=document.createElement('div');host.className='bmpop';const v=k=>d?esc(d[k]):'';
@@ -2640,8 +2640,15 @@ function destEdit(c,d,after){const host=document.createElement('div');host.class
    <label>いつもここ</label><label style="display:flex;gap:6px;align-items:center;font-weight:400"><input type="checkbox" id="de_def" style="width:auto" ${d&&d.def?'checked':''}> この顧客の注文は、最初からこの納品先を選んでおく</label>
    ${d?`<label>使う</label><select id="de_on"><option value="1" ${d.on?'selected':''}>はい</option><option value="0" ${d.on?'':'selected'}>いいえ（候補に出さない）</option></select>`:''}</div>
    <p class="dim" id="de_err" style="color:var(--bad);margin-top:4px"></p>
-   <div class="row" style="gap:8px;margin-top:8px;justify-content:flex-end"><button class="btn" id="de_no">やめる</button><button class="btn pri" id="de_ok">保存</button></div></div>`;
+   <div class="row" style="gap:8px;margin-top:8px;justify-content:flex-end">${d?'<button class="btn" id="de_del" style="margin-right:auto;color:var(--bad)">削除</button>':''}<button class="btn" id="de_no">やめる</button><button class="btn pri" id="de_ok">保存</button></div></div>`;
   document.body.appendChild(host);const close=()=>host.remove();$('de_no').onclick=close;$('de_name').focus();
+  /* 削除：1回目は確かめ、2回目で実行。注文で使われている納品先は消さずに候補から外す（サーバーが決める） */
+  if(d)$('de_del').onclick=async()=>{const b=$('de_del');if(!b.dataset.sure){b.dataset.sure='1';b.textContent='本当に削除する';b.className='btn pri warn';b.style.color='';$('de_err').textContent=`「${d.name}」を削除します。元に戻せません。よければもう一度押してください（注文で使われている場合は、消さずに候補から外します）`;return}
+    busy(true);try{const r=await api('destDelete',{id:d.id,cust:c.code});
+      if(r.deleted)RAW.dests=(RAW.dests||[]).filter(x=>String(x['納品先ID'])!==String(d.id));
+      else RAW.dests.forEach(x=>{if(String(x['納品先ID'])===String(d.id)){x['有効']=false;x['既定']=false}});
+      close();toast(r.deleted?'納品先を削除しました':`注文 ${r.used}件で使われているので、消さずに候補から外しました`,r.deleted?undefined:6000);if(after)after(null)}
+    catch(e){$('de_err').textContent='削除できませんでした：'+e.message}finally{busy(false)}};
   $('de_ok').onclick=async()=>{const g=id=>$('de_'+id).value.trim();const err=m=>{$('de_err').textContent=m};
     if(!g('name'))return err('名前を入れてください');if(!g('a1'))return err('住所を入れてください');
     if(destsOf(c.code,true).some(x=>x.name===g('name')&&(!d||x.id!==d.id)))return err('同じ名前の納品先がすでにあります');
