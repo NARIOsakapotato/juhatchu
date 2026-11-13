@@ -477,6 +477,11 @@ body.mgonly #grps,body.mgonly #kSw,body.mgonly #askBtn,body.mgonly #gearBtn,body
 .nhst{display:inline-block;font-size:11.5px;font-weight:800;padding:2px 8px;border-radius:999px;white-space:nowrap}.nhst.none{background:var(--bad-soft);color:var(--bad)}.nhst.made{background:var(--warn-soft);color:#8a5a12}.nhst.sent{background:var(--ok-soft);color:var(--ok-ink)}
 .nhh{background:var(--paper2);border-radius:10px;padding:6px 10px;margin:8px 0}
 .mbox.wide{max-width:1180px}
+.bmemo{background:#fff8e1;border:1px solid #e6c95a;border-radius:10px;padding:8px 10px;margin:8px 0;font-size:13px}.bmemo.none{background:var(--paper2);border:1px dashed var(--line2)}.bmtxt{margin-top:4px;line-height:1.6;white-space:normal}
+.bmpop{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;padding:16px}.bmpopin{background:#fff;border-radius:14px;padding:16px;width:min(560px,100%);box-shadow:0 8px 30px rgba(0,0,0,.25)}
+.tplg{display:grid;grid-template-columns:280px minmax(0,1fr);gap:16px;margin-top:8px}.tpll{display:flex;flex-direction:column;gap:6px}.tpli{text-align:left;border:1px solid var(--line2);background:#fff;border-radius:10px;padding:8px 10px;font:inherit;font-weight:700;cursor:pointer}.tpli.on{background:var(--accent-soft);border-color:var(--accent)}
+.tplk{margin-top:14px;background:var(--paper2);border-radius:10px;padding:8px 10px;font-size:12px;line-height:1.8}.tplk code{background:#fff;border:1px solid var(--line2);border-radius:5px;padding:0 5px;font-size:12px}
+@media(max-width:800px){.tplg{grid-template-columns:1fr}}
 .trbox{display:flex;flex-direction:column;gap:6px}.trun{display:flex;gap:6px;align-items:center;font-size:13px}.trun input{width:auto}
 .trsel{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:13px;min-height:30px}.trpick{display:inline-flex;align-items:center;gap:4px;background:var(--ok-soft);border:1px solid #cfe3c5;border-radius:999px;padding:3px 4px 3px 10px;font-weight:700}.trpick button{border:none;background:none;cursor:pointer;font-size:14px;color:var(--mute);padding:0 4px}
 .chip.trc.on{background:var(--head);color:#fff;border-color:var(--head)}.trarea{flex-wrap:wrap}
@@ -644,7 +649,7 @@ body.pm .kshare{display:inline-block}
     <div>
       <section class="card" style="margin-bottom:12px"><h3>1 誰から</h3>
         <div class="seg" id="fMode" style="margin-bottom:8px"><button class="on" data-m="pick">既存の顧客</button><button data-m="new">新規の顧客</button></div><div id="fCustLock" hidden></div>
-        <div id="fPick"><input type="search" id="fCustQ" placeholder="顧客名を入力すると候補が出ます"><div class="sugg" id="fSugg"></div></div>
+        <div id="fPick"><input type="search" id="fCustQ" placeholder="顧客名を入力すると候補が出ます"><div class="sugg" id="fSugg"></div><div id="fBillMemo"></div></div>
         <div id="fNew" hidden>
           <div class="two" style="gap:8px"><div><label class="lbl">顧客名 <span style="color:var(--bad)">必須</span></label><input id="nName"></div><div><label class="lbl">電話（伝票用）</label><input id="nTel"></div></div>
           <div id="nDup"></div>
@@ -896,7 +901,7 @@ function build(d){RAW=d;trBuild(d);d.recurring=d.recurring||[];d.formInbox=d.for
   ITEMS=d.items.filter(r=>r['有効']!==false&&r['品目名']).sort((a,b)=>(Number(a['表示順'])||99)-(Number(b['表示順'])||99)).map(r=>({cat:r['カテゴリ']||'青果',name:String(r['品目名']),sizes:splitPipe(r['規格候補']),bagSizes:splitPipe(r['袋詰本数候補']),
     packs:splitPipe(r['荷姿候補']).map(x=>{const p=x.split(':').map(v=>v.trim());const per=p[2]!==undefined&&p[2]!==''?Number(p[2]):'';return {n:p[0],u:p[1]||'kg',per,bag:/袋詰/.test(p[0]),adj:/袋詰|野菜コンテナ/.test(p[0])}})}));
   ITEMS.forEach(it=>{if(!it.sizes.length)it.sizes=['—'];if(!it.packs.length)it.packs=[{n:'バラ',u:'kg',per:''}]});
-  CUST=d.customers.filter(r=>r['コード']).map(r=>({code:String(r['コード']),name:String(r['顧客名']||''),kind:r['区分']||'',cats:splitPipe(r['カテゴリ']),zip:r['郵便番号']||'',addr1:r['住所1']||'',addr2:r['住所2']||'',addr:[r['住所1'],r['住所2']].filter(Boolean).join(' '),attn:r['宛名']||'',tel:r['電話']||'',mail:r['メール']||'',fax:r['FAX']||'',method:r['配送方法']||'宅配便',carrier:r['標準運送会社']||'',lead:Number(r['配送日数'])||1,hours:r['受入時間']||'',closed:r['受入不可日']||'',pack:r['標準荷姿']||'',active:r['有効']!==false,reg:r['登録区分']||'継続',since:String(r['取引開始']||'').slice(0,7),note:r['備考']||'',src:r['登録元']||'',conf:pdt(r['確認日時']),mgLead:r['ペースト配送日数']===''||r['ペースト配送日数']===undefined||r['ペースト配送日数']===null?'':Number(r['ペースト配送日数'])}));
+  CUST=d.customers.filter(r=>r['コード']).map(r=>({code:String(r['コード']),name:String(r['顧客名']||''),kind:r['区分']||'',cats:splitPipe(r['カテゴリ']),zip:r['郵便番号']||'',addr1:r['住所1']||'',addr2:r['住所2']||'',addr:[r['住所1'],r['住所2']].filter(Boolean).join(' '),attn:r['宛名']||'',tel:r['電話']||'',mail:r['メール']||'',mailCc:r['メールCC']||'',mailName:r['メール宛名']||'',billMemo:r['請求メモ']||'',fax:r['FAX']||'',method:r['配送方法']||'宅配便',carrier:r['標準運送会社']||'',lead:Number(r['配送日数'])||1,hours:r['受入時間']||'',closed:r['受入不可日']||'',pack:r['標準荷姿']||'',active:r['有効']!==false,reg:r['登録区分']||'継続',since:String(r['取引開始']||'').slice(0,7),note:r['備考']||'',src:r['登録元']||'',conf:pdt(r['確認日時']),mgLead:r['ペースト配送日数']===''||r['ペースト配送日数']===undefined||r['ペースト配送日数']===null?'':Number(r['ペースト配送日数'])}));
   STAFF=d.staff.filter(r=>r['名前']&&r['有効']!==false).sort((a,b)=>(Number(a['表示順'])||99)-(Number(b['表示順'])||99)).map(r=>({n:String(r['名前']),role:r['区分']||'パート',dow:splitPipe(r['曜日']).map(Number),f:Number(r['開始'])||9,t:Number(r['終了'])||15,brk:Number(r['休憩分'])||0,cnt:Number(r['人数'])||1,wage:(r['時給']===''||r['時給']==='min'||r['時給']===undefined)?'min':Number(r['時給'])}));
   SHIFT={};SHIFT_CHANGED=new Set();d.shifts.forEach(r=>{if(!r['日付']||!r['名前'])return;const k=String(r['日付']).slice(0,10)+'|'+r['名前'];
     if(r['開始']===''||r['開始']===null||r['開始']===undefined)SHIFT[k]=null;else{const v=[Number(r['開始']),Number(r['終了']),Number(r['休憩分'])||0];if(r['人数']!==''&&r['人数']!==null&&r['人数']!==undefined)v.push(Number(r['人数']));SHIFT[k]=v}
@@ -1461,6 +1466,7 @@ function renderForm(){
   $('fRegNote').textContent=F.reg==='継続'?'次回から候補に出ます。送り先・配送条件も保存されます':'受注の記録には残りますが、顧客候補には出ません（スポット）';
   const c=isNew?{name:$('nName').value||'（新規顧客）',lead:Number($('nLead').value)||1}:(F.cust&&custOf(F.cust));
   {const sel=$('fCarrier');const cur=sel.value;sel.innerHTML='<option value="">流通に任せる</option>'+CARRIERS.map(x=>`<option>${x}</option>`).join('');const def=(c&&c.carrier)||'';sel.value=F.carrierTouched?cur:def;$('fCarrierNote').textContent=def?`この顧客の標準：${def}`:'標準なし（流通が発送手配時に選ぶ）';if(def==='自社便'&&!F.carrierTouched)$('fMethod').value='自社便'}
+  $('fBillMemo').innerHTML=F.mode==='pick'&&c?billMemoHtml(c):'';
   $('fAddr').innerHTML=c?`〒${c.zip} ${esc(c.addr)}<br>${esc(c.attn)}　${c.tel}<br><span class="dim">受入 ${c.hours||'—'}　不可 ${c.closed||'—'}　配送 ${c.lead}日　${c.carrier?'標準 '+c.carrier:''}　${esc(c.note)}</span>`:'顧客を選ぶと送り先が表示されます';
   const dv=new Date($('fDeliver').value);
   $('fSummary').innerHTML=c?`<b>${esc(c.name)}</b>${isNew?`<span class="tag t-受注" style="margin-left:6px">新規・${F.reg==='継続'?'マスタ登録':'スポット'}</span>`:''} へ ${F.lines.map(l=>`${l.item} ${l.size} ${l.qty||'?'}`).join('／')}<br>③ 納品 <b>${mdw(dv)}</b>　→ 流通の提案：② 発送 ${md(addD(dv,-c.lead))}　① 用意 ${md(addD(dv,-c.lead-1))}　　${$('fCarrier').value||'運送会社：流通に任せる'}`:'顧客を選んでください';
@@ -1799,16 +1805,17 @@ function openCustEdit(c){
     ${f('name','顧客名',c.name)}<label>区分</label><select id="ce_kind">${(OPT['区分']||['小売','市場','卸','農家','その他']).map(x=>`<option ${x===c.kind?'selected':''}>${esc(x)}</option>`).join('')}</select>
     <label>取扱カテゴリ</label><div class="chips" id="ce_cats">${[...new Set(ITEMS.map(i=>i.cat))].map(x=>`<button class="chip ${c.cats.includes(x)?'on':''}" data-c="${x}">${x}</button>`).join('')}</div>
     <label>登録区分</label><select id="ce_reg"><option ${c.reg==='継続'?'selected':''}>継続</option><option ${c.reg==='スポット'?'selected':''}>スポット</option></select>
-    ${f('zip','郵便番号',c.zip,'530-0001')}${f('addr1','住所1',c.addr1)}${f('addr2','住所2（建物・窓口）',c.addr2)}${f('attn','宛名・担当者',c.attn)}${f('tel','電話',c.tel)}${f('mail','メール',c.mail)}${f('fax','FAX',c.fax)}
+    ${f('zip','郵便番号',c.zip,'530-0001')}${f('addr1','住所1',c.addr1)}${f('addr2','住所2（建物・窓口）',c.addr2)}${f('attn','宛名・担当者',c.attn)}${f('tel','電話',c.tel)}${f('mail','メール（TO）',c.mail,'複数は「,」で区切る')}${f('mailCc','メール（CC）',c.mailCc,'複数は「,」で区切る')}${f('mailName','メールの宛名',c.mailName,'例：株式会社○○ 購買部 山田様（空なら「顧客名 御中」）')}${f('fax','FAX',c.fax)}
     <label>配送方法</label><select id="ce_method">${(OPT['配送方法']||['宅配便','自社便','引取り','チャーター']).map(x=>`<option ${x===c.method?'selected':''}>${esc(x)}</option>`).join('')}</select>
     <label>標準運送会社</label><select id="ce_carrier"><option value="">—</option>${CARRIERS.map(x=>`<option ${x===c.carrier?'selected':''}>${esc(x)}</option>`).join('')}</select>
-    ${f('lead','配送日数',c.lead)}${f('hours','受入時間',c.hours,'8:00-11:00')}${f('closed','受入不可日',c.closed,'日祝')}${f('pack','標準荷姿',c.pack)}${f('note','備考（毎回の申し送り）',c.note)}
+    ${f('lead','配送日数',c.lead)}${f('hours','受入時間',c.hours,'8:00-11:00')}${f('closed','受入不可日',c.closed,'日祝')}${f('pack','標準荷姿',c.pack)}${f('note','備考（毎回の申し送り）',c.note)}${ivAllowed()?`<label>請求メモ<br><span class="dim" style="font-weight:400;font-size:11px">送料・単価・個別対応</span></label><textarea id="ce_billMemo" rows="3" placeholder="請求を使える人だけに見えます">${esc(c.billMemo)}</textarea>`:''}
     <label>有効</label><select id="ce_active"><option value="1" ${c.active?'selected':''}>はい</option><option value="0" ${!c.active?'selected':''}>いいえ（候補に出さない）</option></select></div>
-    <button class="btn acc blk" id="ceOk">保存する</button><div class="acts"><button class="btn" id="ceNo">閉じる</button></div>`);
+    <p class="dim" id="ceErr" style="color:var(--bad)"></p><button class="btn acc blk" id="ceOk">保存する</button><div class="acts"><button class="btn" id="ceNo">閉じる</button></div>`);
   $('ce_cats').onclick=e=>{const b=e.target.closest('.chip');if(b)b.classList.toggle('on')};$('ceNo').onclick=closeModal;
   $('ceOk').onclick=async()=>{const g=id=>$('ce_'+id).value;const cats=[...$('ce_cats').querySelectorAll('.on')].map(b=>b.dataset.c);
-    const row={'コード':c.code,'顧客名':g('name'),'区分':g('kind'),'カテゴリ':cats.join('|'),'郵便番号':g('zip'),'住所1':g('addr1'),'住所2':g('addr2'),'宛名':g('attn'),'電話':g('tel'),'メール':g('mail'),'FAX':g('fax'),'配送方法':g('method'),'標準運送会社':g('carrier'),'配送日数':Number(g('lead'))||1,'受入時間':g('hours'),'受入不可日':g('closed'),'標準荷姿':g('pack'),'有効':g('active')==='1','登録区分':g('reg'),'備考':g('note')};
-    Object.assign(c,{name:row['顧客名'],kind:row['区分'],cats,reg:row['登録区分'],zip:row['郵便番号'],addr1:row['住所1'],addr2:row['住所2'],addr:[row['住所1'],row['住所2']].filter(Boolean).join(' '),attn:row['宛名'],tel:row['電話'],mail:row['メール'],fax:row['FAX'],method:row['配送方法'],carrier:row['標準運送会社'],lead:row['配送日数'],hours:row['受入時間'],closed:row['受入不可日'],pack:row['標準荷姿'],note:row['備考'],active:row['有効']});
+    const bad=mailBad(g('mail')).concat(mailBad(g('mailCc')));if(bad.length){$('ceErr').textContent='メールアドレスの形が正しくありません：'+bad.join('、');return}
+    const row={'コード':c.code,'顧客名':g('name'),'区分':g('kind'),'カテゴリ':cats.join('|'),'郵便番号':g('zip'),'住所1':g('addr1'),'住所2':g('addr2'),'宛名':g('attn'),'電話':g('tel'),'メール':mailNorm(g('mail')),'メールCC':mailNorm(g('mailCc')),'メール宛名':g('mailName').trim(),'FAX':g('fax'),'配送方法':g('method'),'標準運送会社':g('carrier'),'配送日数':Number(g('lead'))||1,'受入時間':g('hours'),'受入不可日':g('closed'),'標準荷姿':g('pack'),'有効':g('active')==='1','登録区分':g('reg'),'備考':g('note')};if($('ce_billMemo'))row['請求メモ']=$('ce_billMemo').value.trim();
+    Object.assign(c,{name:row['顧客名'],kind:row['区分'],cats,reg:row['登録区分'],zip:row['郵便番号'],addr1:row['住所1'],addr2:row['住所2'],addr:[row['住所1'],row['住所2']].filter(Boolean).join(' '),attn:row['宛名'],tel:row['電話'],mail:row['メール'],mailCc:row['メールCC'],mailName:row['メール宛名'],billMemo:row['請求メモ']!==undefined?row['請求メモ']:c.billMemo,fax:row['FAX'],method:row['配送方法'],carrier:row['標準運送会社'],lead:row['配送日数'],hours:row['受入時間'],closed:row['受入不可日'],pack:row['標準荷姿'],note:row['備考'],active:row['有効']});
     closeModal();renderCust();await save('saveCustomer',{customer:row},'顧客情報を保存しました')};
 }
 
@@ -2245,6 +2252,7 @@ function renderInv(){
 function ivRenderEdit(){const c=CUST.find(x=>x.code===IV.sel);if(!c){$('ivEdit').innerHTML='<span class="dim">左から顧客を選んでください</span>';return}
   const v=ivCalc(c.code);const os=ivOrdersOf(c.code);const h=IV.heads[c.code]||{};const done=h['状態']==='発行済';const dis=done?'disabled':'';const fin=IV.FIN[c.code]||{};
   $('ivEdit').innerHTML=`<div class="row" style="gap:10px;flex-wrap:wrap"><b style="font-size:16px">${esc(c.name)}</b><span class="dim">${c.code}　請求書番号 ${ivNo(c.code)}</span><span class="dim" id="ivSaveSt"></span><span style="margin-left:auto" class="row" style="gap:6px"><span class="iv-tx t8">8%</span><span class="dim">食品</span><span class="iv-tx t10">10%</span><span class="dim">送料など</span></span></div>
+  ${billMemoHtml(c)}
   ${done?`<div class="iv-ok">発行済み（${esc(String(h['発行日時']||'').replace('T',' ').slice(0,16))} ${esc(h['発行者']||'')}）。直すときは「発行を取り消す」を押してから。${h['PDF']?`　<a href="${esc(h['PDF'])}" target="_blank" rel="noopener">PDFを開く</a>`:''}</div>`:''}
   ${os.map((o,oi)=>{const fl=ivFlag(o),ck=carKind(ivCar(o));const both=os.some(x=>x.sec==='paste')&&os.some(x=>x.sec!=='paste');const sh=both&&(oi===0||ivSecN(os[oi-1])!==ivSecN(o))?`<div class="iv-sec ${o.sec==='paste'?'pz':''}">${IV_SEC[o.sec||'imo']}</div>`:'';return sh+`<div class="iv-ord" ${fl?'style="border-color:var(--bad)"':''}><div class="iv-oh"><b>③納品 ${mdw(o.deliver)}</b><span class="dim">${o.no}　${esc(o.status)}</span><span class="dim">受け渡し</span><span class="iv-hand ${ck==='引取り'?'k':fl?'x':''}">${shipTxt(o)}</span>${IV.ACK[o.no]?'<span class="dim">（記録どおりと確認済み）</span>':''}</div>
    ${fl&&!done?(o.mg?`<div class="iv-fix">⚠ ${esc(fl)}<button class="btn sm" data-mgo="${o.no}">詳細を開く</button><button class="btn sm" data-ivack="${o.no}">記録どおりで正しい</button></div>`:`<div class="iv-fix">⚠ ${esc(fl)}。実際の受け渡しを選んでください：<select data-ivfix="${o.no}">${carOpts('','選ぶ')}</select><button class="btn sm" data-ivack="${o.no}">記録どおりで正しい</button></div>`):''}
@@ -2418,7 +2426,7 @@ function mgForm(){const F=MGF;if(!F.sales)F.sales=ME;const v=$('v-mg');const c=c
       ${F.no?`<div class="custlock warn" style="margin-top:6px">${F.no} の顧客を変えようとしています（元：${esc(c0.name)}）。新規の顧客は選べません。<button class="btn sm" id="mgCuRelock">元の顧客に戻す</button></div>`:`<p class="dim" style="margin-top:6px">${MGONLY()?'見つからない新しいお客様は、オオサカポテトの営業に登録を頼んでください（お客様の登録はオオサカポテトが行います）':'見つからない新しいお客様は <button class="btn sm" id="mgNc">＋ 新しい顧客を登録</button>（ここで登録した顧客は、さつまいも側でも同じ顧客として使えます）'}</p>`}`})();
   const mo=F.no?MGO.find(x=>x.no===F.no):null;
   v.innerHTML=mgBand(F.no?`${F.no} を直しています`:'登録')+(F.no?`<div class="editbar"><div><b>✎ ${F.no}（${esc(c0.name)}${mo?'・③納品 '+mdw(mo.deliver):''}）を編集しています</b><br><span>ここで保存すると、この注文が書き換わります。<b>新しい注文を入れるときは「編集をやめる」</b>を押してください。</span></div><button class="btn" id="mgEdStop">編集をやめる（新しい注文を入れる）</button></div>`:'')+`<div class="two"><div>
-    <section class="card" style="margin-bottom:12px"><h3>1 誰から <span class="dim mgin" style="font-weight:500;font-size:12px">顧客はさつまいもと共通</span></h3>${pick}</section>
+    <section class="card" style="margin-bottom:12px"><h3>1 誰から <span class="dim mgin" style="font-weight:500;font-size:12px">顧客はさつまいもと共通</span></h3>${pick}${c?billMemoHtml(c):''}</section>
     <section class="card" style="margin-bottom:12px"><h3>2 どこへ <span class="dim" style="font-weight:500;font-size:12px">発送はマグチフードプロセスから</span></h3>
       <div class="sumbox">${c?esc([c.zip?'〒'+c.zip:'',c.addr,c.attn].filter(Boolean).join('　')||'（顧客マスタに住所がありません）'):'顧客を選ぶと送り先が表示されます'}</div>
       <label class="lbl"><input type="checkbox" id="mgAlt" style="width:auto" ${F.alt?'checked':''}> 今回だけ別の送り先にする（工場宛てなど）</label>
@@ -2580,6 +2588,53 @@ const nhLabel=(kind,no)=>{const rs=nhRows(nhNum(kind,no));if(!rs.length)return '
 const nhMe=()=>{const r=((RAW&&RAW.settings)||[]).find(x=>String(x['キー'])==='通知先_'+ME);return r?String(r['値']||''):''};
 function nhInfo(kind,no){if(kind==='paste'){const o=MGO.find(x=>x.no===no);return o&&{name:o.custName,cust:o.cust,deliver:o.deliver,status:o.status}}
   const o=ORDERS.find(x=>x.no===no);const c=o&&custOf(o.cust);return o&&{name:c?c.name:o.cust,cust:o.cust,deliver:o.deliver,status:o.status}}
+
+/* ===== 2026/11/12 改修1段目：請求メモ（顧客ごと・請求を使える人だけ）／メールのテンプレート／TO・CC 複数 ===== */
+const MAIL_RE=/^[^\s@,;、]+@[^\s@,;、]+\.[^\s@,;、]+$/;
+const mailList=v=>String(v||'').split(/[\s,;、，；]+/).map(x=>x.trim()).filter(Boolean);
+const mailBad=v=>mailList(v).filter(x=>!MAIL_RE.test(x));
+const mailNorm=v=>mailList(v).join(', ');
+/* 請求メモ：登録画面・請求画面に出す箱。請求を使える人にだけ出す（ほかの人の画面にはデータ自体が来ない） */
+function billMemoHtml(c){if(!c||!ivAllowed())return '';
+  return `<div class="bmemo ${c.billMemo?'':'none'}"><div class="row" style="justify-content:space-between;gap:8px"><b>請求メモ <span class="dim" style="font-weight:400;font-size:11px">送料・単価・個別対応（請求を使える人だけに見えます）</span></b><button type="button" class="btn sm" data-bmemo="${esc(c.code)}">${c.billMemo?'直す':'入れる'}</button></div>${c.billMemo?`<div class="bmtxt">${esc(c.billMemo).replace(/\n/g,'<br>')}</div>`:'<div class="dim" style="font-size:12px">まだ入っていません</div>'}</div>`}
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-bmemo]');if(!b)return;e.preventDefault();e.stopPropagation();
+  billMemoEdit(custOf(b.dataset.bmemo),()=>{if(TAB==='new'){PM==='paste'?mgForm():renderForm()}else if(TAB==='inv')ivRenderEdit()})});
+function billMemoEdit(c,after){if(!c)return;
+  const host=document.createElement('div');host.className='bmpop';host.innerHTML=`<div class="bmpopin"><h3 style="margin:0 0 6px">請求メモ　<span class="dim" style="font-weight:400;font-size:13px">${esc(c.name)}</span></h3>
+   <textarea id="bmTxt" rows="6" placeholder="例：送料は元払い（請求しない）／大 1kg 280円・中 250円／請求書は月末にまとめて郵送も">${esc(c.billMemo)}</textarea>
+   <p class="dim" style="font-size:12px;margin-top:4px">受注の登録画面と請求の画面に出ます。見えるのは請求を使える人だけです。</p>
+   <div class="row" style="gap:8px;margin-top:8px;justify-content:flex-end"><button class="btn" id="bmNo">やめる</button><button class="btn pri" id="bmOk">保存</button></div></div>`;
+  document.body.appendChild(host);const close=()=>host.remove();$('bmNo').onclick=close;host.onclick=e=>{if(e.target===host)close()};$('bmTxt').focus();
+  $('bmOk').onclick=async()=>{const v=$('bmTxt').value.trim();busy(true);try{await api('saveCustomer',{customer:{'コード':c.code,'請求メモ':v}});const rc=RAW.customers.find(z=>String(z['コード'])===c.code);if(rc)rc['請求メモ']=v;c.billMemo=v;close();toast('請求メモを保存しました');if(after)after()}catch(e){errBar('保存できませんでした：'+e.message)}finally{busy(false)}}}
+/* メールのテンプレート：RAW.mailTpls（シート「メールテンプレート」）。1つもなければ、今までの文面を「標準」として使う */
+const TPL_DEF={ID:'',種類:'納品書',名前:'標準',件名:'【株式会社オオサカポテト】納品書のご送付（{納品日}納品分）',本文:'{宛名}\n\nいつもお世話になっております。株式会社オオサカポテトです。\n{納品日}納品分の納品書をお送りいたします。\nご確認のほど、よろしくお願いいたします。\n\n株式会社オオサカポテト\n〒581-0010 大阪府八尾市都塚北2-12'};
+const TPL_KEYS=[['{宛名}','メールの宛名（顧客ごとに登録。なければ「顧客名 御中」）'],['{顧客名}','顧客名'],['{納品日}','例：11月6日'],['{納品書番号}','例：N-0420'],['{送信者}','送る人の名前']];
+function tplList(kind){const l=(RAW.mailTpls||[]).filter(t=>String(t['種類']||'納品書')===kind&&t['有効']!==false&&String(t['有効']).toUpperCase()!=='FALSE').sort((a,b)=>(Number(a['表示順'])||0)-(Number(b['表示順'])||0));return l.length?l:[Object.assign({},TPL_DEF,{種類:kind})]}
+const tplFill=(t,x)=>String(t||'').replace(/\{(宛名|顧客名|納品日|納品書番号|送信者)\}/g,(m,k)=>x[k]!==undefined?x[k]:m);
+function tplOpen(){const kind='納品書';const st=tplOpen.st||(tplOpen.st={sel:null});const list=tplList(kind);if(!list.some(t=>String(t.ID)===String(st.sel)))st.sel=String(list[0].ID);
+  const cur=st.neo||list.find(t=>String(t.ID)===String(st.sel));
+  modal(`<h2>メールのテンプレート <span class="dim" style="font-size:13px;font-weight:400">納品書を送るメール</span></h2>
+  <div class="tplg"><div><div class="tpll">${list.map(t=>`<button class="tpli ${!st.neo&&String(t.ID)===String(st.sel)?'on':''}" data-tp="${esc(t.ID)}">${esc(t['名前'])}${t.ID===''?' <span class="dim">（最初から入っている文面）</span>':''}</button>`).join('')}${st.neo?'<button class="tpli on">（新しいテンプレート）</button>':''}</div>
+    <button class="btn sm" id="tpNew" style="margin-top:8px">＋ テンプレートを足す</button>
+    <div class="tplk"><b>差し込める言葉</b>${TPL_KEYS.map(([k,d])=>`<div><code>${k}</code> ${d}</div>`).join('')}<div class="dim" style="margin-top:4px">送る画面で、その注文の内容に置き換わります。置き換わったあとの文面は、送る前にその場で直せます。</div></div></div>
+  <div><label class="lbl">名前（選ぶときに出る名前）</label><input id="tpName" value="${esc(cur['名前'])}" placeholder="例：通常／初回のお客様／再送">
+    <label class="lbl">件名</label><input id="tpSub" value="${esc(cur['件名'])}">
+    <label class="lbl">本文</label><textarea id="tpBody" rows="11">${esc(cur['本文'])}</textarea>
+    <p class="dim" id="tpErr" style="color:var(--bad);margin-top:4px"></p>
+    <div class="row" style="gap:8px;margin-top:6px"><button class="btn pri" id="tpSave">${cur.ID===''&&!st.neo?'この文面をテンプレートとして保存':'保存'}</button>${cur.ID!==''&&!st.neo?'<button class="btn warn" id="tpDel">このテンプレートを消す</button>':''}${st.neo?'<button class="btn" id="tpCancel">やめる</button>':''}</div></div></div>
+  <div class="acts"><button class="btn" id="tpClose">閉じる</button></div>`);
+  $('modal').querySelector('.mbox').classList.add('wide');
+  $('tpClose').onclick=()=>{tplOpen.st=null;closeModal()};
+  $('modal').querySelectorAll('[data-tp]').forEach(b=>b.onclick=()=>{st.neo=null;st.sel=b.dataset.tp;tplOpen()});
+  $('tpNew').onclick=()=>{st.neo={ID:'',種類:kind,名前:'',件名:TPL_DEF['件名'],本文:TPL_DEF['本文']};tplOpen();$('tpName').focus()};
+  if($('tpCancel'))$('tpCancel').onclick=()=>{st.neo=null;tplOpen()};
+  $('tpSave').onclick=async()=>{const t={ID:st.neo?'':cur.ID,種類:kind,名前:$('tpName').value.trim(),件名:$('tpSub').value.trim(),本文:$('tpBody').value.trim()};const err=m=>{$('tpErr').textContent=m};
+    if(!t['名前'])return err('名前を入れてください');if(!t['件名']||!t['本文'])return err('件名と本文を入れてください');
+    if(tplList(kind).some(o=>o.ID!==''&&String(o.ID)!==String(t.ID)&&o['名前']===t['名前']))return err('同じ名前のテンプレートがあります');
+    busy(true);try{const r=await api('tplSave',{tpl:t});RAW.mailTpls=(RAW.mailTpls||[]).filter(o=>String(o.ID)!==String(r.tpl.ID)).concat([r.tpl]);st.neo=null;st.sel=String(r.tpl.ID);toast('テンプレートを保存しました');tplOpen()}catch(e){err('保存できませんでした：'+e.message)}finally{busy(false)}};
+  if($('tpDel'))$('tpDel').onclick=async()=>{const b=$('tpDel');if(!b.dataset.armed){b.dataset.armed='1';b.textContent='もう一度押すと消します';setTimeout(()=>{if(b.isConnected){delete b.dataset.armed;b.textContent='このテンプレートを消す'}},4000);return}
+    busy(true);try{await api('tplDelete',{id:cur.ID});RAW.mailTpls=(RAW.mailTpls||[]).filter(o=>String(o.ID)!==String(cur.ID));st.sel=null;toast('テンプレートを消しました');tplOpen()}catch(e){$('tpErr').textContent='消せませんでした：'+e.message}finally{busy(false)}}}
+
 /* 2026/11/3 v59：納品書の画面を「左に見本（PDFと同じ作り）・右に操作」に。PDFはアプリから直接 保存／新しいタブ（ドライブの共有設定に左右されない） */
 const NHB={};/* 'N-0420|2' → {url,name}（開いたPDFは画面を閉じるまで覚えておく） */
 async function nhBlob(num,ver){const k=num+'|'+ver;if(NHB[k])return NHB[k];const r=await api('nouhinFile',{num,ver});
@@ -2592,8 +2647,11 @@ const nhIsRe=r=>r['再発行']===true||String(r['再発行']).toUpperCase()==='T
 const nhShown=(num,r)=>num+(nhIsRe(r)?'-'+r['版']:'');
 const nhAt=v=>String(v||'').replace('T',' ').slice(5,16);
 function nhOpen(kind,no,msg){const x=nhInfo(kind,no);if(!x)return;const num=nhNum(kind,no);const rs=nhRows(num);const last=rs[rs.length-1];const c=custOf(x.cust)||{};
-  const S=nhOpen.S&&nhOpen.S.num===num?nhOpen.S:(nhOpen.S={num,saveMail:!c.mail,to:last&&String(last['宛名']||'').trim()?String(last['宛名']):x.name+'　御中',memo:last?String(last['備考']||''):'',mail:c.mail||'',subject:`【株式会社オオサカポテト】納品書のご送付（${md(x.deliver)}納品分）`,body:'',bcc:true,pv:last?'pdf':'draft',mailOpen:false});
-  if(!S.body)S.body=`${S.to}\n\nいつもお世話になっております。株式会社オオサカポテトです。\n${x.deliver.getMonth()+1}月${x.deliver.getDate()}日納品分の納品書をお送りいたします。\nご確認のほど、よろしくお願いいたします。\n\n株式会社オオサカポテト\n〒581-0010 大阪府八尾市都塚北2-12`;
+  const S=nhOpen.S&&nhOpen.S.num===num?nhOpen.S:(nhOpen.S={num,saveMail:!c.mail,to:last&&String(last['宛名']||'').trim()?String(last['宛名']):x.name+'　御中',memo:last?String(last['備考']||''):'',mail:c.mail||'',cc:c.mailCc||'',mailName:c.mailName||x.name+'　御中',tpl:null,subject:'',body:'',touched:false,bcc:true,pv:last?'pdf':'draft',mailOpen:false});
+  const tpls=tplList('納品書');if(!tpls.some(t=>String(t.ID)===String(S.tpl)))S.tpl=String(tpls[0].ID);
+  const fillCtx=()=>({'宛名':S.mailName.trim()||x.name+'　御中','顧客名':x.name,'納品日':`${x.deliver.getMonth()+1}月${x.deliver.getDate()}日`,'納品書番号':last?nhShown(num,last):num,'送信者':ME});
+  const fillTpl=()=>{const t=tpls.find(z=>String(z.ID)===String(S.tpl))||tpls[0];S.subject=tplFill(t['件名'],fillCtx());S.body=tplFill(t['本文'],fillCtx());S.touched=false};
+  if(!S.body)fillTpl();
   if(!last)S.pv='draft';
   const me=nhMe();const lv=last?Number(last['版']):0;
   modal(`<h2>納品書 <span class="dim" style="font-size:13px;font-weight:400">${esc(x.name)}　${no}　③納品 ${mdw(x.deliver)}</span></h2>
@@ -2615,8 +2673,12 @@ function nhOpen(kind,no,msg){const x=nhInfo(kind,no);if(!x)return;const num=nhNu
   <p class="dim" style="font-size:11.5px;margin-top:6px">宛名・備考を変えて欄を離れると、見本がその内容に変わります。</p>
   <button class="btn ${last?'':'acc blk'}" id="nhMake" style="margin-top:8px">${last?'この内容で作り直す':'この内容でPDFを作る'}</button>
   ${last?`<details class="nhmail" id="nhMailD" ${S.mailOpen?'open':''}><summary>メールで送る <span class="dim" style="font-weight:400">（会社のアドレスから・いまのPDFを添付）</span></summary>
-  <label class="lbl">宛先 ${c.mail?'':'<span style="color:var(--bad)">顧客マスタにメールがありません</span>'}</label><input id="nhMail" type="email" value="${esc(S.mail)}" placeholder="お客様のメールアドレス">
+  <label class="lbl">宛先（TO） ${c.mail?'':'<span style="color:var(--bad)">顧客マスタにメールがありません</span>'}</label><input id="nhMail" value="${esc(S.mail)}" placeholder="お客様のメールアドレス（複数は「,」で区切る）" autocapitalize="off" autocomplete="off">
+  <label class="lbl">CC</label><input id="nhCc" value="${esc(S.cc)}" placeholder="写しを送る先（複数は「,」で区切る・空でもよい）" autocapitalize="off" autocomplete="off">
+  <div class="dim" id="nhCnt" style="font-size:11.5px;margin-top:2px"></div>
+  <label class="lbl">メールの宛名</label><input id="nhName" value="${esc(S.mailName)}" placeholder="例：株式会社○○ 購買部 山田様">
   <div id="nhSaveW"></div>
+  <div class="row" style="gap:8px;margin-top:8px;align-items:end"><div style="flex:1"><label class="lbl" style="margin-top:0">テンプレート</label><select id="nhTplSel">${tpls.map(t=>`<option value="${esc(t.ID)}" ${String(t.ID)===String(S.tpl)?'selected':''}>${esc(t['名前'])}</option>`).join('')}</select></div><button type="button" class="btn sm" id="nhRefill" title="宛名やテンプレートの内容で、件名と本文を入れ直します">文面を入れ直す</button></div>
   <label class="lbl">件名</label><input id="nhSub" value="${esc(S.subject)}">
   <label class="lbl">本文</label><textarea id="nhBody" rows="8">${esc(S.body)}</textarea>
   ${me?`<label style="display:flex;gap:6px;align-items:center;margin-top:6px;font-size:13px"><input type="checkbox" id="nhBcc" style="width:auto" ${S.bcc?'checked':''}> 控えを自分（${esc(me)}）にも送る</label>`:''}
@@ -2625,7 +2687,7 @@ function nhOpen(kind,no,msg){const x=nhInfo(kind,no);if(!x)return;const num=nhNu
   </div></div>
   <div class="acts"><button class="btn" id="nhClose">閉じる</button></div>`);
   $('modal').querySelector('.mbox').classList.add('wide');
-  const keep=()=>{S.to=$('nhTo').value;S.memo=$('nhMemo').value;if($('nhRe'))S.re=$('nhRe').checked;if($('nhMailD'))S.mailOpen=$('nhMailD').open;if($('nhMail')){S.mail=$('nhMail').value;S.subject=$('nhSub').value;S.body=$('nhBody').value;S.bcc=$('nhBcc')?$('nhBcc').checked:false;if($('nhSave'))S.saveMail=$('nhSave').checked}};
+  const keep=()=>{S.to=$('nhTo').value;S.memo=$('nhMemo').value;if($('nhRe'))S.re=$('nhRe').checked;if($('nhMailD'))S.mailOpen=$('nhMailD').open;if($('nhMail')){S.mail=$('nhMail').value;S.cc=$('nhCc').value;S.mailName=$('nhName').value;S.subject=$('nhSub').value;S.body=$('nhBody').value;S.bcc=$('nhBcc')?$('nhBcc').checked:false;if($('nhSave'))S.saveMail=$('nhSave').checked}};
   /* 左の見本：pdf＝保存したPDFそのもの／draft＝PDFと同じ関数でサーバーが作ったHTML（何も保存しない） */
   const box=$('nhPv'),note=$('nhPvNote');
   const fit=()=>{const f=box.querySelector('iframe.nhdoc');if(!f)return;const s=box.clientWidth/794;f.style.transform=`scale(${s})`;box.style.height=Math.ceil(1123*s)+'px'};
@@ -2646,22 +2708,33 @@ function nhOpen(kind,no,msg){const x=nhInfo(kind,no);if(!x)return;const num=nhNu
   if($('nhTab'))$('nhTab').onclick=()=>nhTabPdf(num,lv);
   $('modal').querySelectorAll('[data-dl]').forEach(b=>b.onclick=()=>nhSavePdf(num,Number(b.dataset.dl)));
   /* 宛先を顧客マスタにも入れるか：未登録なら最初からチェック、登録済みと違うアドレスなら上書きするか選ぶ、同じなら出さない */
-  const saveBox=()=>{const w=$('nhSaveW');if(!w)return;const m=$('nhMail').value.trim(),cur=c.mail||'';
-    if(!m||m===cur){w.innerHTML='';return}
-    w.innerHTML=`<label style="display:flex;gap:6px;align-items:center;margin-top:6px;font-size:13px"><input type="checkbox" id="nhSave" style="width:auto" ${S.saveMail?'checked':''}> ${cur?`顧客マスタのメール（${esc(cur)}）を、このアドレスに変える`:'このアドレスを顧客マスタにも保存する（次から最初から入ります）'}</label>`;
+  /* 宛先（TO・CC・宛名）を顧客マスタにも入れるか：マスタにTOがなければ最初からチェック。マスタと違うところがあれば上書きするか選ぶ。同じなら出さない */
+  const saveBox=()=>{const w=$('nhSaveW');if(!w)return;const to=mailNorm($('nhMail').value),cc=mailNorm($('nhCc').value),nm=$('nhName').value.trim();
+    const cnt=$('nhCnt');const bad=mailBad($('nhMail').value).concat(mailBad($('nhCc').value));cnt.innerHTML=bad.length?`<span style="color:var(--bad)">形が正しくないアドレス：${esc(bad.join('、'))}</span>`:`TO ${mailList(to).length}件${mailList(cc).length?'・CC '+mailList(cc).length+'件':''}`;
+    const diff=[];if(to&&to!==mailNorm(c.mail))diff.push('TO');if(cc!==mailNorm(c.mailCc))diff.push('CC');if(nm&&nm!==(c.mailName||'')&&nm!==x.name+'　御中')diff.push('宛名');
+    if(!to||!diff.length){w.innerHTML='';return}
+    w.innerHTML=`<label style="display:flex;gap:6px;align-items:center;margin-top:6px;font-size:13px"><input type="checkbox" id="nhSave" style="width:auto" ${S.saveMail?'checked':''}> ${c.mail?`顧客マスタの ${diff.join('・')} を、この内容に変える`:`この宛先（${diff.join('・')}）を顧客マスタにも保存する（次から最初から入ります）`}</label>`;
     $('nhSave').onchange=e=>{S.saveMail=e.target.checked}};
-  if($('nhMail')){$('nhMail').oninput=()=>{S.mail=$('nhMail').value;saveBox()};saveBox()}
+  if($('nhMail')){['nhMail','nhCc'].forEach(id=>{$(id).oninput=()=>{S.mail=$('nhMail').value;S.cc=$('nhCc').value;saveBox()}});
+    $('nhName').oninput=()=>{S.mailName=$('nhName').value;saveBox()};$('nhName').onchange=()=>{if(!S.touched){keep();fillTpl();$('nhSub').value=S.subject;$('nhBody').value=S.body}};
+    ['nhSub','nhBody'].forEach(id=>{$(id).addEventListener('input',()=>{S.touched=true})});
+    $('nhTplSel').onchange=e=>{keep();S.tpl=e.target.value;fillTpl();$('nhSub').value=S.subject;$('nhBody').value=S.body};
+    $('nhRefill').onclick=()=>{keep();fillTpl();$('nhSub').value=S.subject;$('nhBody').value=S.body;toast('件名と本文を入れ直しました')};
+    saveBox()}
   $('nhClose').onclick=()=>{nhOpen.S=null;nhOpen.tok=(nhOpen.tok||0)+1;closeModal();if(TAB==='nh')renderNh()};
   $('nhMake').onclick=async()=>{keep();busy(true);try{const r=await api('nouhinMake',{kind,no,to:S.to,memo:S.memo,reissue:!!S.re});RAW.nouhin=(RAW.nouhin||[]).concat([r]);
       const ev={NO:no,'日時':r['発行日時'],'種別':'納品書','担当':ME,'内容':'発行 '+num+(Number(r['版'])>1?'（第'+r['版']+'版・'+(r['再発行']?'再発行と記載':'再発行の記載なし')+'）':'')};if(kind==='paste')RAW.mgEvents.push(ev);else RAW.events.push(Object.assign({'遅れ日数':0,'予定日':''},ev));build(RAW);render();
       S.re=undefined;S.pv='pdf';nhOpen(kind,no,`${nhShown(num,r)} を作りました。見本の欄に、保存したPDFを出しています。「PDFを保存」で手元に保存、「メールで送る」で送れます`)}catch(e){errBar('納品書を作れませんでした：'+e.message)}finally{busy(false)}};
   const sb=$('nhSend');if(sb)sb.onclick=async()=>{keep();const err=m=>{$('nhErr').textContent=m};
-    if(!/^[^\s@,;]+@[^\s@,;]+\.[^\s@,;]+$/.test(S.mail.trim()))return err('宛先のメールアドレスを1件入れてください');if(!S.subject.trim()||!S.body.trim())return err('件名と本文を入れてください');
-    if(!sb.dataset.armed){sb.dataset.armed='1';sb.textContent=`もう一度押すと ${S.mail.trim()} に送ります`;sb.classList.add('warn');setTimeout(()=>{if(sb.isConnected){delete sb.dataset.armed;sb.textContent='この内容で送る';sb.classList.remove('warn')}},4000);return}
-    busy(true);try{const doSave=!!($('nhSave')&&$('nhSave').checked);const r=await api('nouhinSend',{num,ver:lv,to:S.mail.trim(),subject:S.subject.trim(),body:S.body.trim(),bccMe:!!S.bcc,saveMail:doSave});
-      if(r.mailSaved){const rc=RAW.customers.find(z=>String(z['コード'])===String(r.mailSaved));if(rc)rc['メール']=r.to}
-      Object.assign(last,{'送信日時':r.sentAt,'送信先':r.to,'送信者':ME});const ev={NO:no,'日時':r.sentAt,'種別':'納品書','担当':ME,'内容':'送信 '+num+' → '+r.to};if(kind==='paste')RAW.mgEvents.push(ev);else RAW.events.push(Object.assign({'遅れ日数':0,'予定日':''},ev));build(RAW);render();
-      nhOpen.S=null;nhOpen(kind,no,`${r.to} に送りました${r.mailSaved?'（顧客マスタのメールにも保存しました）':''}`)}catch(e){err('送れませんでした：'+e.message)}finally{busy(false)}};
+    const to=mailList(S.mail),cc=mailList(S.cc);const bad=mailBad(S.mail).concat(mailBad(S.cc));
+    if(!to.length)return err('宛先（TO）のメールアドレスを入れてください');if(bad.length)return err('メールアドレスの形が正しくありません：'+bad.join('、'));
+    if(new Set(to.concat(cc).map(z=>z.toLowerCase())).size!==to.length+cc.length)return err('同じアドレスが2回入っています');
+    if(!S.subject.trim()||!S.body.trim())return err('件名と本文を入れてください');if(/\{(宛名|顧客名|納品日|納品書番号|送信者)\}/.test(S.subject+S.body))return err('置き換わっていない言葉（{宛名} など）が残っています');
+    if(!sb.dataset.armed){sb.dataset.armed='1';sb.textContent=to.length+cc.length===1?`もう一度押すと ${to[0]} に送ります`:`もう一度押すと TO ${to.length}件${cc.length?'・CC '+cc.length+'件':''}に送ります`;sb.classList.add('warn');setTimeout(()=>{if(sb.isConnected){delete sb.dataset.armed;sb.textContent='この内容で送る';sb.classList.remove('warn')}},4000);return}
+    busy(true);try{const doSave=!!($('nhSave')&&$('nhSave').checked);const r=await api('nouhinSend',{num,ver:lv,to,cc,mailName:S.mailName.trim()===x.name+'　御中'?'':S.mailName.trim(),subject:S.subject.trim(),body:S.body.trim(),bccMe:!!S.bcc,saveMail:doSave});
+      if(r.mailSaved){const rc=RAW.customers.find(z=>String(z['コード'])===String(r.mailSaved));if(rc){rc['メール']=r.to;rc['メールCC']=r.cc||'';if(S.mailName.trim()&&S.mailName.trim()!==x.name+'　御中')rc['メール宛名']=S.mailName.trim()}}
+      const dest=r.to+(r.cc?'（CC：'+r.cc+'）':'');Object.assign(last,{'送信日時':r.sentAt,'送信先':dest,'送信者':ME});const ev={NO:no,'日時':r.sentAt,'種別':'納品書','担当':ME,'内容':'送信 '+num+' → '+dest};if(kind==='paste')RAW.mgEvents.push(ev);else RAW.events.push(Object.assign({'遅れ日数':0,'予定日':''},ev));build(RAW);render();
+      nhOpen.S=null;nhOpen(kind,no,`${dest} に送りました${r.mailSaved?'（顧客マスタにも保存しました）':''}`)}catch(e){err('送れませんでした：'+e.message)}finally{busy(false)}};
 }
 window.addEventListener('resize',()=>{if(nhOpen.fit)nhOpen.fit()});
 
@@ -2680,7 +2753,7 @@ function renderNh(){const v=$('v-nh');if(!ivAllowed()){v.innerHTML='<div class="
   const all=rows.slice();if(NHV.q){const n=custNorm(NHV.q);rows=rows.filter(r=>custNorm(r.name).includes(n)||r.no.includes(NHV.q))}if(NHV.unsent)rows=rows.filter(r=>r.s.k!=='sent');
   rows.sort((x,y)=>x.d-y.d||x.name.localeCompare(y.name,'ja'));
   const cnt=k=>all.filter(r=>r.s.k===k).length;
-  v.innerHTML=`<div class="row mb"><button class="btn sm" id="nhPrev">‹</button><b>${NHV.mode==='month'?`${a.getFullYear()}年${a.getMonth()+1}月`:`${md(a)}〜${md(b)}`}</b><button class="btn sm" id="nhNext">›</button><button class="btn sm" id="nhNow">今週</button>
+  v.innerHTML=`<div class="row mb"><button class="btn sm" id="nhPrev">‹</button><b>${NHV.mode==='month'?`${a.getFullYear()}年${a.getMonth()+1}月`:`${md(a)}〜${md(b)}`}</b><button class="btn sm" id="nhNext">›</button><button class="btn sm" id="nhNow">今週</button><button class="btn sm" id="nhTpl" style="margin-left:auto">✉ メールのテンプレート</button>
     <span class="seg" id="nhMode"><button data-m="week" class="${NHV.mode==='week'?'on':''}">週</button><button data-m="month" class="${NHV.mode==='month'?'on':''}">月</button></span>
     <span class="seg" id="nhKind"><button data-k="all" class="${NHV.kind==='all'?'on':''}">すべて</button><button data-k="imo" class="${NHV.kind==='imo'?'on':''}">さつまいも</button><button data-k="paste" class="${NHV.kind==='paste'?'on':''}">ペースト</button></span>
     <input type="search" id="nhQ" placeholder="顧客名・No." value="${esc(NHV.q)}" style="width:180px"><label style="display:flex;gap:4px;align-items:center;font-size:13px"><input type="checkbox" id="nhUn" style="width:auto" ${NHV.unsent?'checked':''}> 未送信だけ</label></div>
@@ -2695,6 +2768,7 @@ function renderNh(){const v=$('v-nh');if(!ivAllowed()){v.innerHTML='<div class="
   $('nhKind').onclick=e=>{const x=e.target.closest('[data-k]');if(x){NHV.kind=x.dataset.k;renderNh()}};
   $('nhUn').onchange=e=>{NHV.unsent=e.target.checked;renderNh()};
   const q=$('nhQ');imeIn(q,()=>{const p=q.selectionStart;NHV.q=q.value;renderNh();const n=$('nhQ');n.focus();n.setSelectionRange(p,p)});
+  $('nhTpl').onclick=()=>{tplOpen.st=null;tplOpen()};
   v.querySelectorAll('[data-nh]').forEach(tr=>tr.onclick=e=>{if(e.target.closest('[data-nhdl]'))return;const [k,no]=tr.dataset.nh.split('|');nhOpen.S=null;nhOpen(k,no)});
   v.querySelectorAll('[data-nhdl]').forEach(b=>b.onclick=e=>{e.stopPropagation();const [n,ver]=b.dataset.nhdl.split('|');nhSavePdf(n,Number(ver))})}
 
