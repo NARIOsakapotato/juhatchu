@@ -924,7 +924,7 @@ function build(d){RAW=d;trBuild(d);d.recurring=d.recurring||[];d.formInbox=d.for
   ITEMS=d.items.filter(r=>r['有効']!==false&&r['品目名']).sort((a,b)=>(Number(a['表示順'])||99)-(Number(b['表示順'])||99)).map(r=>({cat:r['カテゴリ']||'青果',name:String(r['品目名']),sizes:splitPipe(r['規格候補']),bagSizes:splitPipe(r['袋詰本数候補']),
     packs:splitPipe(r['荷姿候補']).map(x=>{const p=x.split(':').map(v=>v.trim());const per=p[2]!==undefined&&p[2]!==''?Number(p[2]):'';return {n:p[0],u:p[1]||'kg',per,bag:/袋詰/.test(p[0]),adj:/袋詰|野菜コンテナ/.test(p[0])}})}));
   ITEMS.forEach(it=>{if(!it.sizes.length)it.sizes=['—'];if(!it.packs.length)it.packs=[{n:'バラ',u:'kg',per:''}]});
-  CUST=d.customers.filter(r=>r['コード']).map(r=>({code:String(r['コード']),name:String(r['顧客名']||''),kind:r['区分']||'',cats:splitPipe(r['カテゴリ']),zip:r['郵便番号']||'',addr1:r['住所1']||'',addr2:r['住所2']||'',addr:[r['住所1'],r['住所2']].filter(Boolean).join(' '),attn:r['宛名']||'',tel:r['電話']||'',billName:r['請求宛名']||'',billAttn:r['請求担当']||'',billZip:r['請求郵便番号']||'',billAddr:r['請求住所']||'',mail:r['メール']||'',mailCc:r['メールCC']||'',mailName:r['メール宛名']||'',billMemo:r['請求メモ']||'',bank:String(r['振込先']||''),billHow:r['請求方法']==='月末まとめ'?'月末まとめ':'都度',taxMode:r['税の既定']==='内税'?'内税':'外税',fax:r['FAX']||'',method:r['配送方法']||'宅配便',carrier:r['標準運送会社']||'',lead:Number(r['配送日数'])||1,hours:r['受入時間']||'',closed:r['受入不可日']||'',pack:r['標準荷姿']||'',active:r['有効']!==false,reg:r['登録区分']||'継続',since:String(r['取引開始']||'').slice(0,7),note:r['備考']||'',src:r['登録元']||'',conf:pdt(r['確認日時']),mgLead:r['ペースト配送日数']===''||r['ペースト配送日数']===undefined||r['ペースト配送日数']===null?'':Number(r['ペースト配送日数'])}));
+  CUST=d.customers.filter(r=>r['コード']).map(r=>({code:String(r['コード']),name:String(r['顧客名']||''),kind:r['区分']||'',cats:splitPipe(r['カテゴリ']),zip:r['郵便番号']||'',addr1:r['住所1']||'',addr2:r['住所2']||'',addr:[r['住所1'],r['住所2']].filter(Boolean).join(' '),attn:r['宛名']||'',tel:r['電話']||'',billName:r['請求宛名']||'',billAttn:r['請求担当']||'',billZip:r['請求郵便番号']||'',billAddr:r['請求住所']||'',mail:r['メール']||'',mailCc:r['メールCC']||'',mailName:r['メール宛名']||'',billMemo:r['請求メモ']||'',honor:r['敬称']==='様'?'様':'御中',bank:String(r['振込先']||''),billHow:r['請求方法']==='月末まとめ'?'月末まとめ':'都度',taxMode:r['税の既定']==='内税'?'内税':'外税',fax:r['FAX']||'',method:r['配送方法']||'宅配便',carrier:r['標準運送会社']||'',lead:Number(r['配送日数'])||1,hours:r['受入時間']||'',closed:r['受入不可日']||'',pack:r['標準荷姿']||'',active:r['有効']!==false,reg:r['登録区分']||'継続',since:String(r['取引開始']||'').slice(0,7),note:r['備考']||'',src:r['登録元']||'',conf:pdt(r['確認日時']),mgLead:r['ペースト配送日数']===''||r['ペースト配送日数']===undefined||r['ペースト配送日数']===null?'':Number(r['ペースト配送日数'])}));
   STAFF=d.staff.filter(r=>r['名前']&&r['有効']!==false).sort((a,b)=>(Number(a['表示順'])||99)-(Number(b['表示順'])||99)).map(r=>({n:String(r['名前']),role:r['区分']||'パート',dow:splitPipe(r['曜日']).map(Number),f:Number(r['開始'])||9,t:Number(r['終了'])||15,brk:Number(r['休憩分'])||0,cnt:Number(r['人数'])||1,wage:(r['時給']===''||r['時給']==='min'||r['時給']===undefined)?'min':Number(r['時給'])}));
   SHIFT={};SHIFT_CHANGED=new Set();d.shifts.forEach(r=>{if(!r['日付']||!r['名前'])return;const k=String(r['日付']).slice(0,10)+'|'+r['名前'];
     if(r['開始']===''||r['開始']===null||r['開始']===undefined)SHIFT[k]=null;else{const v=[Number(r['開始']),Number(r['終了']),Number(r['休憩分'])||0];if(r['人数']!==''&&r['人数']!==null&&r['人数']!==undefined)v.push(Number(r['人数']));SHIFT[k]=v}
@@ -1842,15 +1842,15 @@ function openCustEdit(c){
     <label>標準運送会社</label><select id="ce_carrier"><option value="">—</option>${CARRIERS.map(x=>`<option ${x===c.carrier?'selected':''}>${esc(x)}</option>`).join('')}</select>
     ${f('lead','配送日数',c.lead)}${f('hours','受入時間',c.hours,'8:00-11:00')}${f('closed','受入不可日',c.closed,'日祝')}${f('pack','標準荷姿',c.pack)}${f('note','備考（毎回の申し送り）',c.note)}${ivAllowed()?`<label>請求メモ<br><span class="dim" style="font-weight:400;font-size:11px">送料・単価・個別対応</span></label><textarea id="ce_billMemo" rows="3" placeholder="請求を使える人だけに見えます">${esc(c.billMemo)}</textarea>`:''}
     <label style="grid-column:1/-1;font-weight:800;margin-top:6px;border-top:1px solid var(--line);padding-top:8px">請求先 <span class="dim" style="font-weight:400;font-size:12px">空のところは、顧客名・基本の住所を使います（請求書の宛先になります）</span></label>
-    <label>請求書の出し方</label><select id="ce_billHow"><option ${c.billHow!=='月末まとめ'?'selected':''}>都度</option><option ${c.billHow==='月末まとめ'?'selected':''}>月末まとめ</option></select>${ivAllowed()&&banks().length>1?`<label>振込先の既定</label><select id="ce_bank">${banks().map(b=>`<option value="${esc(b.id)}" ${bankDef(c)===String(b.id)?'selected':''}>${esc(b.label)}</option>`).join('')}</select>`:''}<label>消費税の既定</label><select id="ce_taxMode"><option value="外税" ${c.taxMode!=='内税'?'selected':''}>外税（単価は税抜）</option><option value="内税" ${c.taxMode==='内税'?'selected':''}>内税（単価は税込）</option></select>
+    <label>宛名の敬称</label><select id="ce_honor"><option ${honorOf(c)==='御中'?'selected':''}>御中</option><option ${honorOf(c)==='様'?'selected':''}>様</option></select><label>請求書の出し方</label><select id="ce_billHow"><option ${c.billHow!=='月末まとめ'?'selected':''}>都度</option><option ${c.billHow==='月末まとめ'?'selected':''}>月末まとめ</option></select>${ivAllowed()&&banks().length>1?`<label>振込先の既定</label><select id="ce_bank">${banks().map(b=>`<option value="${esc(b.id)}" ${bankDef(c)===String(b.id)?'selected':''}>${esc(b.label)}</option>`).join('')}</select>`:''}<label>消費税の既定</label><select id="ce_taxMode"><option value="外税" ${c.taxMode!=='内税'?'selected':''}>外税（単価は税抜）</option><option value="内税" ${c.taxMode==='内税'?'selected':''}>内税（単価は税込）</option></select>
     ${f('billName','請求先の宛名',c.billName,'例：株式会社○○ 経理部')}${f('billAttn','請求の担当者',c.billAttn,'例：経理ご担当 佐藤様')}${f('billZip','請求先 〒',c.billZip)}${f('billAddr','請求先 住所',c.billAddr,'基本の住所と違うときだけ')}
     <label>有効</label><select id="ce_active"><option value="1" ${c.active?'selected':''}>はい</option><option value="0" ${!c.active?'selected':''}>いいえ（候補に出さない）</option></select></div>
     <p class="dim" id="ceErr" style="color:var(--bad)"></p><button class="btn acc blk" id="ceOk">保存する</button><div class="acts"><button class="btn" id="ceNo">閉じる</button></div>`);
   $('ce_cats').onclick=e=>{const b=e.target.closest('.chip');if(b)b.classList.toggle('on')};$('ceNo').onclick=closeModal;
   $('ceOk').onclick=async()=>{const g=id=>$('ce_'+id).value;const cats=[...$('ce_cats').querySelectorAll('.on')].map(b=>b.dataset.c);
     const bad=mailBad(g('mail')).concat(mailBad(g('mailCc')));if(bad.length){$('ceErr').textContent='メールアドレスの形が正しくありません：'+bad.join('、');return}
-    const row={'コード':c.code,'顧客名':g('name'),'区分':g('kind'),'カテゴリ':cats.join('|'),'郵便番号':g('zip'),'住所1':g('addr1'),'住所2':g('addr2'),'宛名':g('attn'),'電話':g('tel'),'メール':mailNorm(g('mail')),'メールCC':mailNorm(g('mailCc')),'メール宛名':g('mailName').trim(),'FAX':g('fax'),'配送方法':g('method'),'標準運送会社':g('carrier'),'配送日数':Number(g('lead'))||1,'受入時間':g('hours'),'受入不可日':g('closed'),'標準荷姿':g('pack'),'有効':g('active')==='1','登録区分':g('reg'),'備考':g('note'),'請求宛名':g('billName').trim(),'請求担当':g('billAttn').trim(),'請求郵便番号':g('billZip').trim(),'請求住所':g('billAddr').trim(),'請求方法':g('billHow'),'税の既定':g('taxMode')};if($('ce_bank'))row['振込先']=$('ce_bank').value;if($('ce_billMemo'))row['請求メモ']=$('ce_billMemo').value.trim();
-    Object.assign(c,{name:row['顧客名'],kind:row['区分'],cats,reg:row['登録区分'],zip:row['郵便番号'],addr1:row['住所1'],addr2:row['住所2'],addr:[row['住所1'],row['住所2']].filter(Boolean).join(' '),attn:row['宛名'],tel:row['電話'],mail:row['メール'],mailCc:row['メールCC'],mailName:row['メール宛名'],billName:row['請求宛名'],billAttn:row['請求担当'],billZip:row['請求郵便番号'],billAddr:row['請求住所'],billHow:row['請求方法'],taxMode:row['税の既定'],bank:row['振込先']===undefined?c.bank:row['振込先'],billMemo:row['請求メモ']!==undefined?row['請求メモ']:c.billMemo,fax:row['FAX'],method:row['配送方法'],carrier:row['標準運送会社'],lead:row['配送日数'],hours:row['受入時間'],closed:row['受入不可日'],pack:row['標準荷姿'],note:row['備考'],active:row['有効']});
+    const row={'コード':c.code,'顧客名':g('name'),'区分':g('kind'),'カテゴリ':cats.join('|'),'郵便番号':g('zip'),'住所1':g('addr1'),'住所2':g('addr2'),'宛名':g('attn'),'電話':g('tel'),'メール':mailNorm(g('mail')),'メールCC':mailNorm(g('mailCc')),'メール宛名':g('mailName').trim(),'FAX':g('fax'),'配送方法':g('method'),'標準運送会社':g('carrier'),'配送日数':Number(g('lead'))||1,'受入時間':g('hours'),'受入不可日':g('closed'),'標準荷姿':g('pack'),'有効':g('active')==='1','登録区分':g('reg'),'備考':g('note'),'請求宛名':g('billName').trim(),'請求担当':g('billAttn').trim(),'請求郵便番号':g('billZip').trim(),'請求住所':g('billAddr').trim(),'請求方法':g('billHow'),'税の既定':g('taxMode'),'敬称':g('honor')};if($('ce_bank'))row['振込先']=$('ce_bank').value;if($('ce_billMemo'))row['請求メモ']=$('ce_billMemo').value.trim();
+    Object.assign(c,{name:row['顧客名'],kind:row['区分'],cats,reg:row['登録区分'],zip:row['郵便番号'],addr1:row['住所1'],addr2:row['住所2'],addr:[row['住所1'],row['住所2']].filter(Boolean).join(' '),attn:row['宛名'],tel:row['電話'],mail:row['メール'],mailCc:row['メールCC'],mailName:row['メール宛名'],billName:row['請求宛名'],billAttn:row['請求担当'],billZip:row['請求郵便番号'],billAddr:row['請求住所'],billHow:row['請求方法'],taxMode:row['税の既定'],honor:row['敬称']==='様'?'様':'御中',bank:row['振込先']===undefined?c.bank:row['振込先'],billMemo:row['請求メモ']!==undefined?row['請求メモ']:c.billMemo,fax:row['FAX'],method:row['配送方法'],carrier:row['標準運送会社'],lead:row['配送日数'],hours:row['受入時間'],closed:row['受入不可日'],pack:row['標準荷姿'],note:row['備考'],active:row['有効']});
     closeModal();renderCust();await save('saveCustomer',{customer:row},'顧客情報を保存しました')};
 }
 
@@ -2359,7 +2359,7 @@ function ivRenderSheet(){const c=CUST.find(x=>x.code===IV.sel);if(!c){$('ivSheet
     if(IV.MEMO[o.no])body.push(`<tr class="mm"><td></td><td colspan="4">${esc(IV.MEMO[o.no])}</td></tr>`)});
   if(both&&cs)body.push(subRow(cs));
   const fd=IV.FIN[c.code];if(fd&&fd.a)body.push(`<tr><td></td><td><b>${esc(fd.t||'お値引き')}</b>${fd.r===10?'':'　※'}</td><td></td><td></td><td class="n"><b>−${fmt(fd.a)}</b></td></tr>`);
-  $('ivSheet').innerHTML=`<div class="iv-h1">請求書</div><div class="iv-top"><div><div class="iv-to">${esc(c.name)}　御中</div>${c.zip||c.addr?`<div style="font-size:9pt">${c.zip?'〒'+esc(c.zip)+'　':''}${esc(c.addr)}</div>`:''}
+  $('ivSheet').innerHTML=`<div class="iv-h1">請求書</div><div class="iv-top"><div><div class="iv-to">${esc(c.name)}　${honorOf(c)}</div>${c.zip||c.addr?`<div style="font-size:9pt">${c.zip?'〒'+esc(c.zip)+'　':''}${esc(c.addr)}</div>`:''}
     <div class="iv-meta"><span>請求書番号</span><span>${ivNo(c.code)}</span><span>発行日</span><span>${jd(last)}</span><span>対象期間</span><span>${m}月1日〜${m}月${last.getDate()}日 納品分</span><span>お支払期限</span><span>${jd(due)}</span></div></div>
     <div class="iv-from"><b>株式会社 オオサカポテト</b><br>〒581-0010<br>大阪府八尾市都塚北2-12<br>登録番号　T8122001038883</div></div>
    <p style="margin:6mm 0 0">下記のとおりご請求申し上げます。</p><div class="iv-amount"><span>ご請求金額（税込）</span><b>${ivYen(v.total)}</b></div>
@@ -2721,7 +2721,7 @@ function inv2Html(v){
   return '\x3chtml>\x3chead>\x3cmeta charset="utf-8">\x3cstyle>@page{size:A4;margin:13mm 12mm}body{font-family:sans-serif;color:#111;font-size:10pt;margin:0}table{border-collapse:collapse}\x3c/style>\x3c/head>\x3cbody>'
     +(v.draft?'<div style="text-align:center;font-size:9pt;color:#a33;border:1px solid #a33;padding:2px;margin-bottom:6px">下書き（まだ発行していません）</div>':'')
     +'<div style="text-align:center;font-size:21pt;margin:0 0 26px">請求書</div>'
-    +'<table style="width:100%"><tr><td style="vertical-align:top;width:60%"><div style="font-size:12.5pt;margin-bottom:8px">'+e(to.name)+' 御中</div>'
+    +'<table style="width:100%"><tr><td style="vertical-align:top;width:60%"><div style="font-size:12.5pt;margin-bottom:8px">'+e(to.name)+' '+e(to.honor||'御中')+'</div>'
     +(to.attn?'<div style="font-size:10pt;margin-bottom:6px">'+e(to.attn)+'</div>':'')
     +'<div style="font-size:10pt;line-height:1.4">'+toAddr+'</div></td>'
     +'<td style="vertical-align:top;font-size:10pt;line-height:1.4"><div>'+e(me.name)+'</div><div>登録番号：'+e(me.reg)+'</div><div style="margin-top:8px">〒'+e(me.zip)+'<br>'+e(me.addr)+(me.rep?'<br>'+e(me.rep):'')+'</div>'
@@ -2740,6 +2740,8 @@ function inv2Html(v){
 
 let IT_FROM=window.__IT_FROM||'2026-11-01';
 /* ===== 2026/11/16 振込先を選ぶ（設定シートの 請求_振込先・請求_振込先2…）。中身は請求を使える人にだけ届く：RAW.banks=[{id,label,text}] ===== */
+/* 2026/11/17 宛名の敬称（顧客ごとに 御中／様）。紙の宛名と、PDFのファイル名に使う */
+const honorOf=c=>c&&c.honor==='様'?'様':'御中';
 const banks=()=>(RAW&&RAW.banks)||[];
 const bankOf=id=>banks().find(b=>String(b.id)===String(id));
 /** その顧客の最初の選択：顧客に決めた既定 → なければ1つ目 */
@@ -2780,7 +2782,7 @@ function itBuild(doc){const rows=[];let miss=0,feeMiss=0;const nh=no=>{const o=i
     const dc=doc.DISC[o.no];if(dc&&dc.a)rows.push({kind:'値引き',no:o.no,d,name:'値引き',rate:dc.r,amt:-dc.a});
     if(doc.MEMO[o.no])rows.push({kind:'文言',no:o.no,d,text:doc.MEMO[o.no]})});
   return {rows,miss,feeMiss,todo:miss+feeMiss,calc:inv2Calc(rows,doc.mode)}}
-function itTo(c){return {name:c.billName||c.name,attn:c.billAttn||'',zip:c.billAddr?c.billZip:(c.billZip||c.zip),addr1:c.billAddr||c.addr1,addr2:c.billAddr?'':c.addr2}}
+function itTo(c){return {honor:honorOf(c),name:c.billName||c.name,attn:c.billAttn||'',zip:c.billAddr?c.billZip:(c.billZip||c.zip),addr1:c.billAddr||c.addr1,addr2:c.billAddr?'':c.addr2}}
 function itView(doc,rows){const c=custOf(doc.cust)||{};return {num:doc.num,date:doc.date,due:doc.due,subject:doc.subject,mode:doc.mode,to:doc.to||itTo(c),me:IT_ME,rows,note:doc.note,bank:(bankOf(doc.bank)||{}).text||'',draft:doc.status!=='発行済'}}
 function itSerial(doc){const b=itBuild(doc);return {id:doc.id,cust:doc.cust,nos:doc.nos,date:doc.date,due:doc.due,subject:doc.subject.trim(),mode:doc.mode,bank:doc.bank,note:doc.note,rows:b.rows,fee:doc.FEE,to:itTo(custOf(doc.cust)||{})}}
 /** 保存してある請求書を、入力の形に戻す（下書きの続き） */
@@ -2828,9 +2830,9 @@ function itRenderList(){const vs=IT.invs.slice().sort((a,b)=>String(b.issuedAt||
 /** 請求書をメールで送る（会社のアドレスから・発行したPDFを添付）。納品書の送信と同じ作り：TO／CC 複数・テンプレート・顧客マスタへの保存 */
 function itMailBox(v,c){const W=$('itMailW');if(!W)return;const S=itMailBox.S&&itMailBox.S.id===v.id?itMailBox.S:(itMailBox.S={id:v.id,open:!v.sentAt});
   const tpls=tplList('請求書');const jd=s2=>{const d=pdt(String(s2||'').slice(0,10));return d?`${d.getMonth()+1}月${d.getDate()}日`:''};
-  const vars=()=>({'宛名':S.mailName.trim()||c.name+'　御中','顧客名':c.name,'件名':v.subject,'請求書番号':String(v.num),'請求日':jd(v.date),'支払期限':jd(v.due),'金額':fmt(v.total||0)+'円','送信者':ME});
+  const vars=()=>({'宛名':S.mailName.trim()||c.name+'　'+honorOf(c),'顧客名':c.name,'件名':v.subject,'請求書番号':String(v.num),'請求日':jd(v.date),'支払期限':jd(v.due),'金額':fmt(v.total||0)+'円','送信者':ME});
   const fill=()=>{const t=tpls.find(x=>String(x.ID)===String(S.tpl))||tpls[0];S.subject=tplFill(t['件名'],vars());S.body=tplFill(t['本文'],vars());S.touched=false};
-  if(S.mail===undefined){S.mail=mailNorm(c.mail||'');S.cc=mailNorm(c.mailCc||'');S.mailName=c.mailName||c.name+'　御中';S.tpl=String(tpls[0].ID);fill()}
+  if(S.mail===undefined){S.mail=mailNorm(c.mail||'');S.cc=mailNorm(c.mailCc||'');S.mailName=c.mailName||c.name+'　'+honorOf(c);S.tpl=String(tpls[0].ID);fill()}
   // いっしょに送れる納品書：この請求書の注文で、作ってあるもの（最新の版）
   const nhs=[...new Set((RAW.nouhin||[]).filter(r=>(v.nos||[]).includes(String(r.NO))).map(r=>String(r['納品書番号'])))];
   if(S.withNh===undefined)S.withNh=nhs.length>0&&!(RAW.nouhin||[]).some(r=>nhs.includes(String(r['納品書番号']))&&r['送信日時']);
@@ -2854,7 +2856,7 @@ function itMailBox(v,c){const W=$('itMailW');if(!W)return;const S=itMailBox.S&&i
   const keep=()=>{S.mail=$('imTo').value;S.cc=$('imCc').value;S.mailName=$('imName').value;S.subject=$('imSub').value;S.body=$('imBody').value;if($('imNh'))S.withNh=$('imNh').checked;S.open=$('itMailD').open};
   const saveBox=()=>{const w=$('imSaveW');const to=mailNorm($('imTo').value),cc=mailNorm($('imCc').value),nm=$('imName').value.trim();const bad=mailBad($('imTo').value).concat(mailBad($('imCc').value));
     $('imCnt').innerHTML=bad.length?`<span style="color:var(--bad)">形が正しくないアドレス：${esc(bad.join('、'))}</span>`:`TO ${mailList(to).length}件${mailList(cc).length?'・CC '+mailList(cc).length+'件':''}`;
-    const diff=[];if(to&&to!==mailNorm(c.mail||''))diff.push('TO');if(cc!==mailNorm(c.mailCc||''))diff.push('CC');if(nm&&nm!==(c.mailName||'')&&nm!==c.name+'　御中')diff.push('宛名');
+    const diff=[];if(to&&to!==mailNorm(c.mail||''))diff.push('TO');if(cc!==mailNorm(c.mailCc||''))diff.push('CC');if(nm&&nm!==(c.mailName||'')&&nm!==c.name+'　'+honorOf(c))diff.push('宛名');
     if(!to||!diff.length){w.innerHTML='';return}
     w.innerHTML=`<label style="display:flex;gap:6px;align-items:center;margin-top:6px;font-size:13px"><input type="checkbox" id="imSave" style="width:auto" ${S.saveMail?'checked':''}> ${c.mail?`顧客マスタの ${diff.join('・')} を、この内容に変える`:`この宛先（${diff.join('・')}）を顧客マスタにも保存する（次から最初から入ります）`}</label>`;$('imSave').onchange=e=>{S.saveMail=e.target.checked}};
   ['imTo','imCc'].forEach(id=>{$(id).oninput=saveBox});$('imName').oninput=saveBox;$('imName').onchange=()=>{if(!S.touched){keep();fill();$('imSub').value=S.subject;$('imBody').value=S.body}};
@@ -2867,10 +2869,10 @@ function itMailBox(v,c){const W=$('itMailW');if(!W)return;const S=itMailBox.S&&i
     if(!S.subject.trim()||!S.body.trim())return err('件名と本文を入れてください');if(TPL_LEFT.test(S.subject+S.body))return err('置き換わっていない言葉（{宛名} など）が残っています');
     if(!sb.dataset.armed){err('');sb.dataset.armed='1';sb.textContent=to.length+cc.length===1?`もう一度押すと ${to[0]} に送ります`:`もう一度押すと TO ${to.length}件${cc.length?'・CC '+cc.length+'件':''}に送ります`;sb.classList.add('warn');setTimeout(()=>{if(sb.isConnected&&!sb.disabled){delete sb.dataset.armed;sb.textContent=v.sentAt?'もう一度送る':'この内容で送る';sb.classList.remove('warn')}},4000);return}
     if(sb.disabled)return;sb.disabled=true;sb.textContent='送信中…';busy(true);
-    try{const nm=S.mailName.trim()===c.name+'　御中'?'':S.mailName.trim();const r=await api('inv2Send',{id:v.id,to,cc,mailName:nm,subject:S.subject.trim(),body:S.body.trim(),withNh:!!S.withNh,saveMail:!!($('imSave')&&$('imSave').checked)});
+    try{const nm=S.mailName.trim()===c.name+'　'+honorOf(c)?'':S.mailName.trim();const r=await api('inv2Send',{id:v.id,to,cc,mailName:nm,subject:S.subject.trim(),body:S.body.trim(),withNh:!!S.withNh,saveMail:!!($('imSave')&&$('imSave').checked)});
       if(r.mailSaved){const rc=RAW.customers.find(z=>String(z['コード'])===String(r.mailSaved));if(rc){rc['メール']=r.to;rc['メールCC']=r.cc||'';if(nm)rc['メール宛名']=nm}c.mail=r.to;c.mailCc=r.cc||'';if(nm)c.mailName=nm}
       const dest=r.to+(r.cc?'（CC：'+r.cc+'）':'');Object.assign(v,{sentAt:r.sentAt,sentTo:dest,sentBy:ME});(r.nhSent||[]).forEach(n=>(RAW.nouhin||[]).forEach(x=>{if(String(x['納品書番号'])===String(n)){x['送信日時']=r.sentAt;x['送信先']=dest;x['送信者']=ME}}));
-      S.open=false;S.saveMail=false;itMailBox(v,c);toast(`${dest} に送りました${r.nhSent&&r.nhSent.length?'（納品書 '+r.nhSent.length+'通も添付）':''}${r.mailSaved?'・顧客マスタにも保存しました':''}`,6000);if(IT.view==='list')itRenderList()}
+      S.open=false;S.saveMail=false;itMailBox(v,c);{const nb=$('imSend');if(nb){nb.disabled=true;setTimeout(()=>{if(nb.isConnected)nb.disabled=false},3000)}}/* 送った直後の押し続けで、もう一度送ってしまわないように3秒は押せない */toast(`${dest} に送りました${r.nhSent&&r.nhSent.length?'（納品書 '+r.nhSent.length+'通も添付）':''}${r.mailSaved?'・顧客マスタにも保存しました':''}`,6000);if(IT.view==='list')itRenderList()}
     catch(e){err('送れませんでした：'+e.message);sb.disabled=false;delete sb.dataset.armed;sb.classList.remove('warn');sb.textContent=v.sentAt?'もう一度送る':'この内容で送る'}finally{busy(false)}}}
 /** 発行済み・取消の請求書を見る（中身は発行したときのまま） */
 function itSee(v){const host=document.createElement('div');host.className='bmpop';const c=custOf(v.cust)||{};
@@ -2886,7 +2888,7 @@ function itRenderEdit(){const doc=IT.doc;const c=custOf(doc.cust);const os=itDoc
   host.innerHTML=`<div class="row mb" style="gap:10px;flex-wrap:wrap"><button class="btn sm" id="itBack">← 一覧へ戻る</button><b style="font-size:16px">${esc(c.name)}</b><span class="it-how ${itHow(c)==='都度'?'':'m'}">${itHow(c)}</span><span class="dim">${doc.id?'下書き '+esc(doc.id):'新しい請求書'}・注文 ${os.length}件</span><span class="dim" id="itSaveSt"></span></div>
   <div class="it-g"><div class="card" id="itForm">
     ${billMemoHtml(c)}
-    <div class="it-to"><b>請求先</b>　${esc(to.name)} 御中${to.attn?'　'+esc(to.attn):''}<br><span class="dim">${to.zip?'〒'+esc(to.zip)+' ':''}${esc([to.addr1,to.addr2].filter(Boolean).join(' '))||'<span style="color:var(--bad)">住所が入っていません（顧客タブの編集で入れられます）</span>'}</span></div>
+    <div class="it-to"><b>請求先</b>　${esc(to.name)} ${esc(to.honor||'御中')}${to.attn?'　'+esc(to.attn):''}<br><span class="dim">${to.zip?'〒'+esc(to.zip)+' ':''}${esc([to.addr1,to.addr2].filter(Boolean).join(' '))||'<span style="color:var(--bad)">住所が入っていません（顧客タブの編集で入れられます）</span>'}</span></div>
     <div class="it-h"><label>件名</label><input id="itSub" value="${esc(doc.subject)}"><label>請求日</label><input type="date" id="itDate" value="${esc(doc.date)}"><label>お支払期限</label><input type="date" id="itDue" value="${esc(doc.due)}"><label>消費税</label><span class="seg" id="itMode"><button data-m="外税" class="${doc.mode==='外税'?'on':''}">外税（単価は税抜）</button><button data-m="内税" class="${doc.mode==='内税'?'on':''}">内税（単価は税込）</button></span><label>振込先</label><div id="itBank">${bankSeg(doc.bank,'data-bk')}</div></div>
     ${os.map(o=>{const ck=carKind(ivCar(o));const fv=doc.FEE[o.no];const dc=doc.DISC[o.no]||{};return `<div class="iv-ord"><div class="iv-oh"><b>③納品 ${mdw(o.deliver)}</b><span class="dim">${esc(o.no)}　${esc(o.status)}</span><span class="dim">受け渡し ${esc(ivCar(o)||'—')}</span><button class="btn sm" data-rm="${esc(o.no)}" style="margin-left:auto" ${os.length<2?'disabled':''}>この注文をはずす</button></div>
      <div class="tw"><table class="iv-in"><tr><th>請求書に載せる品名</th><th class="r">数量</th><th>単位</th><th class="r">単価（${doc.mode==='内税'?'税込':'税抜'}）</th><th class="r">価格</th><th>税率</th></tr>
@@ -2953,10 +2955,10 @@ function billMemoEdit(c,after){if(!c)return;
   $('bmOk').onclick=async()=>{const v=$('bmTxt').value.trim();busy(true);try{await api('saveCustomer',{customer:{'コード':c.code,'請求メモ':v}});const rc=RAW.customers.find(z=>String(z['コード'])===c.code);if(rc)rc['請求メモ']=v;c.billMemo=v;close();toast('請求メモを保存しました');if(after)after()}catch(e){errBar('保存できませんでした：'+e.message)}finally{busy(false)}}}
 /* メールのテンプレート：RAW.mailTpls（シート「メールテンプレート」）。1つもなければ、今までの文面を「標準」として使う */
 const TPL_DEF={ID:'',種類:'納品書',名前:'標準',件名:'【株式会社オオサカポテト】納品書のご送付（{納品日}納品分）',本文:'{宛名}\n\nいつもお世話になっております。株式会社オオサカポテトです。\n{納品日}納品分の納品書をお送りいたします。\nご確認のほど、よろしくお願いいたします。\n\n株式会社オオサカポテト\n〒581-0010 大阪府八尾市都塚北2-12'};
-const TPL_KEYS=[['{宛名}','メールの宛名（顧客ごとに登録。なければ「顧客名 御中」）'],['{顧客名}','顧客名'],['{納品日}','例：11月6日'],['{納品書番号}','例：N-0420'],['{送信者}','送る人の名前']];
+const TPL_KEYS=[['{宛名}','メールの宛名（顧客ごとに登録。なければ「顧客名 御中」または「様」）'],['{顧客名}','顧客名'],['{納品日}','例：11月6日'],['{納品書番号}','例：N-0420'],['{送信者}','送る人の名前']];
 /* 2026/11/16 請求書を送るメールのテンプレート */
 const TPL_DEF_INV={ID:'',種類:'請求書',名前:'標準',件名:'【株式会社オオサカポテト】請求書のご送付（{件名}）',本文:'{宛名}\n\nいつもお世話になっております。株式会社オオサカポテトです。\n{件名}の請求書（請求書番号 {請求書番号}）をお送りいたします。\nご請求金額は {金額}、お支払期限は {支払期限} です。\nご確認のほど、よろしくお願いいたします。\n\n株式会社オオサカポテト\n〒581-0010 大阪府八尾市都塚北2-12'};
-const TPL_KEYS_INV=[['{宛名}','メールの宛名（顧客ごとに登録。なければ「顧客名 御中」）'],['{顧客名}','顧客名'],['{件名}','請求書の件名'],['{請求書番号}','例：1002'],['{請求日}','例：11月16日'],['{支払期限}','例：12月31日'],['{金額}','例：36,000円'],['{送信者}','送る人の名前']];
+const TPL_KEYS_INV=[['{宛名}','メールの宛名（顧客ごとに登録。なければ「顧客名 御中」または「様」）'],['{顧客名}','顧客名'],['{件名}','請求書の件名'],['{請求書番号}','例：1002'],['{請求日}','例：11月16日'],['{支払期限}','例：12月31日'],['{金額}','例：36,000円'],['{送信者}','送る人の名前']];
 const tplDefOf=kind=>kind==='請求書'?TPL_DEF_INV:TPL_DEF;const tplKeysOf=kind=>kind==='請求書'?TPL_KEYS_INV:TPL_KEYS;
 const TPL_LEFT=/\{(宛名|顧客名|納品日|納品書番号|送信者|件名|請求書番号|請求日|支払期限|金額)\}/;
 function tplList(kind){const l=(RAW.mailTpls||[]).filter(t=>String(t['種類']||'納品書')===kind&&t['有効']!==false&&String(t['有効']).toUpperCase()!=='FALSE').sort((a,b)=>(Number(a['表示順'])||0)-(Number(b['表示順'])||0));return l.length?l:[Object.assign({},tplDefOf(kind),{種類:kind})]}
@@ -2997,9 +2999,9 @@ const nhIsRe=r=>r['再発行']===true||String(r['再発行']).toUpperCase()==='T
 const nhShown=(num,r)=>num+(nhIsRe(r)?'-'+r['版']:'');
 const nhAt=v=>String(v||'').replace('T',' ').slice(5,16);
 function nhOpen(kind,no,msg){const x=nhInfo(kind,no);if(!x)return;const num=nhNum(kind,no);const rs=nhRows(num);const last=rs[rs.length-1];const c=custOf(x.cust)||{};
-  const S=nhOpen.S&&nhOpen.S.num===num?nhOpen.S:(nhOpen.S={num,saveMail:!c.mail,to:last&&String(last['宛名']||'').trim()?String(last['宛名']):x.name+'　御中',memo:last?String(last['備考']||''):'',mail:c.mail||'',cc:c.mailCc||'',mailName:c.mailName||x.name+'　御中',tpl:null,subject:'',body:'',touched:false,bcc:true,pv:last?'pdf':'draft',mailOpen:false});
+  const S=nhOpen.S&&nhOpen.S.num===num?nhOpen.S:(nhOpen.S={num,saveMail:!c.mail,to:last&&String(last['宛名']||'').trim()?String(last['宛名']):x.name+'　'+honorOf(c),memo:last?String(last['備考']||''):'',mail:c.mail||'',cc:c.mailCc||'',mailName:c.mailName||x.name+'　'+honorOf(c),tpl:null,subject:'',body:'',touched:false,bcc:true,pv:last?'pdf':'draft',mailOpen:false});
   const tpls=tplList('納品書');if(!tpls.some(t=>String(t.ID)===String(S.tpl)))S.tpl=String(tpls[0].ID);
-  const fillCtx=()=>({'宛名':S.mailName.trim()||x.name+'　御中','顧客名':x.name,'納品日':`${x.deliver.getMonth()+1}月${x.deliver.getDate()}日`,'納品書番号':last?nhShown(num,last):num,'送信者':ME});
+  const fillCtx=()=>({'宛名':S.mailName.trim()||x.name+'　'+honorOf(c),'顧客名':x.name,'納品日':`${x.deliver.getMonth()+1}月${x.deliver.getDate()}日`,'納品書番号':last?nhShown(num,last):num,'送信者':ME});
   const fillTpl=()=>{const t=tpls.find(z=>String(z.ID)===String(S.tpl))||tpls[0];S.subject=tplFill(t['件名'],fillCtx());S.body=tplFill(t['本文'],fillCtx());S.touched=false};
   if(!S.body)fillTpl();
   if(!last)S.pv='draft';
@@ -3061,7 +3063,7 @@ function nhOpen(kind,no,msg){const x=nhInfo(kind,no);if(!x)return;const num=nhNu
   /* 宛先（TO・CC・宛名）を顧客マスタにも入れるか：マスタにTOがなければ最初からチェック。マスタと違うところがあれば上書きするか選ぶ。同じなら出さない */
   const saveBox=()=>{const w=$('nhSaveW');if(!w)return;const to=mailNorm($('nhMail').value),cc=mailNorm($('nhCc').value),nm=$('nhName').value.trim();
     const cnt=$('nhCnt');const bad=mailBad($('nhMail').value).concat(mailBad($('nhCc').value));cnt.innerHTML=bad.length?`<span style="color:var(--bad)">形が正しくないアドレス：${esc(bad.join('、'))}</span>`:`TO ${mailList(to).length}件${mailList(cc).length?'・CC '+mailList(cc).length+'件':''}`;
-    const diff=[];if(to&&to!==mailNorm(c.mail))diff.push('TO');if(cc!==mailNorm(c.mailCc))diff.push('CC');if(nm&&nm!==(c.mailName||'')&&nm!==x.name+'　御中')diff.push('宛名');
+    const diff=[];if(to&&to!==mailNorm(c.mail))diff.push('TO');if(cc!==mailNorm(c.mailCc))diff.push('CC');if(nm&&nm!==(c.mailName||'')&&nm!==x.name+'　'+honorOf(c))diff.push('宛名');
     if(!to||!diff.length){w.innerHTML='';return}
     w.innerHTML=`<label style="display:flex;gap:6px;align-items:center;margin-top:6px;font-size:13px"><input type="checkbox" id="nhSave" style="width:auto" ${S.saveMail?'checked':''}> ${c.mail?`顧客マスタの ${diff.join('・')} を、この内容に変える`:`この宛先（${diff.join('・')}）を顧客マスタにも保存する（次から最初から入ります）`}</label>`;
     $('nhSave').onchange=e=>{S.saveMail=e.target.checked}};
@@ -3081,8 +3083,8 @@ function nhOpen(kind,no,msg){const x=nhInfo(kind,no);if(!x)return;const num=nhNu
     if(new Set(to.concat(cc).map(z=>z.toLowerCase())).size!==to.length+cc.length)return err('同じアドレスが2回入っています');
     if(!S.subject.trim()||!S.body.trim())return err('件名と本文を入れてください');if(/\{(宛名|顧客名|納品日|納品書番号|送信者)\}/.test(S.subject+S.body))return err('置き換わっていない言葉（{宛名} など）が残っています');
     if(!sb.dataset.armed){sb.dataset.armed='1';sb.textContent=to.length+cc.length===1?`もう一度押すと ${to[0]} に送ります`:`もう一度押すと TO ${to.length}件${cc.length?'・CC '+cc.length+'件':''}に送ります`;sb.classList.add('warn');setTimeout(()=>{if(sb.isConnected){delete sb.dataset.armed;sb.textContent='この内容で送る';sb.classList.remove('warn')}},4000);return}
-    busy(true);try{const doSave=!!($('nhSave')&&$('nhSave').checked);const r=await api('nouhinSend',{num,ver:lv,to,cc,mailName:S.mailName.trim()===x.name+'　御中'?'':S.mailName.trim(),subject:S.subject.trim(),body:S.body.trim(),bccMe:!!S.bcc,saveMail:doSave});
-      if(r.mailSaved){const rc=RAW.customers.find(z=>String(z['コード'])===String(r.mailSaved));if(rc){rc['メール']=r.to;rc['メールCC']=r.cc||'';if(S.mailName.trim()&&S.mailName.trim()!==x.name+'　御中')rc['メール宛名']=S.mailName.trim()}}
+    busy(true);try{const doSave=!!($('nhSave')&&$('nhSave').checked);const r=await api('nouhinSend',{num,ver:lv,to,cc,mailName:S.mailName.trim()===x.name+'　'+honorOf(c)?'':S.mailName.trim(),subject:S.subject.trim(),body:S.body.trim(),bccMe:!!S.bcc,saveMail:doSave});
+      if(r.mailSaved){const rc=RAW.customers.find(z=>String(z['コード'])===String(r.mailSaved));if(rc){rc['メール']=r.to;rc['メールCC']=r.cc||'';if(S.mailName.trim()&&S.mailName.trim()!==x.name+'　'+honorOf(c))rc['メール宛名']=S.mailName.trim()}}
       const dest=r.to+(r.cc?'（CC：'+r.cc+'）':'');Object.assign(last,{'送信日時':r.sentAt,'送信先':dest,'送信者':ME});const ev={NO:no,'日時':r.sentAt,'種別':'納品書','担当':ME,'内容':'送信 '+num+' → '+dest};if(kind==='paste')RAW.mgEvents.push(ev);else RAW.events.push(Object.assign({'遅れ日数':0,'予定日':''},ev));build(RAW);render();
       nhOpen.S=null;nhOpen(kind,no,`${dest} に送りました${r.mailSaved?'（顧客マスタにも保存しました）':''}`)}catch(e){err('送れませんでした：'+e.message)}finally{busy(false)}};
 }
