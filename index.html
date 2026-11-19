@@ -2908,7 +2908,9 @@ function itRenderEdit(){const doc=IT.doc;const c=custOf(doc.cust);const os=itDoc
     $('itIssue').disabled=!!b.todo;clearTimeout(tm);const go=()=>itPaper($('itP'),inv2Html(itView(doc,b.rows)));if(now)go();else tm=setTimeout(go,250)};
   refresh(true);
   const F=$('itForm');const num=v=>{const s=String(v).normalize('NFKC').replace(/[^\d.]/g,'');return s};
-  F.oninput=e=>{const t=e.target,d=t.dataset;if(e.isComposing)return;
+  /* 日本語入力（変換中）でも毎回とりこむ。以前は変換中の入力を捨てていて、Chrome では確定のあとに入力の知らせが来ないため、
+     日本語で打った品名・件名・備考・文言が中に入らず、見本に出ない／保存すると元に戻る、という不具合になっていた（2026/11/19 修正） */
+  F.oninput=e=>{const t=e.target,d=t.dataset;
     if(t.id==='itSub'){doc.subject=t.value;doc.touch.subject=1}else if(t.id==='itNote')doc.note=t.value;
     else if(d.nm){doc.P[d.nm].name=t.value}
     else if(d.p){const st=doc.P[d.p];st.p=num(t.value);st.pre=false;t.classList.toggle('miss',st.p==='');const [no,g]=d.p.split('|');const o=itOrder(no);const l=o.lines.find(x=>String(x.gyo)===g);F.querySelector(`[data-a="${CSS.escape(d.p)}"]`).textContent=st.p===''?'—':ivYen(Math.floor(ivQty(l,st.u)*Number(st.p)))}
@@ -2916,6 +2918,7 @@ function itRenderEdit(){const doc=IT.doc;const c=custOf(doc.cust);const os=itDoc
     else if(d.d){const v=Number(num(t.value))||0;doc.DISC[d.d]=Object.assign(doc.DISC[d.d]||{r:8},{a:v});F.querySelector(`[data-da="${CSS.escape(d.d)}"]`).textContent=v?ivYen(-v):'—'}
     else if(d.m!==undefined&&t.tagName==='INPUT'){doc.MEMO[d.m]=t.value}else return;
     doc.dirty=true;refresh()};
+  F.addEventListener('compositionend',e=>F.oninput(e));   // 確定したときにも、もう一度とりこむ（ブラウザによって知らせの順番が違うため）
   F.onchange=e=>{const t=e.target,d=t.dataset;
     if(t.id==='itDate'){doc.date=t.value;if(!doc.touch.due)doc.due=itEom(doc.date,1)}else if(t.id==='itDue'){doc.due=t.value;doc.touch.due=1}
     else if(d.u){doc.P[d.u].u=t.value}else if(d.r){doc.P[d.r].r=Number(t.value)===10?10:8}
