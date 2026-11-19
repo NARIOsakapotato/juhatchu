@@ -824,6 +824,8 @@ const diffD=(a,b)=>Math.round((d0(a)-d0(b))/864e5);
 const monday=d=>{const x=d0(d);x.setDate(x.getDate()-((x.getDay()+6)%7));return x};
 const fmt=n=>Number(n).toLocaleString('ja-JP');
 const t=kg=>(kg/1000).toFixed(2).replace(/\.?0+$/,'')+'t';
+/* 全角で打った数字（２８０）を半角（280）に直す。直さないと、数字以外として捨てられて「入れたのに空のまま」になる（2026/11/19） */
+const han=s=>String(s??'').normalize('NFKC');
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const $=id=>document.getElementById(id);
 let SETTINGS={targetKg:5000,workdays:'月〜土',from:'',to:''};
@@ -1163,7 +1165,7 @@ function openShipEdit(o){const box=$('shipEd');if(!box)return;const shipped=!!o.
   $('seCar').onchange=chk;if($('seWay'))$('seWay').oninput=chk;chk();($('seWay')||$('seCar')).focus();
   $('seNo').onclick=()=>{box.innerHTML=''};
   $('seOk').onclick=async()=>{const c=$('seCar').value;if(!c)return;const pick=carKind(c)==='引取り';const before=cur?shipTxt(o).replace(/<[^>]+>/g,''):'';
-    const fields={'運送会社':c,'配送方法':methodOf(c)};o.method=fields['配送方法'];if(shipped){fields['伝票No']=pick?'':$('seWay').value.trim();fields['個口数']=pick?'':(Number($('sePcs').value)||'')}
+    const fields={'運送会社':c,'配送方法':methodOf(c)};o.method=fields['配送方法'];if(shipped){fields['伝票No']=pick?'':han($('seWay').value).trim();fields['個口数']=pick?'':(Number($('sePcs').value)||'')}
     o.carrier=c;o.act.carrier=c;if(shipped){o.act.waybill=fields['伝票No'];o.act.pieces=fields['個口数']}
     const t=cur?'配送を直す':'受け渡しを決める';const m=cur?`${before} → ${shipTxt(o).replace(/<[^>]+>/g,'')}`:shipTxt(o).replace(/<[^>]+>/g,'');
     o.events.push({t,at:new Date(),by:ME,m});render();openOrder(o.no);
@@ -1216,7 +1218,7 @@ function openStage(o,stage,ucOk){
   $('gOk').onclick=async()=>{const expect=o.status;const at=new Date($('gAt').value);const by=$('gBy').value;const n=Math.max(0,diffD(at,plan));const memo=$('gMemo').value;let fields={},ev;
     let trRows=null;if(TS){const c=trCheck(TS);if(c.err){toast(c.err);const t=$('gTr');t.classList.add('trng');t.scrollIntoView({block:'center'});return}trRows=c.rows}
     if(stage==='用意完了'){Object.assign(o.act,{readyAt:at,readyBy:by,readyReason:reason,readyNote:memo,readyBoxes:Number($('gBoxes').value)||o.boxes});ev={t:'用意完了',at,by,late:n,plan,m:(reason?reason+(memo?'：'+memo:''):memo)+(o.act.readyBoxes!==o.boxes?`　実際 ${o.act.readyBoxes}箱（予定 ${o.boxes}）`:'')};fields={'用意完了日時':dts(at),'用意担当':by,'用意理由':reason,'用意メモ':memo,'実箱数':o.act.readyBoxes}}
-    if(stage==='発送手配済'){if(!$('gCarrier').value){toast('運送会社を選んでください');return}const pick=carKind($('gCarrier').value)==='引取り';Object.assign(o.act,{shipAt:at,shipBy:by,carrier:$('gCarrier').value,waybill:pick?'':$('gWaybill').value.trim(),pieces:pick?'':(Number($('gPieces').value)||o.boxes),shipNote:memo});o.carrier=o.act.carrier;ev={t:'発送手配',at,by,late:n,plan,m:`${o.act.carrier}${pick?'':`　伝票 ${o.act.waybill||'（未入力）'}　${o.act.pieces}個口`}${reason?'　'+reason:''}${memo?'　'+memo:''}`};fields={'発送手配日時':dts(at),'手配担当':by,'運送会社':o.act.carrier,'伝票No':o.act.waybill,'個口数':o.act.pieces,'手配メモ':memo}}
+    if(stage==='発送手配済'){if(!$('gCarrier').value){toast('運送会社を選んでください');return}const pick=carKind($('gCarrier').value)==='引取り';Object.assign(o.act,{shipAt:at,shipBy:by,carrier:$('gCarrier').value,waybill:pick?'':han($('gWaybill').value).trim(),pieces:pick?'':(Number($('gPieces').value)||o.boxes),shipNote:memo});o.carrier=o.act.carrier;ev={t:'発送手配',at,by,late:n,plan,m:`${o.act.carrier}${pick?'':`　伝票 ${o.act.waybill||'（未入力）'}　${o.act.pieces}個口`}${reason?'　'+reason:''}${memo?'　'+memo:''}`};fields={'発送手配日時':dts(at),'手配担当':by,'運送会社':o.act.carrier,'伝票No':o.act.waybill,'個口数':o.act.pieces,'手配メモ':memo}}
     if(stage==='納品済'){Object.assign(o.act,{deliverAt:at,deliverBy:by,deliverNote:$('gHow').value+(memo?'　'+memo:'')});ev={t:'納品',at,by,late:n,plan,m:o.act.deliverNote+(reason?'　'+reason:'')};fields={'納品確認日時':dts(at),'納品担当':by,'納品メモ':o.act.deliverNote}}
     if(trRows)trLocal(o.no,trRows);
     o.events.push(ev);o.status=stage;fields['状態']=stage;render();stage==='納品済'?closeModal():openOrder(o.no);
@@ -1806,7 +1808,10 @@ $('fiBody').addEventListener('click',async e=>{const t=e.target.closest('button'
   if(d.frj){const id=d.frj;const reason=$('fiR-'+id)?$('fiR-'+id).value:'';t.disabled=true;
     try{const r=await save('rejectFormOrder',{id,reason},'却下しました');fiSyncRaw(r);delete FI.ask[id];renderInbox();renderBadge()}catch(err){}return}
 });
-$('fiBody').addEventListener('input',e=>{const el=e.target;if(!el.id||!el.id.startsWith('fiQ-'))return;const id=el.id.slice(4);FI.q[id]=el.value;const pos=el.selectionStart;renderInbox();const n=$(el.id);if(n){n.focus();n.setSelectionRange(pos,pos)}});
+/* 日本語入力（変換中）に画面を作り直すと、打ちかけの文字が二重に入る（「るいのうえん」が「るるいるいの…」になる）。
+   変換中は作り直さず、確定したときに作り直す（2026/11/19 修正。ほかの検索欄と同じやり方） */
+const fiQin=e=>{const el=e.target;if(!el.id||!el.id.startsWith('fiQ-'))return;if(e.type==='input'&&e.isComposing)return;const id=el.id.slice(4);FI.q[id]=el.value;const pos=el.selectionStart;renderInbox();const n=$(el.id);if(n){n.focus();n.setSelectionRange(pos,pos)}};
+$('fiBody').addEventListener('input',fiQin);$('fiBody').addEventListener('compositionend',fiQin);
 
 /* ===== 顧客の注文リンク（店名・電話・お届け先が入った状態で開く専用リンク） ===== */
 function fiLinkOf(code){
@@ -2083,15 +2088,18 @@ function bagPreview(){const h=Number($('bHours').value),n=Number($('bPeople').va
   const labor=edited?h*wageOn(d):bagAuto.cost;
   if(h&&bags){$('bPreview').innerHTML=`人件費 <b>${fmt(Math.round(labor))}円</b>${edited?`<span class="dim">（${h}h × 最低賃金）</span>`:'<span class="dim">（シフトの時給どおり）</span>'}　÷ ${fmt(bags)}袋 ＝ <b style="font-size:18px">${(labor/bags).toFixed(1)} 円/袋</b><br>${fmt(bags)}袋 ≒ ${((b350*350+b600*550)/1000).toFixed(0)}kg　${(bags/h).toFixed(0)} 袋/人時 <span class="dim">（基準 ${BAGS_PER_H}）</span>`}else $('bPreview').textContent='袋数を入れると 円/袋 が出ます'}
 ['bHours','bPeople','b350','b600'].forEach(i=>$(i).oninput=bagPreview);
-$('bDate').onchange=bagShiftFill;$('bReset').onclick=()=>{$('bPeople').value=bagAuto.n;$('bHours').value=bagAuto.h;bagPreview();toast('シフトの値に戻しました。記録すると以後シフト連動になります')};
+var BAG_DIRTY=false;['bHours','bPeople','b350','b600','bMemo'].forEach(i=>$(i).addEventListener('input',()=>{BAG_DIRTY=true}));
+$('bDate').onchange=()=>{BAG_DIRTY=false;bagShiftFill()};$('bReset').onclick=()=>{BAG_DIRTY=true;$('bPeople').value=bagAuto.n;$('bHours').value=bagAuto.h;bagPreview();toast('シフトの値に戻しました。記録すると以後シフト連動になります')};
 $('bSave').onclick=()=>{if(!$('bDate').value)$('bDate').value=ymd(TODAY);if(!Number($('bHours').value)){toast('この日はシフトに出勤がありません。人数と時間を手で入れてください');return}const h=Number($('bHours').value),n=Number($('bPeople').value),b350=Number($('b350').value)||0,b600=Number($('b600').value)||0;if(!h||!(b350+b600)){toast('袋数を入れてください');return}
   const d=new Date($('bDate').value);const edited=h!==bagAuto.h||n!==bagAuto.n;const i=BAGLOG.findIndex(r=>ymd(r.d)===ymd(d));
   const r={d,h,n,b350,b600,bags:b350+b600,memo:$('bMemo').value,cost:null,edited};if(i>=0)BAGLOG[i]=r;else BAGLOG.push(r);
-  renderBag();save('saveBag',{date:ymd(d),b350,b600,memo:r.memo,edited,n,h},`${md(d)} の袋詰を記録しました（${bagCost(r).perBag.toFixed(1)}円/袋）`)};
+  BAG_DIRTY=false;renderBag();save('saveBag',{date:ymd(d),b350,b600,memo:r.memo,edited,n,h},`${md(d)} の袋詰を記録しました（${bagCost(r).perBag.toFixed(1)}円/袋）`)};
 function bagAgg(rows){const h=rows.reduce((s,r)=>s+bagCost(r).h,0),bags=rows.reduce((s,r)=>s+r.bags,0),labor=rows.reduce((s,r)=>s+bagCost(r).labor,0);return {h,bags,labor,perBag:bags?labor/bags+MATERIAL_PER_BAG:0,perH:h?bags/h:0}}
 function renderBag(){
   if(!$('bDate').value)$('bDate').value=ymd(TODAY);
-  bagShiftFill();
+  /* 打ちかけの入力があるときは消さない。ほかのタブや別のアプリを見て戻ると画面を作り直すので、
+     そのたびに人数・時間・袋数・メモが記録済みの値に戻っていた（2026/11/19 修正） */
+  if(BAG_DIRTY){const ids=['bPeople','bHours','b350','b600','bMemo'];const keep=ids.map(i=>$(i).value);bagShiftFill();ids.forEach((i,k)=>{$(i).value=keep[k]});bagPreview()}else bagShiftFill();
   const rows=BAGLOG.slice().sort((a,b)=>b.d-a.d);
   const mon=monday(TODAY);const inR=(r,a,b)=>d0(r.d)>=a&&d0(r.d)<=b;
   const tw=bagAgg(rows.filter(r=>inR(r,mon,addD(mon,6)))),lw=bagAgg(rows.filter(r=>inR(r,addD(mon,-7),addD(mon,-1)))),tm=bagAgg(rows.filter(r=>r.d.getMonth()===TODAY.getMonth()&&r.d.getFullYear()===TODAY.getFullYear())),all=bagAgg(rows);const nxt=WAGES.find(w=>w.from>ymd(TODAY));const curW=wageOn(TODAY);
@@ -2317,11 +2325,11 @@ function ivRenderEdit(){const c=CUST.find(x=>x.code===IV.sel);if(!c){$('ivEdit')
 function ivBind(c){const E=$('ivEdit');const upd=()=>{ivQueue(c);ivRenderEdit();ivRenderSheet();ivRenderListOnly()};
   E.querySelectorAll('[data-ivu]').forEach(s=>s.onchange=()=>{const st=IV.P[s.dataset.ivu];st.u=s.value;st.pre=false;upd()});
   E.querySelectorAll('[data-ivr]').forEach(s=>s.onchange=()=>{IV.P[s.dataset.ivr].r=Number(s.value);upd()});
-  E.querySelectorAll('[data-ivp]').forEach(inp=>inp.onchange=()=>{const k=inp.dataset.ivp;const v=inp.value.replace(/[^\d.]/g,'');const st=IV.P[k];st.p=v;st.pre=false;
+  E.querySelectorAll('[data-ivp]').forEach(inp=>inp.onchange=()=>{const k=inp.dataset.ivp;const v=han(inp.value).replace(/[^\d.]/g,'');const st=IV.P[k];st.p=v;st.pre=false;
     if(v!==''){const [no]=k.split('|');const o=ivOrders().find(x=>x.no===no);const l=o.lines.find(x=>ivK(no,x.gyo)===k);const nm=ivName(l);
       ivOrdersOf(c).forEach(o2=>o2.lines.forEach(l2=>{const s2=ivSt(o2,l2);if(s2.p===''&&ivName(l2)===nm&&s2.u===st.u)s2.p=v}))}
     upd();const all=[...$('ivEdit').querySelectorAll('[data-ivp]')];const i=all.findIndex(x=>x.dataset.ivp===k);const nx=all.slice(i+1).find(x=>x.value==='');if(nx)nx.focus()});
-  E.querySelectorAll('[data-ivf]').forEach(inp=>inp.onchange=()=>{const no=inp.dataset.ivf;const v=inp.value.replace(/[^\d]/g,'');delete IV.FEEPRE[no];if(v==='')delete IV.FEE[no];else IV.FEE[no]=Number(v);upd()});
+  E.querySelectorAll('[data-ivf]').forEach(inp=>inp.onchange=()=>{const no=inp.dataset.ivf;const v=han(inp.value).replace(/[^\d]/g,'');delete IV.FEEPRE[no];if(v==='')delete IV.FEE[no];else IV.FEE[no]=Number(v);upd()});
   E.querySelectorAll('[data-ivnone]').forEach(x=>x.onchange=()=>{const no=x.dataset.ivnone;delete IV.FEEPRE[no];if(x.checked)IV.FEE[no]=0;else delete IV.FEE[no];upd()});
   E.querySelectorAll('[data-ivack]').forEach(b=>b.onclick=()=>{IV.ACK[b.dataset.ivack]=1;upd()});
   if($('ivBankRow'))$('ivBankRow').onclick=e=>{const b=e.target.closest('[data-ivbk]');if(!b||b.disabled||ivBank(c)===b.dataset.ivbk)return;IV.BANK[c]=b.dataset.ivbk;ivQueue(c);ivRenderEdit()};
@@ -2329,12 +2337,12 @@ function ivBind(c){const E=$('ivEdit');const upd=()=>{ivQueue(c);ivRenderEdit();
     const fields={'運送会社':c2,'配送方法':methodOf(c2)};if(o.act.shipAt&&pick){fields['伝票No']='';fields['個口数']=''}o.carrier=c2;o.act.carrier=c2;o.method=fields['配送方法'];if(pick){o.act.waybill='';o.act.pieces=''}
     const m=`${before} → ${shipTxt(o).replace(/<[^>]+>/g,'')}（請求タブで直した）`;o.events.push({t:'配送を直す',at:new Date(),by:ME,m});if(pick){delete IV.FEE[o.no];delete IV.FEEPRE[o.no]}if(carKind(c2)==='運送会社'&&!hasWay(o))delete IV.ACK[o.no];else IV.ACK[o.no]=1;
     upd();try{await api('updateOrderFields',{no:o.no,fields,event:{'種別':'配送を直す','担当':ME,'内容':m}});syncRaw('updateOrderFields',{no:o.no,fields,event:{'種別':'配送を直す','内容':m}},{});toast(`${o.no} の受け渡しを直しました`)}catch(e){errBar('受け渡しを直せませんでした：'+e.message)}});
-  E.querySelectorAll('[data-ivd]').forEach(inp=>inp.onchange=()=>{const no=inp.dataset.ivd;const v=inp.value.replace(/[^\d]/g,'');const r=(IV.DISC[no]||{}).r||8;if(!v||v==='0')delete IV.DISC[no];else IV.DISC[no]={a:Number(v),r};upd()});
+  E.querySelectorAll('[data-ivd]').forEach(inp=>inp.onchange=()=>{const no=inp.dataset.ivd;const v=han(inp.value).replace(/[^\d]/g,'');const r=(IV.DISC[no]||{}).r||8;if(!v||v==='0')delete IV.DISC[no];else IV.DISC[no]={a:Number(v),r};upd()});
   E.querySelectorAll('[data-ivdr]').forEach(s=>s.onchange=()=>{const no=s.dataset.ivdr;IV.DISC[no]=Object.assign({a:0},IV.DISC[no]||{},{r:Number(s.value)});upd()});
   E.querySelectorAll('[data-ivm]').forEach(inp=>inp.onchange=()=>{const v=inp.value.trim();if(v)IV.MEMO[inp.dataset.ivm]=v;else delete IV.MEMO[inp.dataset.ivm];upd()});
   const fo=()=>IV.FIN[c]=IV.FIN[c]||{a:0,r:8,t:''};
   const fa=E.querySelector('[data-ivfa]'),fr=E.querySelector('[data-ivfr]'),ft=E.querySelector('[data-ivft]');
-  if(fa)fa.onchange=()=>{fo().a=Number(fa.value.replace(/[^\d]/g,''))||0;upd()};if(fr)fr.onchange=()=>{fo().r=Number(fr.value);upd()};if(ft)ft.onchange=()=>{fo().t=ft.value.trim();upd()};
+  if(fa)fa.onchange=()=>{fo().a=Number(han(fa.value).replace(/[^\d]/g,''))||0;upd()};if(fr)fr.onchange=()=>{fo().r=Number(fr.value);upd()};if(ft)ft.onchange=()=>{fo().t=ft.value.trim();upd()};
   if($('ivIssue'))$('ivIssue').onclick=()=>ivConfirmIssue(c);
   if($('ivUn'))$('ivUn').onclick=async()=>{busy(true);try{await api('invoiceUnissue',{ym:IV.ym,cust:c});IV.heads[c]=Object.assign({},IV.heads[c],{'状態':'下書き'});toast('発行を取り消しました（作ったPDFはドライブに残っています）')}catch(e){errBar('取り消せませんでした：'+e.message)}finally{busy(false)}renderInv()};
 }
@@ -2500,7 +2508,7 @@ function mgForm(){const F=MGF;if(!F.sales)F.sales=ME;const v=$('v-mg');const c=c
   const q=$('mgQ');imeIn(q,()=>{const p=q.selectionStart;F.q=q.value;re();const n=$('mgQ');n.focus();n.setSelectionRange(p,p)});
   if($('mgCuX'))$('mgCuX').onclick=()=>{F.cust='';F.q='';re()};
   v.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{const x=F.it[b.dataset.k];x.box=Math.max(0,x.box+ +b.dataset.d);re()});
-  v.querySelectorAll('[data-kb]').forEach(i=>i.onchange=()=>{F.it[i.dataset.kb].box=Math.max(0,parseInt(i.value.replace(/[^\d]/g,''))||0);re()});
+  v.querySelectorAll('[data-kb]').forEach(i=>i.onchange=()=>{F.it[i.dataset.kb].box=Math.max(0,parseInt(han(i.value).replace(/[^\d]/g,''))||0);re()});
   v.querySelectorAll('[data-bara]').forEach(b=>b.onclick=()=>{F.it[b.dataset.k].bara=+b.dataset.bara;re()});
   destPick($('mgDest'),F,c||null,()=>{F.alt=F.dest==='alt';re()});F.alt=F.dest==='alt';
   $('mgCar').onchange=e=>{F.car=e.target.value};$('mgDl').onchange=e=>{F.dl=e.target.value;if(F.planAuto)F.plan=mgPlanOf(F.dl,F.cust);re()};$('mgPl2').onchange=e=>{F.plan=e.target.value;F.planAuto=!F.plan;if(!F.plan&&F.dl&&false)F.plan='';re()};$('mgNote').oninput=e=>{F.note=e.target.value};$('mgSales').oninput=e=>{F.sales=e.target.value};
@@ -2540,7 +2548,7 @@ function mgCust(){const v=$('v-mg');const cnt={};MGO.forEach(o=>{if(o.status!=='
     <p class="note mgin">さつまいもの取引は、上の切替を「さつまいも」にして顧客タブで見られます。工場宛てなど届け先が違うときは、登録のときに「今回だけ別の送り先」で入れます。</p></section>`:'<div class="card"><p class="dim">左から顧客を選ぶと、ペーストの注文が出ます</p></div>'}</div></div>`;
   v.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{MGC.all=b.dataset.a==='1';mgCust()});
   v.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{MGC.sel=b.dataset.s;mgCust()});
-  if($('mgLdS'))$('mgLdS').onclick=async()=>{const v=$('mgLd').value.replace(/[^\d]/g,'');busy(true);try{await api('saveCustomer',{customer:{'コード':sc.code,'ペースト配送日数':v===''?'':Number(v)}});const rc=RAW.customers.find(x=>String(x['コード'])===sc.code);if(rc)rc['ペースト配送日数']=v===''?'':Number(v);sc.mgLead=v===''?'':Number(v);toast(`${sc.name} の配送日数を ${v||'未設定'} にしました`);mgCust()}catch(e){errBar('保存できませんでした：'+e.message)}finally{busy(false)}};
+  if($('mgLdS'))$('mgLdS').onclick=async()=>{const v=han($('mgLd').value).replace(/[^\d]/g,'');busy(true);try{await api('saveCustomer',{customer:{'コード':sc.code,'ペースト配送日数':v===''?'':Number(v)}});const rc=RAW.customers.find(x=>String(x['コード'])===sc.code);if(rc)rc['ペースト配送日数']=v===''?'':Number(v);sc.mgLead=v===''?'':Number(v);toast(`${sc.name} の配送日数を ${v||'未設定'} にしました`);mgCust()}catch(e){errBar('保存できませんでした：'+e.message)}finally{busy(false)}};
   if($('mgCok'))$('mgCok').onclick=async()=>{busy(true);try{const r=await api('mgCustOk',{code:sc.code});const rc=RAW.customers.find(x=>String(x['コード'])===sc.code);if(rc)rc['確認日時']=r.at;sc.conf=pdt(r.at);toast('確認しました');renderBadge();mgCust()}catch(e){errBar('確認できませんでした：'+e.message)}finally{busy(false)}};
   const q=$('mgCQ');imeIn(q,()=>{const p=q.selectionStart;MGC.q=q.value;mgCust();const n=$('mgCQ');n.focus();n.setSelectionRange(p,p)})}
 
@@ -2582,12 +2590,12 @@ function mgDraw(no){const o=MGO.find(x=>x.no===no);const ov=$('mgDt');if(!o||!ov
   const send=async(p,okMsg)=>{busy(true);E('');try{const r=await api(p.den!==undefined&&p.to===undefined?'mgShipInfo':'mgStatus',p);mgPatchRaw(o.no,r.fields,null,r.event);toast(okMsg);mgDraw(o.no)}catch(e){E(e.message);if(/ほかの人が先に/.test(e.message))reload()}finally{busy(false)}};
   ov.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{const to=b.dataset.go;const p={no:o.no,expect:o.status,to};
     if(to==='マグチへ依頼済')p.memo=$('mgM').value.trim();
-    if(to==='発送済'){p.car=$('mgC').value;p.den=$('mgD').value.trim();p.noDen=$('mgDn').checked;p.kuchi=$('mgK').value.replace(/[^\d]/g,'');
+    if(to==='発送済'){p.car=$('mgC').value;p.den=han($('mgD').value).trim();p.noDen=$('mgDn').checked;p.kuchi=han($('mgK').value).replace(/[^\d]/g,'');
       if(!p.car)return E('運送会社を選んでください');if(p.car!=='引取り'&&!p.den&&!p.noDen)return E('伝票No.を入れるか、「まだ分からない」にチェックしてください')}
     if(to==='納品済')p.how=$('mgN').value;
     send(p,`${o.no}：${mgStLabel(to)}にしました`)});
   if($('mgPlS'))$('mgPlS').onclick=async()=>{const v=$('mgPl').value;busy(true);E('');try{const r=await api('mgPlan',{no:o.no,plan:v});mgPatchRaw(o.no,r.fields,null,r.event);toast(v?`発送予定日を ${md(pdt(v))} にしました`:'発送予定日を消しました');mgDraw(o.no)}catch(e){E(e.message)}finally{busy(false)}};
-  if($('mgDsave'))$('mgDsave').onclick=()=>{const d=$('mgD2').value.trim();if(!d)return E('伝票No.を入れてください');send({no:o.no,den:d},'伝票No.を保存しました')};
+  if($('mgDsave'))$('mgDsave').onclick=()=>{const d=han($('mgD2').value).trim();if(!d)return E('伝票No.を入れてください');send({no:o.no,den:d},'伝票No.を保存しました')};
   if($('mgBack'))$('mgBack').onclick=()=>{if(!confirmInline($('mgBack'),'もう一度押すと戻します'))return;send({no:o.no,expect:o.status,to:'戻す'},`${o.no}：ひとつ前に戻しました`)};
   if($('mgCn'))$('mgCn').onclick=()=>{const r=$('mgCr').value;if(!r){$('mgCr').style.borderColor='var(--bad)';return E('キャンセルの理由を選んでください')}if(!confirmInline($('mgCn'),'もう一度押すとキャンセル'))return;send({no:o.no,expect:o.status,to:'キャンセル',reason:r},`${o.no} をキャンセルしました`)};
   if($('mgEd'))$('mgEd').onclick=()=>{const F=mgNewF();F.no=o.no;F.expect=o.status;F.cust=o.cust;F.dl=ymd(o.deliver);F.plan=o.plan?ymd(o.plan):'';F.planAuto=!o.plan;F.car=o.carrier;F.note=o.note;F.sales=o.sales||ME;F.alt=!!o.addrAlt;F.altTxt=o.addrAlt;F.dest=o.addrAlt?'alt':(o.destId||'base');F.destCust=o.cust;o.lines.forEach(l=>{if(F.it[l.item]){F.it[l.item].box=l.box;F.it[l.item].bara=l.bara}});F.editCust=o.cust;F.custUnlock=false;MGF=F;$('mgDt').remove();if(PM!=='paste')mgSetPM('paste');switchTab.keep=true;switchTab('new')}}
